@@ -1,0 +1,477 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.collections &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.util.collections</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.util.collections</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Observable collection classes.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Boxed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Bool&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;List&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Selection&#39;</span>
+<span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">MutableSequence</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+
+
+<span class="k">def</span> <span class="nf">_operator</span><span class="p">(</span><span class="n">get</span><span class="p">):</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">get</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">operation</span><span class="p">(</span><span class="o">*</span><span class="n">operands</span><span class="p">):</span>
+        <span class="n">rtype</span> <span class="o">=</span> <span class="n">operands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__class__</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">operands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_dtype</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="n">dtype</span><span class="p">(</span><span class="n">operand</span><span class="p">())</span> <span class="k">for</span> <span class="n">operand</span> <span class="ow">in</span> <span class="n">operands</span><span class="p">]</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">rtype</span><span class="p">(</span><span class="n">get</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">()))</span>
+        <span class="n">update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">get</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">()))</span>
+        <span class="k">for</span> <span class="n">operand</span> <span class="ow">in</span> <span class="n">operands</span><span class="p">:</span>
+            <span class="n">operand</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">return</span> <span class="n">operation</span>
+
+
+<div class="viewcode-block" id="Boxed"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.Boxed">[docs]</a><span class="k">class</span> <span class="nc">Boxed</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A box that holds a single object and can be observed for changes</span>
+<span class="sd">    (assigning a different object).</span>
+
+<span class="sd">    Storing an object inside another one is the only way to pass around</span>
+<span class="sd">    variable references in python (which doesn&#39;t have native pointer or</span>
+<span class="sd">    references variables otherwise and therefore only supports passing the</span>
+<span class="sd">    objects themselves).</span>
+
+<span class="sd">    This class also provides a signal that notifies about changes in value.</span>
+
+<span class="sd">    This has some similarities to what is called a BehaviourSubject in RX.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">changed</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">([</span><span class="nb">object</span><span class="p">])</span>
+    <span class="n">changed2</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">([</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+
+<div class="viewcode-block" id="Boxed.set"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.Boxed.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+        <span class="k">if</span> <span class="n">force</span> <span class="ow">or</span> <span class="n">new</span> <span class="o">!=</span> <span class="n">old</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">new</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">changed2</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="Boxed.changed_singleshot"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.Boxed.changed_singleshot">[docs]</a>    <span class="k">def</span> <span class="nf">changed_singleshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">on_change</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="n">on_change</span><span class="p">)</span>
+            <span class="n">callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">on_change</span><span class="p">)</span></div>
+
+    <span class="fm">__eq__</span> <span class="o">=</span> <span class="n">_operator</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">)</span>
+    <span class="fm">__ne__</span> <span class="o">=</span> <span class="n">_operator</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="fm">__ne__</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bool"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.Bool">[docs]</a><span class="k">class</span> <span class="nc">Bool</span><span class="p">(</span><span class="n">Boxed</span><span class="p">):</span>
+
+    <span class="n">_dtype</span> <span class="o">=</span> <span class="nb">bool</span>
+    <span class="fm">__and__</span> <span class="o">=</span> <span class="n">_operator</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="fm">__and__</span><span class="p">)</span>
+    <span class="fm">__or__</span> <span class="o">=</span> <span class="n">_operator</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="fm">__or__</span><span class="p">)</span>
+    <span class="n">__xor_</span> <span class="o">=</span> <span class="n">_operator</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="fm">__xor__</span><span class="p">)</span>
+    <span class="fm">__invert__</span> <span class="o">=</span> <span class="n">_operator</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">__not__</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="List"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.List">[docs]</a><span class="k">class</span> <span class="nc">List</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;A list-like class that can be observed for changes.&quot;&quot;&quot;</span>
+
+    <span class="c1"># parameters: (slice, old_values, new_values)</span>
+    <span class="n">update_started</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">([</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span>
+    <span class="n">update_finished</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">([</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span>
+
+    <span class="n">inserted</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">([</span><span class="nb">int</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span>
+    <span class="n">removed</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">([</span><span class="nb">int</span><span class="p">])</span>
+    <span class="n">changed</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">([</span><span class="nb">int</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use the items object by reference.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span> <span class="k">if</span> <span class="n">items</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">items</span>
+
+<div class="viewcode-block" id="List.touch"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.List.touch">[docs]</a>    <span class="k">def</span> <span class="nf">touch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="List.update_notify"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.List.update_notify">[docs]</a>    <span class="nd">@contextmanager</span>
+    <span class="k">def</span> <span class="nf">update_notify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="n">new_values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Emit update signals, only when .&quot;&quot;&quot;</span>
+        <span class="n">old_values</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="nb">slice</span><span class="p">]</span>
+        <span class="n">num_del</span><span class="p">,</span> <span class="n">num_ins</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_values</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_values</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">slice</span><span class="o">.</span><span class="n">step</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">num_del</span> <span class="o">!=</span> <span class="n">num_ins</span><span class="p">:</span>
+            <span class="c1"># This scenario is forbidden by `list` as well (even step=-1).</span>
+            <span class="c1"># Catch it before emitting the event.</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;attempt to assign sequence of size </span><span class="si">{}</span><span class="s2"> to slice of size </span><span class="si">{}</span><span class="s2">&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_ins</span><span class="p">,</span> <span class="n">num_del</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_started</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="nb">slice</span><span class="p">,</span> <span class="n">old_values</span><span class="p">,</span> <span class="n">new_values</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="kc">None</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_emit_single_notify</span><span class="p">(</span><span class="nb">slice</span><span class="p">,</span> <span class="n">old_values</span><span class="p">,</span> <span class="n">new_values</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_finished</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="nb">slice</span><span class="p">,</span> <span class="n">old_values</span><span class="p">,</span> <span class="n">new_values</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_emit_single_notify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="n">old_values</span><span class="p">,</span> <span class="n">new_values</span><span class="p">):</span>
+        <span class="n">num_old</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_values</span><span class="p">)</span>
+        <span class="n">num_new</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_values</span><span class="p">)</span>
+        <span class="n">num_ins</span> <span class="o">=</span> <span class="n">num_new</span> <span class="o">-</span> <span class="n">num_old</span>
+        <span class="n">old_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="n">num_ins</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">old_len</span><span class="p">)[</span><span class="nb">slice</span><span class="p">]</span>
+        <span class="c1"># TODO: verify correctness...:</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">old_values</span><span class="p">,</span> <span class="n">new_values</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">emit_changed_if</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_old</span> <span class="o">&gt;</span> <span class="n">num_new</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">[</span><span class="n">num_new</span><span class="p">:][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">removed</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">num_new</span> <span class="o">&gt;</span> <span class="n">num_old</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="o">.</span><span class="n">start</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">num_old</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">new_values</span><span class="p">[</span><span class="n">num_old</span><span class="p">:]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inserted</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">start</span><span class="o">+</span><span class="n">idx</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+<div class="viewcode-block" id="List.emit_changed_if"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.List.emit_changed_if">[docs]</a>    <span class="k">def</span> <span class="nf">emit_changed_if</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Decide when self.changed should be emitted upon assigning a new</span>
+<span class="sd">        value into an existing index. Can be overridden by the user to change</span>
+<span class="sd">        our behaviour.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="c1"># Sized</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">)</span>
+
+    <span class="c1"># Iterable</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">)</span>
+
+    <span class="c1"># Container</span>
+
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span>
+
+    <span class="c1"># Sequence</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__reversed__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">)</span>
+
+<div class="viewcode-block" id="List.index"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.List.index">[docs]</a>    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="List.count"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.List.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+    <span class="c1"># MutableSequence</span>
+
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span><span class="p">,)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_notify</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="c1"># Don&#39;t notify user for NOPs:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">[</span><span class="n">index</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_notify</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="p">()):</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+<div class="viewcode-block" id="List.insert"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.List.insert">[docs]</a>    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_notify</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="p">(</span><span class="n">value</span><span class="p">,)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+    <span class="n">append</span> <span class="o">=</span> <span class="n">MutableSequence</span><span class="o">.</span><span class="n">append</span>
+    <span class="n">reverse</span> <span class="o">=</span> <span class="n">MutableSequence</span><span class="o">.</span><span class="n">reverse</span>
+
+<div class="viewcode-block" id="List.extend"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.List.extend">[docs]</a>    <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="n">end</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span></div>
+
+    <span class="n">pop</span> <span class="o">=</span> <span class="n">MutableSequence</span><span class="o">.</span><span class="n">pop</span>
+    <span class="n">remove</span> <span class="o">=</span> <span class="n">MutableSequence</span><span class="o">.</span><span class="n">remove</span>
+    <span class="fm">__iadd__</span> <span class="o">=</span> <span class="n">MutableSequence</span><span class="o">.</span><span class="fm">__iadd__</span>
+
+    <span class="c1"># convenience</span>
+
+<div class="viewcode-block" id="List.clear"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.List.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="p">[:]</span></div></div>
+
+
+<span class="n">MutableSequence</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">List</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Selection"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.Selection">[docs]</a><span class="k">class</span> <span class="nc">Selection</span><span class="p">(</span><span class="n">List</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Set of items with the additional notion of a cursor to the least</span>
+<span class="sd">    recently *active* element. Each item can occur only once in the set.</span>
+
+<span class="sd">    Note that the inherited ``List`` methods and signals can be used to listen</span>
+<span class="sd">    for selection changes, and to query or delete items. However, for</span>
+<span class="sd">    *inserting* or *modifying* elements, only use the methods defined in the</span>
+<span class="sd">    ``Selection`` class can be used to ensure that items stay unique.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Boxed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># activity changes the &quot;active&quot; element:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_changed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">removed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_removed</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Selection.add"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.Selection.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add the item to the set if not already present. If ``replace`` is</span>
+<span class="sd">        true, the currently active item will be replaced by the new item. In</span>
+<span class="sd">        each case, set the active element to ``item``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">item</span><span class="p">)]</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="k">elif</span> <span class="n">replace</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">()]</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="c1"># When inserting elements, we can&#39;t use the `self.inserted` signal</span>
+            <span class="c1"># to adjust the cursor, because this triggers too early for other</span>
+            <span class="c1"># viewers to have realized that a new element was inserted</span>
+            <span class="c1"># already (which is I guess the downside of using DirectConnection</span>
+            <span class="c1"># signals, i.e. depth-first evaluation):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Selection.cursor_item"><a class="viewcode-back" href="../../../api/madgui.util.collections.html#madgui.util.collections.Selection.cursor_item">[docs]</a>    <span class="k">def</span> <span class="nf">cursor_item</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the currently active item.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">()]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+    <span class="c1"># internal methods</span>
+
+    <span class="k">def</span> <span class="nf">_on_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_removed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">index</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="o">==</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,404 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>User’s guide &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Main window" href="mainWindow.html" />
+    <link rel="prev" title="Getting started" href="../getting-started.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User’s guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mainWindow.html">Main window</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="view.html">View</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exportImport.html">Export / Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="settings.html">Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="online.html">Online Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="help.html">Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up-the-model">Setting up the model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#set-up-file">Set-up file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#beam-file">Beam file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reformating-the-sequence">Reformating the sequence</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>User’s guide</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/usrguide/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="user-s-guide">
+<h1>User’s guide<a class="headerlink" href="#user-s-guide" title="Permalink to this headline">¶</a></h1>
+<p>Welcome to the user’s guide. We expect madgui to be intuitive, but for
+full usability of the implemented features here is a detailed description
+of how to optimaly format a model suiting madgui’s necessities.
+Please make sure to take a look at the following sections describing madgui’s
+standard menu options as well as the window arrays.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mainWindow.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="view.html">View</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exportImport.html">Export / Import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="scaling.html">Scaling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scaling.html#font-sizes">Font sizes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="scaling.html#scale-factor">Scale factor</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="online.html">Online Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help.html">Help</a></li>
+</ul>
+</div>
+<div class="section" id="setting-up-the-model">
+<h2>Setting up the model<a class="headerlink" href="#setting-up-the-model" title="Permalink to this headline">¶</a></h2>
+<p>As you might already have noticed, the way you can format your model in
+MAD-X is quite broad. For this reason some compromises were met in order to
+give a smooth structure for madgui to access every parameter in the lattice.
+We are going to assume you already have your model and that it runs in the latest
+version of MAD-X.</p>
+<p>Since the applications of MAD-X are quite broad, we will show an example of a
+lattice that was already designed in the sense that the length of the magnets
+and drifts won’t change, but the focussing strenghts of the quadrupoles or in
+general the K-values of the multipoles are still to be tuned.</p>
+<p>In principle the length of the magnets can also be varied, but this exercise
+is left to the user interested in this application.</p>
+<div class="section" id="set-up-file">
+<h3>Set-up file<a class="headerlink" href="#set-up-file" title="Permalink to this headline">¶</a></h3>
+<p>First make a new work folder, e.g. sample Model, and open a new text file.
+The text file will contain following information:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">path</span><span class="p">:</span> <span class="n">Name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">folder</span> <span class="n">containing</span> <span class="n">the</span> <span class="n">beam</span> <span class="n">line</span> <span class="n">model</span>
+<span class="n">init</span><span class="o">-</span><span class="n">files</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">File</span> <span class="n">containing</span> <span class="n">the</span> <span class="n">initial</span> <span class="n">element</span> <span class="n">strengths</span>
+  <span class="o">-</span> <span class="n">File</span> <span class="n">containing</span> <span class="n">the</span> <span class="n">sequence</span> <span class="n">of</span> <span class="n">the</span> <span class="n">beam</span> <span class="n">line</span>
+<span class="n">sequence</span><span class="p">:</span> <span class="n">Name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">sequence</span> <span class="n">that</span> <span class="n">will</span> <span class="n">be</span> <span class="n">used</span>
+<span class="nb">range</span><span class="p">:</span> <span class="n">From</span> <span class="n">where</span> <span class="n">to</span> <span class="n">where</span> <span class="n">will</span> <span class="n">the</span> <span class="n">model</span> <span class="n">run</span>
+<span class="n">beam</span><span class="p">:</span> <span class="n">File</span> <span class="n">containing</span> <span class="n">the</span> <span class="n">modeled</span> <span class="n">beam</span>
+<span class="n">twiss</span><span class="p">:</span>
+  <span class="n">Initial</span> <span class="n">twiss</span> <span class="n">parameters</span>
+</pre></div>
+</div>
+<p>The following is an example that you can find in <a class="reference external" href="https://github.com/hibtc/sample_model">sample model</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">path</span><span class="p">:</span> <span class="n">beamLine</span>
+<span class="n">init</span><span class="o">-</span><span class="n">files</span><span class="p">:</span>
+ <span class="o">-</span> <span class="n">strengths</span><span class="o">.</span><span class="n">str</span>
+ <span class="o">-</span> <span class="n">sequence</span><span class="o">.</span><span class="n">madx</span>
+
+<span class="n">sequence</span><span class="p">:</span> <span class="n">beamline1</span>
+<span class="nb">range</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;#s&#39;</span><span class="p">,</span> <span class="s1">&#39;#e&#39;</span><span class="p">]</span>
+
+<span class="n">beam</span><span class="p">:</span> <span class="s2">&quot;../shared/beamSample.yml&quot;</span>
+
+<span class="n">twiss</span><span class="p">:</span>
+  <span class="n">betx</span><span class="p">:</span> <span class="mf">1.</span>
+  <span class="n">bety</span><span class="p">:</span> <span class="mf">1.</span>
+  <span class="n">alfx</span><span class="p">:</span> <span class="mf">0.</span>
+  <span class="n">alfy</span><span class="p">:</span> <span class="mf">0.</span>
+</pre></div>
+</div>
+<p>Note that the name of the folder containing the beam line is <strong>beamLine</strong>,
+the sequence name is <strong>beamline1</strong> and the beam file is in a folder called
+<strong>shared</strong>, but we will come to that later. The file containing the beam line
+definition must in fact be called <strong>“sequence.madx”</strong>.
+Save this file as <strong>“sample.cpymad.yml”</strong>.
+The file extension <strong>‘.cpymad.yml’</strong> will be recognized automatically by madgui, but you might
+as well use any extension of your choice.
+Note that all the file paths will be relative to the path of <strong>beamLine</strong> folder.</p>
+</div>
+<div class="section" id="beam-file">
+<h3>Beam file<a class="headerlink" href="#beam-file" title="Permalink to this headline">¶</a></h3>
+<p>As we can see from the set up file, the beam definition is in a file called
+<strong>“beamSample.yml”</strong> inside a folder called <strong>shared</strong>. The beam file should look
+as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">particle</span><span class="p">:</span> <span class="n">C</span>
+<span class="n">mass</span><span class="p">:</span>   <span class="mf">11.177929</span>     <span class="c1"># 12u = 12*931.494095457e-3</span>
+<span class="n">energy</span><span class="p">:</span> <span class="mf">16.337929</span>     <span class="c1"># 12u + 12*430MeV</span>
+<span class="n">charge</span><span class="p">:</span> <span class="mf">6.0</span>
+<span class="n">ex</span><span class="p">:</span> <span class="mf">1.0e-06</span>
+<span class="n">ey</span><span class="p">:</span> <span class="mf">1.0e-06</span>
+<span class="n">sigt</span><span class="p">:</span> <span class="mf">0.001</span>
+<span class="n">sige</span><span class="p">:</span> <span class="mf">0.001</span>
+<span class="n">radiate</span><span class="p">:</span> <span class="n">false</span>
+</pre></div>
+</div>
+<p>Notice that we defined a Carbon Ion beam with 430MeV.</p>
+</div>
+<div class="section" id="reformating-the-sequence">
+<h3>Reformating the sequence<a class="headerlink" href="#reformating-the-sequence" title="Permalink to this headline">¶</a></h3>
+<p>The next step is to reformat your sequence for madgui to understand it better.
+The parameters of the elements in the sequence that are to be tuned, for
+example, the quadrupole strengths or the kick angle of orbit corrector magnets
+will be in the <strong>“strengths.str”</strong> file, whereas the static parameters such as the
+length of the magnets and drifts or the bending angles of the dipoles,
+will be written directly on the definition of the beam line sequence.</p>
+<p>In the <a class="reference external" href="https://github.com/hibtc/sample_model">sample model</a> we have 3 quadrupole families, two bending magnets,
+two corrector kickers and two monitors. The <strong>‘strengths.str’</strong> has following
+information:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>! These are the nominal K-values of the quadrupoles
+! First quadrupole duplet
+kL_Q11 = 1.0;
+kL_Q12 = -1.0;
+! Second quadrupole duplet
+kL_Q21 = 1.0;
+kL_Q22 = -1.0;
+! Third quadrupole duplet
+kL_Q31 = 1.0;
+kL_Q32 = -1.0;
+! These are the kick nominal values
+ax_K1  = 0.000;
+ay_K1  = 0.000;
+</pre></div>
+</div>
+<p>Now you just have to make sure that the parameters have the same name in the
+sequence file, and are defined with ‘:’, in the sample the sequence file look
+as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>call, file=&quot;../shared/defs.madx&quot;;
+! This is practical if you want to divide your sequences in smaller parts
+beamline1: sequence, refer=entry, L=22.0;
+  call, file=&quot;sampleSeq1.seq&quot;;
+  call, file=&quot;sampleSeq2.seq&quot;;
+endsequence;
+</pre></div>
+</div>
+<p>where you can easily see that the sequence was divided in two parts,
+the first part is in the file <strong>‘sampleSeq1.seq’</strong> and the second in
+<strong>‘sampleSeq2.seq’</strong>. A file named <strong>‘defs.madx’</strong> was called and it
+is on the folder named <strong>‘shared’</strong>. This might be practical if you share
+values for different transfer lines or models.
+The definition of the first part of the sequence as in <strong>‘sampleSeq1.seq’</strong>
+look as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>! These are the fixed lengths of the
+! two quadrupole families
+const L_Q11 = 0.50;
+const L_Q12 = 0.50;
+const L_Q21 = 0.50;
+const L_Q22 = 0.50;
+
+INIT:       DRIFT, L=1.0, at=0.0;
+QUAD_11:    QUADRUPOLE, L=L_Q11, k1:=kL_Q11/L_Q11, at=1.0;
+O_11:       DRIFT, L=0.3, at=1.5;
+QUAD_12:    QUADRUPOLE, L=L_Q12, k1:=kL_Q12/L_Q12, at=1.8;
+O_12:       DRIFT, L=2.7, at=2.3;
+QUAD_21:    QUADRUPOLE, L=L_Q21, k1:=kL_Q21/L_Q21, at=5.0;
+O_13:       DRIFT, L=0.3, at=5.5;
+QUAD_22:    QUADRUPOLE, L=L_Q22, k1:=kL_Q22/L_Q22, at=5.8;
+O_14:       DRIFT, L=1.2, at=6.3;
+MONITOR1:   MONITOR, at=7.5;
+O_15:       DRIFT, L=2.5, at=7.5;
+</pre></div>
+</div>
+<p>Notice here that in k1, the parameter was defined with <strong>‘:=’</strong>
+and not with <strong>‘=’</strong>. Essentially it is a quite trivial task to reformat
+your beam line. Make sure to experiment with the template format in
+the sample model and consider that this is just a set of soft guidelines,
+but remember that any sequence that runs in MAD-X, will also run in madgui,
+as long as the Twiss command was called once.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mainWindow.html" class="btn btn-neutral float-right" title="Main window" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../getting-started.html" class="btn btn-neutral float-left" title="Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

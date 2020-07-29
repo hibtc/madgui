@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Infrastructure &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Creating a new version" href="releases.html" />
+    <link rel="prev" title="Related projects" href="related.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer’s guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="setup.html">Development setup for madgui</a></li>
+<li class="toctree-l2"><a class="reference internal" href="proxy.html">Proxy Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conventions.html">Coding conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="related.html">Related projects</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html">Creating a new version</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Developer’s guide</a> &raquo;</li>
+        
+      <li>Infrastructure</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/devguide/infrastructure.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="infrastructure">
+<h1>Infrastructure<a class="headerlink" href="#infrastructure" title="Permalink to this headline">¶</a></h1>
+<p>Both madgui and cpymad make use of so-called <em>continuous integration</em> services
+that are triggered whenever a branch is updated on github. When this happens,
+the following is done with all supported python versions:</p>
+<ul class="simple">
+<li><p>package is built</p></li>
+<li><p>tests are executed</p></li>
+<li><p>style checks and consistency checks are performed</p></li>
+<li><p>update and upload documentation, if on master</p></li>
+<li><p>upload new releases, if a tag was pushed</p></li>
+</ul>
+<div align="center" class="align-center"><div class="graphviz"><img src="../_images/graphviz-3fb7802db9bb6136abf4da227f97966e04c4d3a3.png" alt="digraph {
+    rankdir=LR;
+    node [
+        shape=rectangle,
+        fontsize=10,
+        style=rounded,
+    ];
+    edge [
+        fontsize=10
+    ];
+
+    // action nodes:
+    {
+        node [
+            shape=diamond,
+            width=0.7,
+            height=0.5,
+            fontsize=9,
+            fixedsize=true,
+            fillcolor=&quot;#eeeeee&quot;,
+            style=filled,
+        ];
+        build; test; upload;
+    }
+
+    User -&gt; github [label=&quot;push&quot;];
+    github -&gt; ci [label=&quot;notify&quot;];
+    ci -&gt; github [label=&quot;pull&quot;; style=dashed, color=gray, constraint=false];
+
+    ci -&gt; build -&gt; test;
+
+    test -&gt; coveralls [label=&quot;report&quot;];
+
+    test -&gt; upload [
+        headlabel=&quot;tags   on success&quot;,
+        labeldistance=3.0,
+        labelangle=-40,
+    ];
+
+    upload -&gt; pypi [label=&quot;release&quot;];
+    upload -&gt; github2 [
+        headlabel=&quot;doc&quot;,
+        labeldistance=6,
+        labelangle=10,
+        constraint=false,
+    ];
+
+    {rank = same; github2; pypi;}
+
+    {rank = same; ci; build; test; upload;}
+
+    ci [label = &quot;CI&quot;];
+    pypi [label = &quot;PyPI&quot;];
+    github2 [label = &quot;github&quot;];
+}" class="graphviz" /></div>
+</div>
+<p>The following platforms are used:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://travis-ci.org/">Travis CI</a>: executes <a class="reference external" href="https://travis-ci.org/hibtc/madgui">linux tests</a> and builds documentation</p></li>
+<li><p><a class="reference external" href="https://www.appveyor.com/">Appveyor CI</a>: executes <a class="reference external" href="https://travis-ci.org/hibtc/cpymad">windows tests</a>, currently only for cpymad</p></li>
+<li><p><a class="reference external" href="http://coverage.io/">coveralls</a>: test <a class="reference external" href="https://coveralls.io/github/hibtc/cpymad">coverage reports</a> are uploaded here</p></li>
+<li><p><a class="reference external" href="https://pypi.org/">PyPI</a>: this is where <a class="reference external" href="https://pypi.org/project/madgui/">new versions</a> for installation via pip are uploaded</p></li>
+</ul>
+<p>The exact build recipes are defined in the files <code class="docutils literal notranslate"><span class="pre">.travis.yml</span></code> and
+<code class="docutils literal notranslate"><span class="pre">.appveyor.yml</span></code>.</p>
+<p>The madgui/cpymad maintainer <em>must</em> make an account on both Travis and
+Appveyor (login with github should be fine) in order to receive reports about
+build and test failures.</p>
+<p>Further resources:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.travis-ci.com/">Travis CI documentation</a></p></li>
+<li><p><a class="reference external" href="https://www.appveyor.com/docs/">Appveyor documentation</a></p></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="releases.html" class="btn btn-neutral float-right" title="Creating a new version" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="related.html" class="btn btn-neutral float-left" title="Related projects" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

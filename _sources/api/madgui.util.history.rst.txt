@@ -1,0 +1,7 @@
+madgui.util.history module
+==========================
+
+.. automodule:: madgui.util.history
+   :members:
+   :undoc-members:
+   :show-inheritance:

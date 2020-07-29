@@ -1,0 +1,20 @@
+madgui.survey package
+=====================
+
+.. automodule:: madgui.survey
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   madgui.survey.camera
+   madgui.survey.gl_util
+   madgui.survey.gl_widget
+   madgui.survey.shapes
+   madgui.survey.transform
+   madgui.survey.widget

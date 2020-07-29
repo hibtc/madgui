@@ -1,0 +1,1480 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.tableview module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.twisswidget module" href="madgui.widget.twisswidget.html" />
+    <link rel="prev" title="madgui.widget.spinbox module" href="madgui.widget.spinbox.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.tableview module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.tableview.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.tableview">
+<span id="madgui-widget-tableview-module"></span><h1>madgui.widget.tableview module<a class="headerlink" href="#module-madgui.widget.tableview" title="Permalink to this headline">¶</a></h1>
+<p>Table widget specified by column behaviour.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem" title="madgui.widget.tableview.TableItem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TableItem</span></code></a>([data])</p></td>
+<td><p>Cell item data for a tree widget.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableModel" title="madgui.widget.tableview.TableModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TableModel</span></code></a>(titles, rowitems[, data])</p></td>
+<td><p>Table data model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableView" title="madgui.widget.tableview.TableView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TableView</span></code></a>(*args, **kwargs)</p></td>
+<td><p>A table widget based on Qt’s QTableView for our <a class="reference internal" href="#madgui.widget.tableview.TableModel" title="madgui.widget.tableview.TableModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableModel</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeView" title="madgui.widget.tableview.TreeView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TreeView</span></code></a>(*args, **kwargs)</p></td>
+<td><p>A tree widget based on Qt’s QTableView for our <a class="reference internal" href="#madgui.widget.tableview.TableModel" title="madgui.widget.tableview.TableModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableModel</span></code></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.NodeItem" title="madgui.widget.tableview.NodeItem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodeItem</span></code></a>([data])</p></td>
+<td><p>Descriptor/type information for a TreeNode.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeNode" title="madgui.widget.tableview.TreeNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TreeNode</span></code></a>(item[, parent])</p></td>
+<td><p>Proxy class for accessing contents/properties of a table cell.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView" title="madgui.widget.tableview.ItemView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ItemView</span></code></a>([parent])</p></td>
+<td><p>Mixin class for shared code of <a class="reference internal" href="#madgui.widget.tableview.TableView" title="madgui.widget.tableview.TableView"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableView</span></code></a> and <a class="reference internal" href="#madgui.widget.tableview.TreeView" title="madgui.widget.tableview.TreeView"><code class="xref py py-class docutils literal notranslate"><span class="pre">TreeView</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemViewDelegate" title="madgui.widget.tableview.ItemViewDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ItemViewDelegate</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemDelegate" title="madgui.widget.tableview.ItemDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ItemDelegate</span></code></a>(*[, default, fmtspec])</p></td>
+<td><p>Wrap a value of a specific type for string rendering and editting.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.StringDelegate" title="madgui.widget.tableview.StringDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StringDelegate</span></code></a>(*[, default, fmtspec])</p></td>
+<td><p>Bare string value.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.IntDelegate" title="madgui.widget.tableview.IntDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntDelegate</span></code></a>(*[, default, fmtspec])</p></td>
+<td><p>Integer value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.BoolDelegate" title="madgui.widget.tableview.BoolDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BoolDelegate</span></code></a>(*[, default, fmtspec])</p></td>
+<td><p>Boolean value.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.QuantityDelegate" title="madgui.widget.tableview.QuantityDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuantityDelegate</span></code></a>([unit])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ExpressionDelegate" title="madgui.widget.tableview.ExpressionDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExpressionDelegate</span></code></a>([unit])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ListDelegate" title="madgui.widget.tableview.ListDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ListDelegate</span></code></a>(*[, default, fmtspec])</p></td>
+<td><p>List value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.EnumDelegate" title="madgui.widget.tableview.EnumDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EnumDelegate</span></code></a>(*[, default, fmtspec])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ReadOnlyDelegate" title="madgui.widget.tableview.ReadOnlyDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReadOnlyDelegate</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.AffixLineEdit" title="madgui.widget.tableview.AffixLineEdit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AffixLineEdit</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Single-line edit control with prefix/suffix text.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.lookupDelegate" title="madgui.widget.tableview.lookupDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lookupDelegate</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.tableview.AffixLineEdit">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">AffixLineEdit</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#AffixLineEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.AffixLineEdit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>Single-line edit control with prefix/suffix text.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.AffixLineEdit.focusInEvent" title="madgui.widget.tableview.AffixLineEdit.focusInEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">focusInEvent</span></code></a>(self, QFocusEvent)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.AffixLineEdit.focusInEvent">
+<code class="sig-name descname">focusInEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QFocusEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#AffixLineEdit.focusInEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.AffixLineEdit.focusInEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.BoolDelegate">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">BoolDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fmtspec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#BoolDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.BoolDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.tableview.ItemDelegate" title="madgui.widget.tableview.ItemDelegate"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.ItemDelegate</span></code></a></p>
+<p>Boolean value.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.BoolDelegate.default" title="madgui.widget.tableview.BoolDelegate.default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default</span></code></a></p></td>
+<td><p>bool(x) -&gt; bool</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.BoolDelegate.default">
+<code class="sig-name descname">default</code><em class="property"> = False</em><a class="headerlink" href="#madgui.widget.tableview.BoolDelegate.default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.EnumDelegate">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">EnumDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fmtspec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#EnumDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.EnumDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.tableview.StringDelegate" title="madgui.widget.tableview.StringDelegate"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.StringDelegate</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.EnumDelegate.createEditor" title="madgui.widget.tableview.EnumDelegate.createEditor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">createEditor</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.EnumDelegate.setEditorData" title="madgui.widget.tableview.EnumDelegate.setEditorData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setEditorData</span></code></a>(self, QWidget, QModelIndex)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.EnumDelegate.setModelData" title="madgui.widget.tableview.EnumDelegate.setModelData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setModelData</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.EnumDelegate.createEditor">
+<code class="sig-name descname">createEditor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; QWidget<a class="reference internal" href="../_modules/madgui/widget/tableview.html#EnumDelegate.createEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.EnumDelegate.createEditor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.EnumDelegate.setEditorData">
+<code class="sig-name descname">setEditorData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#EnumDelegate.setEditorData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.EnumDelegate.setEditorData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.EnumDelegate.setModelData">
+<code class="sig-name descname">setModelData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QAbstractItemModel</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#EnumDelegate.setModelData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.EnumDelegate.setModelData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.ExpressionDelegate">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">ExpressionDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">unit</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ExpressionDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ExpressionDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.tableview.QuantityDelegate" title="madgui.widget.tableview.QuantityDelegate"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.QuantityDelegate</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ExpressionDelegate.createEditor" title="madgui.widget.tableview.ExpressionDelegate.createEditor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">createEditor</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ExpressionDelegate.edit" title="madgui.widget.tableview.ExpressionDelegate.edit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">edit</span></code></a>(cell)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ExpressionDelegate.setEditorData" title="madgui.widget.tableview.ExpressionDelegate.setEditorData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setEditorData</span></code></a>(self, QWidget, QModelIndex)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ExpressionDelegate.setModelData" title="madgui.widget.tableview.ExpressionDelegate.setModelData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setModelData</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ExpressionDelegate.default" title="madgui.widget.tableview.ExpressionDelegate.default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ExpressionDelegate.textAlignment" title="madgui.widget.tableview.ExpressionDelegate.textAlignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">textAlignment</span></code></a></p></td>
+<td><p>Qt.Alignment()</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.ExpressionDelegate.createEditor">
+<code class="sig-name descname">createEditor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; QWidget<a class="reference internal" href="../_modules/madgui/widget/tableview.html#ExpressionDelegate.createEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ExpressionDelegate.createEditor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.ExpressionDelegate.default">
+<code class="sig-name descname">default</code><em class="property"> = ''</em><a class="headerlink" href="#madgui.widget.tableview.ExpressionDelegate.default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ExpressionDelegate.edit">
+<code class="sig-name descname">edit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cell</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ExpressionDelegate.edit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ExpressionDelegate.edit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ExpressionDelegate.setEditorData">
+<code class="sig-name descname">setEditorData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ExpressionDelegate.setEditorData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ExpressionDelegate.setEditorData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ExpressionDelegate.setModelData">
+<code class="sig-name descname">setModelData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QAbstractItemModel</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ExpressionDelegate.setModelData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ExpressionDelegate.setModelData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.ExpressionDelegate.textAlignment">
+<code class="sig-name descname">textAlignment</code><em class="property"> = &lt;PyQt5.QtCore.Qt.Alignment object&gt;</em><a class="headerlink" href="#madgui.widget.tableview.ExpressionDelegate.textAlignment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.IntDelegate">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">IntDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fmtspec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#IntDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.IntDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.tableview.ItemDelegate" title="madgui.widget.tableview.ItemDelegate"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.ItemDelegate</span></code></a></p>
+<p>Integer value.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.IntDelegate.createEditor" title="madgui.widget.tableview.IntDelegate.createEditor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">createEditor</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.IntDelegate.setEditorData" title="madgui.widget.tableview.IntDelegate.setEditorData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setEditorData</span></code></a>(self, QWidget, QModelIndex)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.IntDelegate.setModelData" title="madgui.widget.tableview.IntDelegate.setModelData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setModelData</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.IntDelegate.default" title="madgui.widget.tableview.IntDelegate.default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.IntDelegate.textAlignment" title="madgui.widget.tableview.IntDelegate.textAlignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">textAlignment</span></code></a></p></td>
+<td><p>Qt.Alignment()</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.IntDelegate.createEditor">
+<code class="sig-name descname">createEditor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; QWidget<a class="reference internal" href="../_modules/madgui/widget/tableview.html#IntDelegate.createEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.IntDelegate.createEditor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.IntDelegate.default">
+<code class="sig-name descname">default</code><em class="property"> = 0</em><a class="headerlink" href="#madgui.widget.tableview.IntDelegate.default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.IntDelegate.setEditorData">
+<code class="sig-name descname">setEditorData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#IntDelegate.setEditorData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.IntDelegate.setEditorData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.IntDelegate.setModelData">
+<code class="sig-name descname">setModelData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QAbstractItemModel</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#IntDelegate.setModelData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.IntDelegate.setModelData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.IntDelegate.textAlignment">
+<code class="sig-name descname">textAlignment</code><em class="property"> = &lt;PyQt5.QtCore.Qt.Alignment object&gt;</em><a class="headerlink" href="#madgui.widget.tableview.IntDelegate.textAlignment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.ItemDelegate">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">ItemDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fmtspec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QStyledItemDelegate</span></code></p>
+<p>Wrap a value of a specific type for string rendering and editting.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemDelegate.default" title="madgui.widget.tableview.ItemDelegate.default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemDelegate.fmtspec" title="madgui.widget.tableview.ItemDelegate.fmtspec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fmtspec</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemDelegate.textAlignment" title="madgui.widget.tableview.ItemDelegate.textAlignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">textAlignment</span></code></a></p></td>
+<td><p>Qt.Alignment()</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemDelegate.display" title="madgui.widget.tableview.ItemDelegate.display"><code class="xref py py-obj docutils literal notranslate"><span class="pre">display</span></code></a>(value)</p></td>
+<td><p>Render the value as string.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemDelegate.edit" title="madgui.widget.tableview.ItemDelegate.edit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">edit</span></code></a>(cell)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.ItemDelegate.default">
+<code class="sig-name descname">default</code><em class="property"> = ''</em><a class="headerlink" href="#madgui.widget.tableview.ItemDelegate.default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemDelegate.display">
+<code class="sig-name descname">display</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemDelegate.display"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemDelegate.display" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render the value as string.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemDelegate.edit">
+<code class="sig-name descname">edit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cell</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemDelegate.edit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemDelegate.edit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.ItemDelegate.fmtspec">
+<code class="sig-name descname">fmtspec</code><em class="property"> = ''</em><a class="headerlink" href="#madgui.widget.tableview.ItemDelegate.fmtspec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.ItemDelegate.textAlignment">
+<code class="sig-name descname">textAlignment</code><em class="property"> = &lt;PyQt5.QtCore.Qt.Alignment object&gt;</em><a class="headerlink" href="#madgui.widget.tableview.ItemDelegate.textAlignment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.ItemView">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">ItemView</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Mixin class for shared code of <a class="reference internal" href="#madgui.widget.tableview.TableView" title="madgui.widget.tableview.TableView"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableView</span></code></a> and <a class="reference internal" href="#madgui.widget.tableview.TreeView" title="madgui.widget.tableview.TreeView"><code class="xref py py-class docutils literal notranslate"><span class="pre">TreeView</span></code></a>.
+Do not use directly.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.allow_delete" title="madgui.widget.tableview.ItemView.allow_delete"><code class="xref py py-obj docutils literal notranslate"><span class="pre">allow_delete</span></code></a></p></td>
+<td><p>bool(x) -&gt; bool</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.rows" title="madgui.widget.tableview.ItemView.rows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rows</span></code></a></p></td>
+<td><p>List-like access to the data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.selectionChangedSignal" title="madgui.widget.tableview.ItemView.selectionChangedSignal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">selectionChangedSignal</span></code></a></p></td>
+<td><p>Signal&lt;&gt;</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.connectClearButton" title="madgui.widget.tableview.ItemView.connectClearButton"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connectClearButton</span></code></a>(button)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.connectRemoveButton" title="madgui.widget.tableview.ItemView.connectRemoveButton"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connectRemoveButton</span></code></a>(button)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.format_changed" title="madgui.widget.tableview.ItemView.format_changed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_changed</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.keyPressEvent" title="madgui.widget.tableview.ItemView.keyPressEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keyPressEvent</span></code></a>(event)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.removeSelectedRows" title="madgui.widget.tableview.ItemView.removeSelectedRows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">removeSelectedRows</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.resizeEvent" title="madgui.widget.tableview.ItemView.resizeEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resizeEvent</span></code></a>(event)</p></td>
+<td><p>Resize all sections to content and user interactive</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.selectionChanged" title="madgui.widget.tableview.ItemView.selectionChanged"><code class="xref py py-obj docutils literal notranslate"><span class="pre">selectionChanged</span></code></a>(selected, deselected)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.set_viewmodel" title="madgui.widget.tableview.ItemView.set_viewmodel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_viewmodel</span></code></a>(rowitems[, data, unit, titles])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.sizeHint" title="madgui.widget.tableview.ItemView.sizeHint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sizeHint</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemView.sizeHintForColumn" title="madgui.widget.tableview.ItemView.sizeHintForColumn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sizeHintForColumn</span></code></a>(column)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.ItemView.allow_delete">
+<code class="sig-name descname">allow_delete</code><em class="property"> = False</em><a class="headerlink" href="#madgui.widget.tableview.ItemView.allow_delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.connectClearButton">
+<code class="sig-name descname">connectClearButton</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">button</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView.connectClearButton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView.connectClearButton" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.connectRemoveButton">
+<code class="sig-name descname">connectRemoveButton</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">button</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView.connectRemoveButton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView.connectRemoveButton" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.format_changed">
+<code class="sig-name descname">format_changed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView.format_changed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView.format_changed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.keyPressEvent">
+<code class="sig-name descname">keyPressEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView.keyPressEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView.keyPressEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.removeSelectedRows">
+<code class="sig-name descname">removeSelectedRows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView.removeSelectedRows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView.removeSelectedRows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.resizeEvent">
+<code class="sig-name descname">resizeEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView.resizeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView.resizeEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resize all sections to content and user interactive</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.rows">
+<em class="property">property </em><code class="sig-name descname">rows</code><a class="headerlink" href="#madgui.widget.tableview.ItemView.rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>List-like access to the data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.selectionChanged">
+<code class="sig-name descname">selectionChanged</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">selected</span></em>, <em class="sig-param"><span class="n">deselected</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView.selectionChanged"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView.selectionChanged" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.ItemView.selectionChangedSignal">
+<code class="sig-name descname">selectionChangedSignal</code><a class="headerlink" href="#madgui.widget.tableview.ItemView.selectionChangedSignal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.set_viewmodel">
+<code class="sig-name descname">set_viewmodel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rowitems</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">unit</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">titles</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView.set_viewmodel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView.set_viewmodel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.sizeHint">
+<code class="sig-name descname">sizeHint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView.sizeHint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView.sizeHint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemView.sizeHintForColumn">
+<code class="sig-name descname">sizeHintForColumn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">column</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemView.sizeHintForColumn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemView.sizeHintForColumn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.ItemViewDelegate">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">ItemViewDelegate</code><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemViewDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemViewDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QStyledItemDelegate</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemViewDelegate.createEditor" title="madgui.widget.tableview.ItemViewDelegate.createEditor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">createEditor</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemViewDelegate.delegate" title="madgui.widget.tableview.ItemViewDelegate.delegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delegate</span></code></a>(index)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemViewDelegate.setEditorData" title="madgui.widget.tableview.ItemViewDelegate.setEditorData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setEditorData</span></code></a>(self, QWidget, QModelIndex)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemViewDelegate.setModelData" title="madgui.widget.tableview.ItemViewDelegate.setModelData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setModelData</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemViewDelegate.sizeHint" title="madgui.widget.tableview.ItemViewDelegate.sizeHint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sizeHint</span></code></a>(self, QStyleOptionViewItem, QModelIndex)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ItemViewDelegate.updateEditorGeometry" title="madgui.widget.tableview.ItemViewDelegate.updateEditorGeometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">updateEditorGeometry</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemViewDelegate.createEditor">
+<code class="sig-name descname">createEditor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; QWidget<a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemViewDelegate.createEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemViewDelegate.createEditor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemViewDelegate.delegate">
+<code class="sig-name descname">delegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemViewDelegate.delegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemViewDelegate.delegate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemViewDelegate.setEditorData">
+<code class="sig-name descname">setEditorData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemViewDelegate.setEditorData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemViewDelegate.setEditorData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemViewDelegate.setModelData">
+<code class="sig-name descname">setModelData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QAbstractItemModel</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemViewDelegate.setModelData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemViewDelegate.setModelData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemViewDelegate.sizeHint">
+<code class="sig-name descname">sizeHint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; QSize<a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemViewDelegate.sizeHint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemViewDelegate.sizeHint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ItemViewDelegate.updateEditorGeometry">
+<code class="sig-name descname">updateEditorGeometry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ItemViewDelegate.updateEditorGeometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ItemViewDelegate.updateEditorGeometry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.ListDelegate">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">ListDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fmtspec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ListDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ListDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.tableview.ItemDelegate" title="madgui.widget.tableview.ItemDelegate"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.ItemDelegate</span></code></a></p>
+<p>List value.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ListDelegate.createEditor" title="madgui.widget.tableview.ListDelegate.createEditor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">createEditor</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ListDelegate.display" title="madgui.widget.tableview.ListDelegate.display"><code class="xref py py-obj docutils literal notranslate"><span class="pre">display</span></code></a>(value)</p></td>
+<td><p>Render the value as string.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ListDelegate.formatValue" title="madgui.widget.tableview.ListDelegate.formatValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">formatValue</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ListDelegate.setEditorData" title="madgui.widget.tableview.ListDelegate.setEditorData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setEditorData</span></code></a>(self, QWidget, QModelIndex)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ListDelegate.setModelData" title="madgui.widget.tableview.ListDelegate.setModelData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setModelData</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ListDelegate.textAlignment" title="madgui.widget.tableview.ListDelegate.textAlignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">textAlignment</span></code></a></p></td>
+<td><p>Qt.Alignment()</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.ListDelegate.createEditor">
+<code class="sig-name descname">createEditor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; QWidget<a class="reference internal" href="../_modules/madgui/widget/tableview.html#ListDelegate.createEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ListDelegate.createEditor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ListDelegate.display">
+<code class="sig-name descname">display</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ListDelegate.display"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ListDelegate.display" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render the value as string.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ListDelegate.formatValue">
+<code class="sig-name descname">formatValue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ListDelegate.formatValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ListDelegate.formatValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ListDelegate.setEditorData">
+<code class="sig-name descname">setEditorData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ListDelegate.setEditorData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ListDelegate.setEditorData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ListDelegate.setModelData">
+<code class="sig-name descname">setModelData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QAbstractItemModel</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ListDelegate.setModelData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ListDelegate.setModelData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.ListDelegate.textAlignment">
+<code class="sig-name descname">textAlignment</code><em class="property"> = &lt;PyQt5.QtCore.Qt.Alignment object&gt;</em><a class="headerlink" href="#madgui.widget.tableview.ListDelegate.textAlignment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.NodeItem">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">NodeItem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#NodeItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.NodeItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Descriptor/type information for a TreeNode.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.NodeItem.get_children" title="madgui.widget.tableview.NodeItem.get_children"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_children</span></code></a>()</p></td>
+<td><p>List of child rows (for expandable data).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.NodeItem.get_parent" title="madgui.widget.tableview.NodeItem.get_parent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parent</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.NodeItem.get_row" title="madgui.widget.tableview.NodeItem.get_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_row</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.NodeItem.rowitems" title="madgui.widget.tableview.NodeItem.rowitems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rowitems</span></code></a>(idx, data)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.NodeItem.get_children">
+<code class="sig-name descname">get_children</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#NodeItem.get_children"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.NodeItem.get_children" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of child rows (for expandable data).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.NodeItem.get_parent">
+<code class="sig-name descname">get_parent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#NodeItem.get_parent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.NodeItem.get_parent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.NodeItem.get_row">
+<code class="sig-name descname">get_row</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#NodeItem.get_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.NodeItem.get_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.NodeItem.rowitems">
+<code class="sig-name descname">rowitems</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">idx</span></em>, <em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#NodeItem.rowitems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.NodeItem.rowitems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.QuantityDelegate">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">QuantityDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">unit</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#QuantityDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.QuantityDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.tableview.ItemDelegate" title="madgui.widget.tableview.ItemDelegate"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.ItemDelegate</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.QuantityDelegate.createEditor" title="madgui.widget.tableview.QuantityDelegate.createEditor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">createEditor</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.QuantityDelegate.display" title="madgui.widget.tableview.QuantityDelegate.display"><code class="xref py py-obj docutils literal notranslate"><span class="pre">display</span></code></a>(value)</p></td>
+<td><p>Render the value as string.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.QuantityDelegate.setEditorData" title="madgui.widget.tableview.QuantityDelegate.setEditorData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setEditorData</span></code></a>(self, QWidget, QModelIndex)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.QuantityDelegate.setModelData" title="madgui.widget.tableview.QuantityDelegate.setModelData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setModelData</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.QuantityDelegate.default" title="madgui.widget.tableview.QuantityDelegate.default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default</span></code></a></p></td>
+<td><p>float(x) -&gt; floating point number</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.QuantityDelegate.fmtspec" title="madgui.widget.tableview.QuantityDelegate.fmtspec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fmtspec</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.QuantityDelegate.textAlignment" title="madgui.widget.tableview.QuantityDelegate.textAlignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">textAlignment</span></code></a></p></td>
+<td><p>Qt.Alignment()</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.QuantityDelegate.createEditor">
+<code class="sig-name descname">createEditor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; QWidget<a class="reference internal" href="../_modules/madgui/widget/tableview.html#QuantityDelegate.createEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.QuantityDelegate.createEditor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.QuantityDelegate.default">
+<code class="sig-name descname">default</code><em class="property"> = 0.0</em><a class="headerlink" href="#madgui.widget.tableview.QuantityDelegate.default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.QuantityDelegate.display">
+<code class="sig-name descname">display</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#QuantityDelegate.display"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.QuantityDelegate.display" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render the value as string.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.QuantityDelegate.fmtspec">
+<em class="property">property </em><code class="sig-name descname">fmtspec</code><a class="headerlink" href="#madgui.widget.tableview.QuantityDelegate.fmtspec" title="Permalink to this definition">¶</a></dt>
+<dd><p>str(object=’’) -&gt; str
+str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
+<p>Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object.__str__() (if defined)
+or repr(object).
+encoding defaults to sys.getdefaultencoding().
+errors defaults to ‘strict’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.QuantityDelegate.setEditorData">
+<code class="sig-name descname">setEditorData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#QuantityDelegate.setEditorData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.QuantityDelegate.setEditorData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.QuantityDelegate.setModelData">
+<code class="sig-name descname">setModelData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QAbstractItemModel</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#QuantityDelegate.setModelData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.QuantityDelegate.setModelData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.tableview.QuantityDelegate.textAlignment">
+<code class="sig-name descname">textAlignment</code><em class="property"> = &lt;PyQt5.QtCore.Qt.Alignment object&gt;</em><a class="headerlink" href="#madgui.widget.tableview.QuantityDelegate.textAlignment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.ReadOnlyDelegate">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">ReadOnlyDelegate</code><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ReadOnlyDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ReadOnlyDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QStyledItemDelegate</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ReadOnlyDelegate.createEditor" title="madgui.widget.tableview.ReadOnlyDelegate.createEditor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">createEditor</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.ReadOnlyDelegate.setEditorData" title="madgui.widget.tableview.ReadOnlyDelegate.setEditorData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setEditorData</span></code></a>(self, QWidget, QModelIndex)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.ReadOnlyDelegate.setModelData" title="madgui.widget.tableview.ReadOnlyDelegate.setModelData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setModelData</span></code></a>(self, QWidget, …)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.ReadOnlyDelegate.createEditor">
+<code class="sig-name descname">createEditor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; QWidget<a class="reference internal" href="../_modules/madgui/widget/tableview.html#ReadOnlyDelegate.createEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ReadOnlyDelegate.createEditor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ReadOnlyDelegate.setEditorData">
+<code class="sig-name descname">setEditorData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ReadOnlyDelegate.setEditorData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ReadOnlyDelegate.setEditorData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.ReadOnlyDelegate.setModelData">
+<code class="sig-name descname">setModelData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QWidget</span></em>, <em class="sig-param"><span class="n">QAbstractItemModel</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#ReadOnlyDelegate.setModelData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.ReadOnlyDelegate.setModelData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.StringDelegate">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">StringDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fmtspec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#StringDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.StringDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.tableview.ItemDelegate" title="madgui.widget.tableview.ItemDelegate"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.ItemDelegate</span></code></a></p>
+<p>Bare string value.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.TableItem">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">TableItem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.tableview.NodeItem" title="madgui.widget.tableview.NodeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.NodeItem</span></code></a></p>
+<p>Cell item data for a tree widget.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_checkState" title="madgui.widget.tableview.TableItem.get_checkState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_checkState</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_checkable" title="madgui.widget.tableview.TableItem.get_checkable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_checkable</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_checked" title="madgui.widget.tableview.TableItem.get_checked"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_checked</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_columns" title="madgui.widget.tableview.TableItem.get_columns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_columns</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_delegate" title="madgui.widget.tableview.TableItem.get_delegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_delegate</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_display" title="madgui.widget.tableview.TableItem.get_display"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_display</span></code></a>()</p></td>
+<td><p>Render the value as string.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_edit" title="madgui.widget.tableview.TableItem.get_edit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_edit</span></code></a>()</p></td>
+<td><p>Obtain value for the editor.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_editable" title="madgui.widget.tableview.TableItem.get_editable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_editable</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_flags" title="madgui.widget.tableview.TableItem.get_flags"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_flags</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_mutable" title="madgui.widget.tableview.TableItem.get_mutable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mutable</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_row" title="madgui.widget.tableview.TableItem.get_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_row</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_rows" title="madgui.widget.tableview.TableItem.get_rows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_rows</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_textAlignment" title="madgui.widget.tableview.TableItem.get_textAlignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_textAlignment</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_ui_value" title="madgui.widget.tableview.TableItem.get_ui_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ui_value</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.get_value" title="madgui.widget.tableview.TableItem.get_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_value</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.set_checked" title="madgui.widget.tableview.TableItem.set_checked"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_checked</span></code></a>(value)</p></td>
+<td><p>Implement setting BoolDelegate via checkbox.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableItem.set_ui_value" title="madgui.widget.tableview.TableItem.set_ui_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ui_value</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_checkState">
+<code class="sig-name descname">get_checkState</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_checkState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_checkState" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_checkable">
+<code class="sig-name descname">get_checkable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_checkable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_checkable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_checked">
+<code class="sig-name descname">get_checked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_checked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_checked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_columns">
+<code class="sig-name descname">get_columns</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_columns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_columns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_delegate">
+<code class="sig-name descname">get_delegate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_delegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_delegate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_display">
+<code class="sig-name descname">get_display</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_display"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_display" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render the value as string.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_edit">
+<code class="sig-name descname">get_edit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_edit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain value for the editor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_editable">
+<code class="sig-name descname">get_editable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_editable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_editable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_flags">
+<code class="sig-name descname">get_flags</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_flags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_flags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_mutable">
+<code class="sig-name descname">get_mutable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_mutable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_mutable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_row">
+<code class="sig-name descname">get_row</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_rows">
+<code class="sig-name descname">get_rows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_rows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_rows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_textAlignment">
+<code class="sig-name descname">get_textAlignment</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_textAlignment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_textAlignment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_ui_value">
+<code class="sig-name descname">get_ui_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_ui_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_ui_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.get_value">
+<code class="sig-name descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.get_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.get_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.set_checked">
+<code class="sig-name descname">set_checked</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.set_checked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.set_checked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement setting BoolDelegate via checkbox.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableItem.set_ui_value">
+<code class="sig-name descname">set_ui_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableItem.set_ui_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableItem.set_ui_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.TableModel">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">TableModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">titles</span></em>, <em class="sig-param"><span class="n">rowitems</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QAbstractItemModel</span></code></p>
+<p>Table data model.</p>
+<p>Column specifications are provided as <a class="reference internal" href="#madgui.widget.tableview.TableItem" title="madgui.widget.tableview.TableItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableItem</span></code></a> instances. The
+data can be accessed and changed via the list-like <a class="reference internal" href="#madgui.widget.tableview.TableModel.rows" title="madgui.widget.tableview.TableModel.rows"><code class="xref py py-attr docutils literal notranslate"><span class="pre">rows</span></code></a>.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableModel.cell" title="madgui.widget.tableview.TableModel.cell"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cell</span></code></a>(index)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableModel.columnCount" title="madgui.widget.tableview.TableModel.columnCount"><code class="xref py py-obj docutils literal notranslate"><span class="pre">columnCount</span></code></a>(self, parent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableModel.data" title="madgui.widget.tableview.TableModel.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a>(self, QModelIndex, role)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableModel.flags" title="madgui.widget.tableview.TableModel.flags"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flags</span></code></a>(self, QModelIndex)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableModel.headerData" title="madgui.widget.tableview.TableModel.headerData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">headerData</span></code></a>(self, int, Qt.Orientation, role)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">index</span></code>(self, int, int, parent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableModel.parent" title="madgui.widget.tableview.TableModel.parent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parent</span></code></a>(self, QModelIndex)</p></td>
+<td><p>parent(self) -&gt; QObject</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableModel.rowCount" title="madgui.widget.tableview.TableModel.rowCount"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rowCount</span></code></a>(self, parent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableModel.setData" title="madgui.widget.tableview.TableModel.setData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setData</span></code></a>(self, QModelIndex, Any, role)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableModel.rows" title="madgui.widget.tableview.TableModel.rows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rows</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableModel.cell">
+<code class="sig-name descname">cell</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableModel.cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableModel.cell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableModel.columnCount">
+<code class="sig-name descname">columnCount</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">parent</span><span class="p">:</span> <span class="n">QModelIndex</span> <span class="o">=</span> <span class="default_value">QModelIndex()</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableModel.columnCount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableModel.columnCount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableModel.data">
+<code class="sig-name descname">data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em>, <em class="sig-param"><span class="n">role</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a></span> <span class="o">=</span> <span class="default_value">Qt.DisplayRole</span></em><span class="sig-paren">)</span> &#x2192; Any<a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableModel.data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableModel.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableModel.flags">
+<code class="sig-name descname">flags</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; Qt.ItemFlags<a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableModel.flags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableModel.flags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableModel.headerData">
+<code class="sig-name descname">headerData</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">int</em>, <em class="sig-param">Qt.Orientation</em>, <em class="sig-param">role: int = Qt.DisplayRole</em><span class="sig-paren">)</span> &#x2192; Any<a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableModel.headerData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableModel.headerData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt>
+<code class="sig-name descname">TableModel.index(self, int, int, parent: QModelIndex = QModelIndex()) -&gt; QModelIndex</code><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableModel.index"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableModel.parent">
+<code class="sig-name descname">parent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; QModelIndex<a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableModel.parent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableModel.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>parent(self) -&gt; QObject</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableModel.rowCount">
+<code class="sig-name descname">rowCount</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">parent</span><span class="p">:</span> <span class="n">QModelIndex</span> <span class="o">=</span> <span class="default_value">QModelIndex()</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableModel.rowCount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableModel.rowCount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableModel.rows">
+<em class="property">property </em><code class="sig-name descname">rows</code><a class="headerlink" href="#madgui.widget.tableview.TableModel.rows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableModel.setData">
+<code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QModelIndex</span></em>, <em class="sig-param"><span class="n">Any</span></em>, <em class="sig-param"><span class="n">role</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a></span> <span class="o">=</span> <span class="default_value">Qt.EditRole</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableModel.setData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableModel.setData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.TableView">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">TableView</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableView" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.tableview.ItemView" title="madgui.widget.tableview.ItemView"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.ItemView</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QTableView</span></code></p>
+<p>A table widget based on Qt’s QTableView for our <a class="reference internal" href="#madgui.widget.tableview.TableModel" title="madgui.widget.tableview.TableModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableModel</span></code></a>.</p>
+<ul class="simple">
+<li><p>does not support expandable items</p></li>
+<li><p>supports vertical header</p></li>
+<li><p>currently supports background colors (since we don’t use css for
+QTableView)</p></li>
+</ul>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TableView.header" title="madgui.widget.tableview.TableView.header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">header</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.TableView.header">
+<code class="sig-name descname">header</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TableView.header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TableView.header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.TreeNode">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">TreeNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">item</span></em>, <em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TreeNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TreeNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Proxy class for accessing contents/properties of a table cell. Delegates
+data queries to attributes of the associated :class`NodeItem`.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeNode.children" title="madgui.widget.tableview.TreeNode.children"><code class="xref py py-obj docutils literal notranslate"><span class="pre">children</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeNode.col" title="madgui.widget.tableview.TreeNode.col"><code class="xref py py-obj docutils literal notranslate"><span class="pre">col</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeNode.row" title="madgui.widget.tableview.TreeNode.row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">row</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeNode.data" title="madgui.widget.tableview.TreeNode.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a>(role)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeNode.index" title="madgui.widget.tableview.TreeNode.index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">index</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeNode.invalidate" title="madgui.widget.tableview.TreeNode.invalidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">invalidate</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeNode.setData" title="madgui.widget.tableview.TreeNode.setData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setData</span></code></a>(value, role)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.TreeNode.children">
+<em class="property">property </em><code class="sig-name descname">children</code><a class="headerlink" href="#madgui.widget.tableview.TreeNode.children" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TreeNode.col">
+<em class="property">property </em><code class="sig-name descname">col</code><a class="headerlink" href="#madgui.widget.tableview.TreeNode.col" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TreeNode.data">
+<code class="sig-name descname">data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">role</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TreeNode.data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TreeNode.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TreeNode.index">
+<code class="sig-name descname">index</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#madgui.widget.tableview.TreeNode.index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TreeNode.invalidate">
+<code class="sig-name descname">invalidate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TreeNode.invalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TreeNode.invalidate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TreeNode.row">
+<em class="property">property </em><code class="sig-name descname">row</code><a class="headerlink" href="#madgui.widget.tableview.TreeNode.row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TreeNode.setData">
+<code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">role</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TreeNode.setData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TreeNode.setData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.tableview.TreeView">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">TreeView</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TreeView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TreeView" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.tableview.ItemView" title="madgui.widget.tableview.ItemView"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.ItemView</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QTreeView</span></code></p>
+<p>A tree widget based on Qt’s QTableView for our <a class="reference internal" href="#madgui.widget.tableview.TableModel" title="madgui.widget.tableview.TableModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableModel</span></code></a>.</p>
+<ul class="simple">
+<li><p>supports expandable items</p></li>
+<li><p>does not show item background color (apparently due to an
+incompatibility with css styling).</p></li>
+</ul>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeView.resizeColumnsToContents" title="madgui.widget.tableview.TreeView.resizeColumnsToContents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resizeColumnsToContents</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.tableview.TreeView.set_viewmodel" title="madgui.widget.tableview.TreeView.set_viewmodel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_viewmodel</span></code></a>(rowitems[, data, unit, titles])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.tableview.TreeView.resizeColumnsToContents">
+<code class="sig-name descname">resizeColumnsToContents</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TreeView.resizeColumnsToContents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TreeView.resizeColumnsToContents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.tableview.TreeView.set_viewmodel">
+<code class="sig-name descname">set_viewmodel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rowitems</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">unit</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">titles</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#TreeView.set_viewmodel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.TreeView.set_viewmodel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.widget.tableview.lookupDelegate">
+<code class="sig-prename descclassname">madgui.widget.tableview.</code><code class="sig-name descname">lookupDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/tableview.html#lookupDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.tableview.lookupDelegate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.twisswidget.html" class="btn btn-neutral float-right" title="madgui.widget.twisswidget module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.spinbox.html" class="btn btn-neutral float-left" title="madgui.widget.spinbox module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

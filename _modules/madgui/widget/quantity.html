@@ -1,0 +1,656 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.quantity &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.quantity</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.quantity</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utility classes for creating widgets holding physical quantities.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;AffixControlBase&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DoubleValidator&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ExpressionValidator&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ValueControlBase&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;QuantityControlBase&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;QuantityDisplay&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="kn">import</span> <span class="n">QKeySequence</span><span class="p">,</span> <span class="n">QValidator</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QLineEdit</span><span class="p">,</span> <span class="n">QWidget</span>
+
+<span class="kn">from</span> <span class="nn">cpymad.util</span> <span class="kn">import</span> <span class="n">check_expression</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.unit</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">get_raw_label</span><span class="p">,</span> <span class="n">get_unit</span><span class="p">,</span> <span class="n">tounit</span>
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+<span class="kn">from</span> <span class="nn">madgui.util.misc</span> <span class="kn">import</span> <span class="n">cachedproperty</span>
+
+<span class="kn">import</span> <span class="nn">madgui.core.config</span> <span class="k">as</span> <span class="nn">config</span>
+
+
+<span class="n">Acceptable</span> <span class="o">=</span> <span class="n">QValidator</span><span class="o">.</span><span class="n">Acceptable</span>
+<span class="n">Intermediate</span> <span class="o">=</span> <span class="n">QValidator</span><span class="o">.</span><span class="n">Intermediate</span>
+<span class="n">Invalid</span> <span class="o">=</span> <span class="n">QValidator</span><span class="o">.</span><span class="n">Invalid</span>
+
+
+<span class="k">def</span> <span class="nf">asb_property</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span>
+
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updateEdit</span><span class="p">()</span>
+    <span class="n">get</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;get_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
+    <span class="nb">set</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;set_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">property</span><span class="p">(</span><span class="n">get</span><span class="p">,</span> <span class="nb">set</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AffixControlBase"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase">[docs]</a><span class="k">class</span> <span class="nc">AffixControlBase</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for controls showing a prefix/suffix surrounding an editable</span>
+<span class="sd">    value in a QLineEdit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">validator</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_edit</span><span class="p">()</span><span class="o">.</span><span class="n">textChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interpretText</span><span class="p">)</span>
+
+    <span class="c1"># imitate QAbstractSpinBox/QSpinBox/QDoubleSpinBox API</span>
+
+<div class="viewcode-block" id="AffixControlBase.get_value"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.get_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span></div>
+
+<div class="viewcode-block" id="AffixControlBase.set_value"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valueChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updateEdit</span><span class="p">()</span></div>
+
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">asb_property</span><span class="p">(</span><span class="s1">&#39;prefix&#39;</span><span class="p">)</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">asb_property</span><span class="p">(</span><span class="s1">&#39;suffix&#39;</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">get_value</span><span class="p">,</span> <span class="n">set_value</span><span class="p">)</span>
+    <span class="n">placeholder_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">_prefix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">_suffix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">_value</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># abstract methods</span>
+
+<div class="viewcode-block" id="AffixControlBase.sanitize"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.sanitize">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">sanitize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="AffixControlBase.line_edit"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.line_edit">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">line_edit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="AffixControlBase.parse"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.parse">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="AffixControlBase.format"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.format">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+    <span class="c1"># utility methods</span>
+
+<div class="viewcode-block" id="AffixControlBase.stripped"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.stripped">[docs]</a>    <span class="k">def</span> <span class="nf">stripped</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">):]</span>
+        <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">text</span></div>
+
+    <span class="c1"># def text(self):</span>
+    <span class="c1">#     return self.line_edit().text()</span>
+
+    <span class="c1"># QAbstractSpinBox replacements (non-virtual methods)</span>
+
+<div class="viewcode-block" id="AffixControlBase.interpretText"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.interpretText">[docs]</a>    <span class="k">def</span> <span class="nf">interpretText</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">edit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_edit</span><span class="p">()</span>
+        <span class="n">state</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">edit</span><span class="o">.</span><span class="n">text</span><span class="p">(),</span> <span class="n">edit</span><span class="o">.</span><span class="n">cursorPosition</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="n">Acceptable</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valueFromText</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="n">update</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AffixControlBase.updateEdit"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.updateEdit">[docs]</a>    <span class="k">def</span> <span class="nf">updateEdit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># taken from QAbstractSpinBoxPrivate::updateEdit</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">textFromValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">new</span> <span class="o">==</span> <span class="n">old</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">edit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_edit</span><span class="p">()</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">edit</span><span class="o">.</span><span class="n">cursorPosition</span><span class="p">()</span>     <span class="c1"># TODO: must use selectionStart()?</span>
+        <span class="n">sel</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edit</span><span class="o">.</span><span class="n">selectedText</span><span class="p">())</span>
+        <span class="n">sb</span> <span class="o">=</span> <span class="n">edit</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">edit</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">))</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">sel</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">edit</span><span class="o">.</span><span class="n">setSelection</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">sel</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edit</span><span class="o">.</span><span class="n">setCursorPosition</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+        <span class="n">edit</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="n">sb</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateGeometry</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AffixControlBase.selectAll"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.selectAll">[docs]</a>    <span class="k">def</span> <span class="nf">selectAll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">beg</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">beg</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">())</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_edit</span><span class="p">()</span><span class="o">.</span><span class="n">setSelection</span><span class="p">(</span><span class="n">beg</span><span class="p">,</span> <span class="n">end</span><span class="o">-</span><span class="n">beg</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AffixControlBase.valueFromText"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.valueFromText">[docs]</a>    <span class="k">def</span> <span class="nf">valueFromText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">text</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">placeholder_text</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stripped</span><span class="p">(</span><span class="n">text</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="AffixControlBase.textFromValue"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.textFromValue">[docs]</a>    <span class="k">def</span> <span class="nf">textFromValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">placeholder_text</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span></div>
+
+<div class="viewcode-block" id="AffixControlBase.validate"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="c1"># strip prefix</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Invalid</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">):]</span>
+        <span class="n">pos</span> <span class="o">-=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># strip suffix</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Invalid</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="c1"># allow empty value</span>
+        <span class="n">state</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_value</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="c1"># fix prefix/suffix</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">text</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span>
+        <span class="n">pos</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span></div>
+
+    <span class="k">def</span> <span class="nf">_validate_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Acceptable</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+    <span class="c1"># QWidget overrides</span>
+
+<div class="viewcode-block" id="AffixControlBase.focusInEvent"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.focusInEvent">[docs]</a>    <span class="k">def</span> <span class="nf">focusInEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">edit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_edit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">edit</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="c1"># avoid infinite recursion</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">focusInEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line_edit</span><span class="p">()</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+            <span class="c1"># skip QAbstractSpinBox::focusInEvent (which would call the</span>
+            <span class="c1"># non-virtual selectAll)</span>
+            <span class="n">QWidget</span><span class="o">.</span><span class="n">focusInEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">reason</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">TabFocusReason</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">BacktabFocusReason</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selectAll</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AffixControlBase.keyPressEvent"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.AffixControlBase.keyPressEvent">[docs]</a>    <span class="k">def</span> <span class="nf">keyPressEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_End</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Key_Home</span><span class="p">):</span>
+            <span class="n">edit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_edit</span><span class="p">()</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">edit</span><span class="o">.</span><span class="n">cursorPosition</span><span class="p">()</span>
+            <span class="n">beg</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">())</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="n">beg</span> <span class="ow">or</span> <span class="n">pos</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
+                <span class="c1"># let lineedit handle this</span>
+                <span class="n">edit</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Key_End</span><span class="p">:</span>
+                <span class="n">dest</span> <span class="o">=</span> <span class="n">end</span>
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Key_Home</span><span class="p">:</span>
+                <span class="n">dest</span> <span class="o">=</span> <span class="n">beg</span>
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">modifiers</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ShiftModifier</span><span class="p">:</span>
+                <span class="n">edit</span><span class="o">.</span><span class="n">setSelection</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">dest</span><span class="o">-</span><span class="n">pos</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">edit</span><span class="o">.</span><span class="n">setCursorPosition</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">event</span> <span class="o">==</span> <span class="n">QKeySequence</span><span class="o">.</span><span class="n">SelectAll</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selectAll</span><span class="p">()</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">keyPressEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="DoubleValidator"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.DoubleValidator">[docs]</a><span class="k">class</span> <span class="nc">DoubleValidator</span><span class="p">(</span><span class="n">QValidator</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use this validator instead of QDoubleValidator to avoid allowing</span>
+<span class="sd">    numbers in the current locale…</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">minimum</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">maximum</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">_ALLOWED_CHARS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">digits</span> <span class="o">+</span> <span class="s2">&quot;eE+-.&quot;</span><span class="p">)</span>
+    <span class="n">_INTERMEDIATE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[+-]?\d*\.?\d*[eE]?[+-]?\d*$&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DoubleValidator.validate"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.DoubleValidator.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ALLOWED_CHARS</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Invalid</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_invalid</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_valid</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span></div>
+
+    <span class="k">def</span> <span class="nf">_check_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">minimum</span><span class="p">,</span> <span class="n">maximum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximum</span>
+        <span class="k">if</span> <span class="n">minimum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">minimum</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Intermediate</span>
+        <span class="k">if</span> <span class="n">maximum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">maximum</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Intermediate</span>
+        <span class="k">return</span> <span class="n">Acceptable</span>
+
+    <span class="k">def</span> <span class="nf">_check_invalid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="c1"># TODO: get smarter, i.e. require</span>
+        <span class="c1">#   - single edit</span>
+        <span class="c1">#   - at current position</span>
+        <span class="c1"># or similar? —I guess, that&#39;s not worth the effort…</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_INTERMEDIATE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Intermediate</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span>
+        <span class="k">return</span> <span class="n">Invalid</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="ExpressionValidator"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.ExpressionValidator">[docs]</a><span class="k">class</span> <span class="nc">ExpressionValidator</span><span class="p">(</span><span class="n">QValidator</span><span class="p">):</span>
+
+    <span class="n">_ALLOWED_CHARS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="s2">&quot;+-/*^()-&gt;._ &quot;</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ExpressionValidator.validate"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.ExpressionValidator.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span></div>
+
+    <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ALLOWED_CHARS</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Invalid</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">check_expression</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Acceptable</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Intermediate</span>
+
+<div class="viewcode-block" id="ExpressionValidator.parse"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.ExpressionValidator.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">text</span></div></div>
+
+
+<div class="viewcode-block" id="ValueControlBase"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.ValueControlBase">[docs]</a><span class="k">class</span> <span class="nc">ValueControlBase</span><span class="p">(</span><span class="n">AffixControlBase</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for widgets displaying values from an ordered set.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ValueControlBase.get_range"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.ValueControlBase.get_range">[docs]</a>    <span class="k">def</span> <span class="nf">get_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minimum</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximum</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ValueControlBase.set_range"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.ValueControlBase.set_range">[docs]</a>    <span class="k">def</span> <span class="nf">set_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minimum</span><span class="p">,</span> <span class="n">maximum</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minimum</span> <span class="o">=</span> <span class="n">minimum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maximum</span> <span class="o">=</span> <span class="n">maximum</span></div>
+
+    <span class="n">minimum</span> <span class="o">=</span> <span class="n">asb_property</span><span class="p">(</span><span class="s1">&#39;minimum&#39;</span><span class="p">)</span>
+    <span class="n">maximum</span> <span class="o">=</span> <span class="n">asb_property</span><span class="p">(</span><span class="s1">&#39;maximum&#39;</span><span class="p">)</span>
+    <span class="nb">range</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">get_range</span><span class="p">,</span> <span class="n">set_range</span><span class="p">)</span>
+
+    <span class="n">_minimum</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_maximum</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignRight</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ValueControlBase.sanitize"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.ValueControlBase.sanitize">[docs]</a>    <span class="k">def</span> <span class="nf">sanitize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="n">minimum</span><span class="p">,</span> <span class="n">maximum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximum</span>
+        <span class="k">if</span> <span class="n">minimum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">minimum</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">minimum</span>
+        <span class="k">if</span> <span class="n">maximum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">maximum</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">maximum</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ValueControlBase.round_value"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.ValueControlBase.round_value">[docs]</a>    <span class="k">def</span> <span class="nf">round_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">valueFromText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textFromValue</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="QuantityControlBase"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase">[docs]</a><span class="k">class</span> <span class="nc">QuantityControlBase</span><span class="p">(</span><span class="n">ValueControlBase</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for widgets displaying physical quantities.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_unit</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validator</span> <span class="o">=</span> <span class="n">DoubleValidator</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_quantity</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_quantity_checked</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_magnitude</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">updateEdit</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Acceptable</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">minimum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">maximum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QuantityControlBase.parse"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QuantityControlBase.format"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase.format">[docs]</a>    <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">num_fmt</span> <span class="o">=</span> <span class="s1">&#39;{:&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">fmtspec</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span>
+        <span class="k">return</span> <span class="n">num_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+    <span class="nd">@cachedproperty</span>
+    <span class="k">def</span> <span class="nf">fmtspec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">fmtspec</span>
+
+    <span class="c1"># own methods</span>
+
+<div class="viewcode-block" id="QuantityControlBase.get_magnitude"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase.get_magnitude">[docs]</a>    <span class="k">def</span> <span class="nf">get_magnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span></div>
+
+<div class="viewcode-block" id="QuantityControlBase.set_magnitude"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase.set_magnitude">[docs]</a>    <span class="k">def</span> <span class="nf">set_magnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">magnitude</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">magnitude</span></div>
+
+<div class="viewcode-block" id="QuantityControlBase.get_unit"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase.get_unit">[docs]</a>    <span class="k">def</span> <span class="nf">get_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span></div>
+
+<div class="viewcode-block" id="QuantityControlBase.set_unit"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase.set_unit">[docs]</a>    <span class="k">def</span> <span class="nf">set_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span> <span class="o">=</span> <span class="n">unit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">get_raw_label</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">placeholder_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateEdit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="QuantityControlBase.get_quantity"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase.get_quantity">[docs]</a>    <span class="k">def</span> <span class="nf">get_quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">magnitude</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnitude</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span>
+        <span class="k">if</span> <span class="n">magnitude</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">magnitude</span>
+        <span class="k">return</span> <span class="n">magnitude</span> <span class="o">*</span> <span class="n">unit</span></div>
+
+<div class="viewcode-block" id="QuantityControlBase.set_quantity"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase.set_quantity">[docs]</a>    <span class="k">def</span> <span class="nf">set_quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_unit</span><span class="p">(</span><span class="n">get_unit</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_magnitude</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">magnitude</span><span class="p">)</span></div>
+
+    <span class="n">magnitude</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">get_magnitude</span><span class="p">,</span> <span class="n">set_magnitude</span><span class="p">)</span>
+    <span class="n">quantity</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">get_quantity</span><span class="p">,</span> <span class="n">set_quantity</span><span class="p">)</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">get_unit</span><span class="p">,</span> <span class="n">set_unit</span><span class="p">)</span>
+
+    <span class="c1"># set magnitude/unit/quantity and check units</span>
+
+<div class="viewcode-block" id="QuantityControlBase.set_quantity_checked"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase.set_quantity_checked">[docs]</a>    <span class="k">def</span> <span class="nf">set_quantity_checked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">scaled</span> <span class="o">=</span> <span class="n">tounit</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_magnitude</span><span class="p">(</span><span class="n">scaled</span><span class="o">.</span><span class="n">magnitude</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="QuantityDisplay"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityDisplay">[docs]</a><span class="k">class</span> <span class="nc">QuantityDisplay</span><span class="p">(</span><span class="n">QuantityControlBase</span><span class="p">,</span> <span class="n">QLineEdit</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Readonly line-edit showing a quantity.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">valueChanged</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignRight</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setReadOnly</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selectionChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clear_selectall_pending</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QuantityDisplay.line_edit"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityDisplay.line_edit">[docs]</a>    <span class="k">def</span> <span class="nf">line_edit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="c1"># TODO: make this work for SpinBox as well</span>
+
+    <span class="n">_selectall_pending</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="QuantityDisplay.mousePressEvent"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityDisplay.mousePressEvent">[docs]</a>    <span class="k">def</span> <span class="nf">mousePressEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">()</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">LeftButton</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_selectall_pending</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">mousePressEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QuantityDisplay.mouseReleaseEvent"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityDisplay.mouseReleaseEvent">[docs]</a>    <span class="k">def</span> <span class="nf">mouseReleaseEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">()</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">LeftButton</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectall_pending</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_selectall_pending</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">selectAll</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">mouseReleaseEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QuantityDisplay.clear_selectall_pending"><a class="viewcode-back" href="../../../api/madgui.widget.quantity.html#madgui.widget.quantity.QuantityDisplay.clear_selectall_pending">[docs]</a>    <span class="k">def</span> <span class="nf">clear_selectall_pending</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selectall_pending</span> <span class="o">=</span> <span class="kc">False</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

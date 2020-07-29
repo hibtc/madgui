@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.correct.optic_variation &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.correct.optic_variation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.correct.optic_variation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for the optic variation method (Optikvarianzmethode) for beam</span>
+<span class="sd">alignment.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;CorrectorWidget&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">.multi_grid</span> <span class="kn">import</span> <span class="n">CorrectorWidget</span> <span class="k">as</span> <span class="n">_Widget</span>
+
+
+<div class="viewcode-block" id="CorrectorWidget"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.optic_variation.html#madgui.widget.correct.optic_variation.CorrectorWidget">[docs]</a><span class="k">class</span> <span class="nc">CorrectorWidget</span><span class="p">(</span><span class="n">_Widget</span><span class="p">):</span>
+
+    <span class="n">ui_file</span> <span class="o">=</span> <span class="s1">&#39;optic_variation.ui&#39;</span>
+    <span class="n">data_key</span> <span class="o">=</span> <span class="s1">&#39;optic_variation&#39;</span>
+    <span class="n">multi_step</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="CorrectorWidget.init_controls"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.optic_variation.html#madgui.widget.correct.optic_variation.CorrectorWidget.init_controls">[docs]</a>    <span class="k">def</span> <span class="nf">init_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">set_corrector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recordsTable</span><span class="o">.</span><span class="n">set_corrector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manProcWidget</span><span class="o">.</span><span class="n">set_corrector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">autoProcWidget</span><span class="o">.</span><span class="n">set_corrector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">init_controls</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CorrectorWidget.set_initial_values"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.optic_variation.html#madgui.widget.correct.optic_variation.CorrectorWidget.set_initial_values">[docs]</a>    <span class="k">def</span> <span class="nf">set_initial_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">read_focus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_status</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CorrectorWidget.update_ui"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.optic_variation.html#madgui.widget.correct.optic_variation.CorrectorWidget.update_ui">[docs]</a>    <span class="k">def</span> <span class="nf">update_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update_ui</span><span class="p">()</span>
+        <span class="n">running</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoProcWidget</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">running</span>
+        <span class="n">has_fit</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">saved_optics</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">applyButton</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span> <span class="ow">and</span> <span class="n">has_fit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">configSelect</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manTab</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recordsTable</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

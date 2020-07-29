@@ -1,0 +1,17 @@
+madgui.model package
+====================
+
+.. automodule:: madgui.model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   madgui.model.errors
+   madgui.model.madx
+   madgui.model.match

@@ -1,0 +1,7 @@
+madgui.model.errors module
+==========================
+
+.. automodule:: madgui.model.errors
+   :members:
+   :undoc-members:
+   :show-inheritance:

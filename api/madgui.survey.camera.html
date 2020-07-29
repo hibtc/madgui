@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.survey.camera module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.survey.gl_util module" href="madgui.survey.gl_util.html" />
+    <link rel="prev" title="madgui.survey package" href="madgui.survey.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.survey.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.survey.html">madgui.survey package</a> &raquo;</li>
+        
+      <li>madgui.survey.camera module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.survey.camera.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.survey.camera">
+<span id="madgui-survey-camera-module"></span><h1>madgui.survey.camera module<a class="headerlink" href="#module-madgui.survey.camera" title="Permalink to this headline">¶</a></h1>
+<p>Utilities for dealing with coordinate system / camera transformations.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera" title="madgui.survey.camera.Camera"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Camera</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.survey.camera.Camera">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.survey.camera.</code><code class="sig-name descname">Camera</code><a class="reference internal" href="../_modules/madgui/survey/camera.html#Camera"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.camera.Camera" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QObject</span></code></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.distance" title="madgui.survey.camera.Camera.distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distance</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.far" title="madgui.survey.camera.Camera.far"><code class="xref py py-obj docutils literal notranslate"><span class="pre">far</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.fov" title="madgui.survey.camera.Camera.fov"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fov</span></code></a></p></td>
+<td><p>float(x) -&gt; floating point number</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.near" title="madgui.survey.camera.Camera.near"><code class="xref py py-obj docutils literal notranslate"><span class="pre">near</span></code></a></p></td>
+<td><p>float(x) -&gt; floating point number</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.phi" title="madgui.survey.camera.Camera.phi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phi</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.psi" title="madgui.survey.camera.Camera.psi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">psi</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.theta" title="madgui.survey.camera.Camera.theta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">theta</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.updated" title="madgui.survey.camera.Camera.updated"><code class="xref py py-obj docutils literal notranslate"><span class="pre">updated</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Call self as a function.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.look_from" title="madgui.survey.camera.Camera.look_from"><code class="xref py py-obj docutils literal notranslate"><span class="pre">look_from</span></code></a>(theta, phi[, psi])</p></td>
+<td><p>Set camera position by rotating camera around its view target.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.look_toward" title="madgui.survey.camera.Camera.look_toward"><code class="xref py py-obj docutils literal notranslate"><span class="pre">look_toward</span></code></a>(theta, phi[, psi])</p></td>
+<td><p>Rotate camera at fixed position.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.projection" title="madgui.survey.camera.Camera.projection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">projection</span></code></a>(width, height)</p></td>
+<td><p>Return a perspective projection matrix for a viewport with the given size.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.translate" title="madgui.survey.camera.Camera.translate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">translate</span></code></a>(dx, dy, dz)</p></td>
+<td><p>Move camera position and its view center along the local coordinate system.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.camera.Camera.zoom" title="madgui.survey.camera.Camera.zoom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zoom</span></code></a>(scale)</p></td>
+<td><p>Scale the figure uniformly along both axes.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.survey.camera.Camera.distance">
+<code class="sig-name descname">distance</code><em class="property"> = 1</em><a class="headerlink" href="#madgui.survey.camera.Camera.distance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.camera.Camera.far">
+<code class="sig-name descname">far</code><em class="property"> = 1000</em><a class="headerlink" href="#madgui.survey.camera.Camera.far" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.camera.Camera.fov">
+<code class="sig-name descname">fov</code><em class="property"> = 70.0</em><a class="headerlink" href="#madgui.survey.camera.Camera.fov" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.camera.Camera.look_from">
+<code class="sig-name descname">look_from</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">theta</span></em>, <em class="sig-param"><span class="n">phi</span></em>, <em class="sig-param"><span class="n">psi</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/camera.html#Camera.look_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.camera.Camera.look_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set camera position by rotating camera around its view target. The
+angles are the coordinates of the camera relative to the target, at a
+distance <code class="docutils literal notranslate"><span class="pre">self.distance</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.camera.Camera.look_toward">
+<code class="sig-name descname">look_toward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">theta</span></em>, <em class="sig-param"><span class="n">phi</span></em>, <em class="sig-param"><span class="n">psi</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/camera.html#Camera.look_toward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.camera.Camera.look_toward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate camera at fixed position. The center of view is recalculated
+to be at distance <code class="docutils literal notranslate"><span class="pre">self.distance</span></code> from the camera position in the
+direction given by the angles.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.camera.Camera.near">
+<code class="sig-name descname">near</code><em class="property"> = 0.01</em><a class="headerlink" href="#madgui.survey.camera.Camera.near" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.camera.Camera.phi">
+<code class="sig-name descname">phi</code><em class="property"> = 0</em><a class="headerlink" href="#madgui.survey.camera.Camera.phi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.camera.Camera.projection">
+<code class="sig-name descname">projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">width</span></em>, <em class="sig-param"><span class="n">height</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/camera.html#Camera.projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.camera.Camera.projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a perspective projection matrix for a viewport with the
+given size.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.camera.Camera.psi">
+<code class="sig-name descname">psi</code><em class="property"> = 0</em><a class="headerlink" href="#madgui.survey.camera.Camera.psi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.camera.Camera.theta">
+<code class="sig-name descname">theta</code><em class="property"> = 0</em><a class="headerlink" href="#madgui.survey.camera.Camera.theta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.camera.Camera.translate">
+<code class="sig-name descname">translate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dx</span></em>, <em class="sig-param"><span class="n">dy</span></em>, <em class="sig-param"><span class="n">dz</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/camera.html#Camera.translate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.camera.Camera.translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move camera position and its view center along the local coordinate
+system. Keeps angles fixed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.camera.Camera.updated">
+<code class="sig-name descname">updated</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.survey.camera.Camera.updated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call self as a function.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.camera.Camera.zoom">
+<code class="sig-name descname">zoom</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scale</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/camera.html#Camera.zoom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.camera.Camera.zoom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scale the figure uniformly along both axes.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.survey.gl_util.html" class="btn btn-neutral float-right" title="madgui.survey.gl_util module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.survey.html" class="btn btn-neutral float-left" title="madgui.survey package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

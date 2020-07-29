@@ -1,0 +1,7 @@
+madgui.survey.camera module
+===========================
+
+.. automodule:: madgui.survey.camera
+   :members:
+   :undoc-members:
+   :show-inheritance:

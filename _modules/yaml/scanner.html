@@ -1,0 +1,1641 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>yaml.scanner &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>yaml.scanner</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for yaml.scanner</h1><div class="highlight"><pre>
+<span></span>
+<span class="c1"># Scanner produces tokens of the following types:</span>
+<span class="c1"># STREAM-START</span>
+<span class="c1"># STREAM-END</span>
+<span class="c1"># DIRECTIVE(name, value)</span>
+<span class="c1"># DOCUMENT-START</span>
+<span class="c1"># DOCUMENT-END</span>
+<span class="c1"># BLOCK-SEQUENCE-START</span>
+<span class="c1"># BLOCK-MAPPING-START</span>
+<span class="c1"># BLOCK-END</span>
+<span class="c1"># FLOW-SEQUENCE-START</span>
+<span class="c1"># FLOW-MAPPING-START</span>
+<span class="c1"># FLOW-SEQUENCE-END</span>
+<span class="c1"># FLOW-MAPPING-END</span>
+<span class="c1"># BLOCK-ENTRY</span>
+<span class="c1"># FLOW-ENTRY</span>
+<span class="c1"># KEY</span>
+<span class="c1"># VALUE</span>
+<span class="c1"># ALIAS(value)</span>
+<span class="c1"># ANCHOR(value)</span>
+<span class="c1"># TAG(value)</span>
+<span class="c1"># SCALAR(value, plain, style)</span>
+<span class="c1">#</span>
+<span class="c1"># Read comments in the Scanner code for more details.</span>
+<span class="c1">#</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Scanner&#39;</span><span class="p">,</span> <span class="s1">&#39;ScannerError&#39;</span><span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">.error</span> <span class="kn">import</span> <span class="n">MarkedYAMLError</span>
+<span class="kn">from</span> <span class="nn">.tokens</span> <span class="kn">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="ScannerError"><a class="viewcode-back" href="../../api/madgui.util.yaml.html#madgui.util.yaml.ScannerError">[docs]</a><span class="k">class</span> <span class="nc">ScannerError</span><span class="p">(</span><span class="n">MarkedYAMLError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+<span class="k">class</span> <span class="nc">SimpleKey</span><span class="p">:</span>
+    <span class="c1"># See below simple keys treatment.</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_number</span><span class="p">,</span> <span class="n">required</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">mark</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_number</span> <span class="o">=</span> <span class="n">token_number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required</span> <span class="o">=</span> <span class="n">required</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">line</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">column</span> <span class="o">=</span> <span class="n">column</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mark</span> <span class="o">=</span> <span class="n">mark</span>
+
+<span class="k">class</span> <span class="nc">Scanner</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the scanner.&quot;&quot;&quot;</span>
+        <span class="c1"># It is assumed that Scanner and Reader will have a common descendant.</span>
+        <span class="c1"># Reader do the dirty work of checking for BOM and converting the</span>
+        <span class="c1"># input data to Unicode. It also adds NUL to the end.</span>
+        <span class="c1">#</span>
+        <span class="c1"># Reader supports the following methods</span>
+        <span class="c1">#   self.peek(i=0)       # peek the next i-th character</span>
+        <span class="c1">#   self.prefix(l=1)     # peek the next l characters</span>
+        <span class="c1">#   self.forward(l=1)    # read the next l characters and move the pointer.</span>
+
+        <span class="c1"># Had we reached the end of the stream?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># The number of unclosed &#39;{&#39; and &#39;[&#39;. `flow_level == 0` means block</span>
+        <span class="c1"># context.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># List of processed tokens that are not yet emitted.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Add the STREAM-START token.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_stream_start</span><span class="p">()</span>
+
+        <span class="c1"># Number of tokens that were emitted through the `get_token` method.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens_taken</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># The current indentation level.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indent</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="c1"># Past indentation levels.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indents</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Variables related to simple keys treatment.</span>
+
+        <span class="c1"># A simple key is a key that is not denoted by the &#39;?&#39; indicator.</span>
+        <span class="c1"># Example of simple keys:</span>
+        <span class="c1">#   ---</span>
+        <span class="c1">#   block simple key: value</span>
+        <span class="c1">#   ? not a simple key:</span>
+        <span class="c1">#   : { flow simple key: value }</span>
+        <span class="c1"># We emit the KEY token before all keys, so when we find a potential</span>
+        <span class="c1"># simple key, we try to locate the corresponding &#39;:&#39; indicator.</span>
+        <span class="c1"># Simple keys should be limited to a single line and 1024 characters.</span>
+
+        <span class="c1"># Can a simple key start at the current position? A simple key may</span>
+        <span class="c1"># start:</span>
+        <span class="c1"># - at the beginning of the line, not counting indentation spaces</span>
+        <span class="c1">#       (in block context),</span>
+        <span class="c1"># - after &#39;{&#39;, &#39;[&#39;, &#39;,&#39; (in the flow context),</span>
+        <span class="c1"># - after &#39;?&#39;, &#39;:&#39;, &#39;-&#39; (in the block context).</span>
+        <span class="c1"># In the block context, this flag also signifies if a block collection</span>
+        <span class="c1"># may start at the current position.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Keep track of possible simple keys. This is a dictionary. The key</span>
+        <span class="c1"># is `flow_level`; there can be no more that one possible simple key</span>
+        <span class="c1"># for each level. The value is a SimpleKey record:</span>
+        <span class="c1">#   (token_number, required, index, line, column, mark)</span>
+        <span class="c1"># A simple key may start with ALIAS, ANCHOR, TAG, SCALAR(flow),</span>
+        <span class="c1"># &#39;[&#39;, or &#39;{&#39; tokens.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Public methods.</span>
+
+    <span class="k">def</span> <span class="nf">check_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">choices</span><span class="p">):</span>
+        <span class="c1"># Check if the next token is one of the given types.</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">need_more_tokens</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fetch_more_tokens</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">choices</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">choice</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">peek_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Return the next token, but do not delete if from the queue.</span>
+        <span class="c1"># Return None if no more tokens.</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">need_more_tokens</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fetch_more_tokens</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">get_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Return the next token.</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">need_more_tokens</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fetch_more_tokens</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tokens_taken</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Private methods.</span>
+
+    <span class="k">def</span> <span class="nf">need_more_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="c1"># The current token may be a potential simple key, so we</span>
+        <span class="c1"># need to look further.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stale_possible_simple_keys</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_possible_simple_key</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens_taken</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">fetch_more_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Eat whitespaces and comments until we reach the next token.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scan_to_next_token</span><span class="p">()</span>
+
+        <span class="c1"># Remove obsolete possible simple keys.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stale_possible_simple_keys</span><span class="p">()</span>
+
+        <span class="c1"># Compare the current indentation and column. It may add some tokens</span>
+        <span class="c1"># and decrease the current indentation level.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unwind_indent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">column</span><span class="p">)</span>
+
+        <span class="c1"># Peek the next character.</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+
+        <span class="c1"># Is it the end of stream?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_stream_end</span><span class="p">()</span>
+
+        <span class="c1"># Is it a directive?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;%&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_directive</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_directive</span><span class="p">()</span>
+
+        <span class="c1"># Is it the document start?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_document_start</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_document_start</span><span class="p">()</span>
+
+        <span class="c1"># Is it the document end?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;.&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_document_end</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_document_end</span><span class="p">()</span>
+
+        <span class="c1"># TODO: support for BOM within a stream.</span>
+        <span class="c1">#if ch == &#39;\uFEFF&#39;:</span>
+        <span class="c1">#    return self.fetch_bom()    &lt;-- issue BOMToken</span>
+
+        <span class="c1"># Note: the order of the following checks is NOT significant.</span>
+
+        <span class="c1"># Is it the flow sequence start indicator?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;[&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_sequence_start</span><span class="p">()</span>
+
+        <span class="c1"># Is it the flow mapping start indicator?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;{&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_mapping_start</span><span class="p">()</span>
+
+        <span class="c1"># Is it the flow sequence end indicator?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;]&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_sequence_end</span><span class="p">()</span>
+
+        <span class="c1"># Is it the flow mapping end indicator?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;}&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_mapping_end</span><span class="p">()</span>
+
+        <span class="c1"># Is it the flow entry indicator?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;,&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_entry</span><span class="p">()</span>
+
+        <span class="c1"># Is it the block entry indicator?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_block_entry</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_block_entry</span><span class="p">()</span>
+
+        <span class="c1"># Is it the key indicator?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;?&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_key</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_key</span><span class="p">()</span>
+
+        <span class="c1"># Is it the value indicator?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;:&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_value</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_value</span><span class="p">()</span>
+
+        <span class="c1"># Is it an alias?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_alias</span><span class="p">()</span>
+
+        <span class="c1"># Is it an anchor?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;&amp;&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_anchor</span><span class="p">()</span>
+
+        <span class="c1"># Is it a tag?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;!&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_tag</span><span class="p">()</span>
+
+        <span class="c1"># Is it a literal scalar?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;|&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_literal</span><span class="p">()</span>
+
+        <span class="c1"># Is it a folded scalar?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;&gt;&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_folded</span><span class="p">()</span>
+
+        <span class="c1"># Is it a single quoted scalar?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_single</span><span class="p">()</span>
+
+        <span class="c1"># Is it a double quoted scalar?</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\&quot;</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_double</span><span class="p">()</span>
+
+        <span class="c1"># It must be a plain scalar then.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_plain</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_plain</span><span class="p">()</span>
+
+        <span class="c1"># No? It&#39;s an error. Let&#39;s produce a nice error message.</span>
+        <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning for the next token&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;found character </span><span class="si">%r</span><span class="s2"> that cannot start any token&quot;</span> <span class="o">%</span> <span class="n">ch</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+
+    <span class="c1"># Simple keys treatment.</span>
+
+    <span class="k">def</span> <span class="nf">next_possible_simple_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Return the number of the nearest possible simple key. Actually we</span>
+        <span class="c1"># don&#39;t need to loop through the whole dictionary. We may replace it</span>
+        <span class="c1"># with the following code:</span>
+        <span class="c1">#   if not self.possible_simple_keys:</span>
+        <span class="c1">#       return None</span>
+        <span class="c1">#   return self.possible_simple_keys[</span>
+        <span class="c1">#           min(self.possible_simple_keys.keys())].token_number</span>
+        <span class="n">min_token_number</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">min_token_number</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">token_number</span> <span class="o">&lt;</span> <span class="n">min_token_number</span><span class="p">:</span>
+                <span class="n">min_token_number</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">token_number</span>
+        <span class="k">return</span> <span class="n">min_token_number</span>
+
+    <span class="k">def</span> <span class="nf">stale_possible_simple_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Remove entries that are no longer possible simple keys. According to</span>
+        <span class="c1"># the YAML specification, simple keys</span>
+        <span class="c1"># - should be limited to a single line,</span>
+        <span class="c1"># - should be no longer than 1024 characters.</span>
+        <span class="c1"># Disabling this procedure will allow simple keys of any length and</span>
+        <span class="c1"># height (may cause problems if indentation is broken though).</span>
+        <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">line</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line</span>  \
+                    <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">-</span><span class="n">key</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;</span> <span class="mi">1024</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">required</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a simple key&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">mark</span><span class="p">,</span>
+                            <span class="s2">&quot;could not find expected &#39;:&#39;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">save_possible_simple_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># The next token may start a simple key. We check if it&#39;s possible</span>
+        <span class="c1"># and save its position. This function is called for</span>
+        <span class="c1">#   ALIAS, ANCHOR, TAG, SCALAR(flow), &#39;[&#39;, and &#39;{&#39;.</span>
+
+        <span class="c1"># Check if a simple key is required at the current position.</span>
+        <span class="n">required</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">indent</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span>
+
+        <span class="c1"># The next token might be a simple key. Let&#39;s save it&#39;s number and</span>
+        <span class="c1"># position.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_possible_simple_key</span><span class="p">()</span>
+            <span class="n">token_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens_taken</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">SimpleKey</span><span class="p">(</span><span class="n">token_number</span><span class="p">,</span> <span class="n">required</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
+
+    <span class="k">def</span> <span class="nf">remove_possible_simple_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Remove the saved possible key position at the current flow level.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">]</span>
+            
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">required</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a simple key&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">mark</span><span class="p">,</span>
+                        <span class="s2">&quot;could not find expected &#39;:&#39;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">]</span>
+
+    <span class="c1"># Indentation functions.</span>
+
+    <span class="k">def</span> <span class="nf">unwind_indent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+
+        <span class="c1">## In flow context, tokens should respect indentation.</span>
+        <span class="c1">## Actually the condition should be `self.indent &gt;= column` according to</span>
+        <span class="c1">## the spec. But this condition will prohibit intuitively correct</span>
+        <span class="c1">## constructions such as</span>
+        <span class="c1">## key : {</span>
+        <span class="c1">## }</span>
+        <span class="c1">#if self.flow_level and self.indent &gt; column:</span>
+        <span class="c1">#    raise ScannerError(None, None,</span>
+        <span class="c1">#            &quot;invalid indentation or unclosed &#39;[&#39; or &#39;{&#39;&quot;,</span>
+        <span class="c1">#            self.get_mark())</span>
+
+        <span class="c1"># In the flow context, indentation is ignored. We make the scanner less</span>
+        <span class="c1"># restrictive then specification requires.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># In block context, we may need to issue the BLOCK-END tokens.</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">indent</span> <span class="o">&gt;</span> <span class="n">column</span><span class="p">:</span>
+            <span class="n">mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">indent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indents</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BlockEndToken</span><span class="p">(</span><span class="n">mark</span><span class="p">,</span> <span class="n">mark</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">add_indent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+        <span class="c1"># Check if we need to increase indentation.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">indent</span> <span class="o">&lt;</span> <span class="n">column</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">indents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indent</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">indent</span> <span class="o">=</span> <span class="n">column</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Fetchers.</span>
+
+    <span class="k">def</span> <span class="nf">fetch_stream_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># We always add STREAM-START as the first token and STREAM-END as the</span>
+        <span class="c1"># last token.</span>
+
+        <span class="c1"># Read the token.</span>
+        <span class="n">mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        
+        <span class="c1"># Add STREAM-START.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">StreamStartToken</span><span class="p">(</span><span class="n">mark</span><span class="p">,</span> <span class="n">mark</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">encoding</span><span class="p">))</span>
+        
+
+    <span class="k">def</span> <span class="nf">fetch_stream_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Set the current indentation to -1.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unwind_indent</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Reset simple keys.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_possible_simple_key</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Read the token.</span>
+        <span class="n">mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        
+        <span class="c1"># Add STREAM-END.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">StreamEndToken</span><span class="p">(</span><span class="n">mark</span><span class="p">,</span> <span class="n">mark</span><span class="p">))</span>
+
+        <span class="c1"># The steam is finished.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">done</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">fetch_directive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+        <span class="c1"># Set the current indentation to -1.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unwind_indent</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Reset simple keys.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_possible_simple_key</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Scan and add DIRECTIVE.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_directive</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">fetch_document_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_document_indicator</span><span class="p">(</span><span class="n">DocumentStartToken</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fetch_document_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_document_indicator</span><span class="p">(</span><span class="n">DocumentEndToken</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fetch_document_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">TokenClass</span><span class="p">):</span>
+
+        <span class="c1"># Set the current indentation to -1.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unwind_indent</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Reset simple keys. Note that there could not be a block collection</span>
+        <span class="c1"># after &#39;---&#39;.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_possible_simple_key</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Add DOCUMENT-START or DOCUMENT-END.</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TokenClass</span><span class="p">(</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_flow_sequence_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_collection_start</span><span class="p">(</span><span class="n">FlowSequenceStartToken</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fetch_flow_mapping_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_collection_start</span><span class="p">(</span><span class="n">FlowMappingStartToken</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fetch_flow_collection_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">TokenClass</span><span class="p">):</span>
+
+        <span class="c1"># &#39;[&#39; and &#39;{&#39; may start a simple key.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># Increase the flow level.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Simple keys are allowed after &#39;[&#39; and &#39;{&#39;.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Add FLOW-SEQUENCE-START or FLOW-MAPPING-START.</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TokenClass</span><span class="p">(</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_flow_sequence_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_collection_end</span><span class="p">(</span><span class="n">FlowSequenceEndToken</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fetch_flow_mapping_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_collection_end</span><span class="p">(</span><span class="n">FlowMappingEndToken</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fetch_flow_collection_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">TokenClass</span><span class="p">):</span>
+
+        <span class="c1"># Reset possible simple key on the current level.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># Decrease the flow level.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="c1"># No simple keys after &#39;]&#39; or &#39;}&#39;.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Add FLOW-SEQUENCE-END or FLOW-MAPPING-END.</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TokenClass</span><span class="p">(</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_flow_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Simple keys are allowed after &#39;,&#39;.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Reset possible simple key on the current level.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># Add FLOW-ENTRY.</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FlowEntryToken</span><span class="p">(</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_block_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Block context needs additional checks.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+
+            <span class="c1"># Are we allowed to start a new entry?</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">&quot;sequence entries are not allowed here&quot;</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+
+            <span class="c1"># We may need to add BLOCK-SEQUENCE-START.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_indent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">column</span><span class="p">):</span>
+                <span class="n">mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BlockSequenceStartToken</span><span class="p">(</span><span class="n">mark</span><span class="p">,</span> <span class="n">mark</span><span class="p">))</span>
+
+        <span class="c1"># It&#39;s an error for the block entry to occur in the flow context,</span>
+        <span class="c1"># but we let the parser detect this.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># Simple keys are allowed after &#39;-&#39;.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Reset possible simple key on the current level.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># Add BLOCK-ENTRY.</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BlockEntryToken</span><span class="p">(</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+        <span class="c1"># Block context needs additional checks.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+
+            <span class="c1"># Are we allowed to start a key (not necessary a simple)?</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">&quot;mapping keys are not allowed here&quot;</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+
+            <span class="c1"># We may need to add BLOCK-MAPPING-START.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_indent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">column</span><span class="p">):</span>
+                <span class="n">mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BlockMappingStartToken</span><span class="p">(</span><span class="n">mark</span><span class="p">,</span> <span class="n">mark</span><span class="p">))</span>
+
+        <span class="c1"># Simple keys are allowed after &#39;?&#39; in the block context.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span>
+
+        <span class="c1"># Reset possible simple key on the current level.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># Add KEY.</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">KeyToken</span><span class="p">(</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Do we determine a simple key?</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">:</span>
+
+            <span class="c1"># Add KEY.</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">]</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_simple_keys</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">token_number</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">tokens_taken</span><span class="p">,</span>
+                    <span class="n">KeyToken</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">mark</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">mark</span><span class="p">))</span>
+
+            <span class="c1"># If this key starts a new block mapping, we need to add</span>
+            <span class="c1"># BLOCK-MAPPING-START.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_indent</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">column</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">token_number</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">tokens_taken</span><span class="p">,</span>
+                            <span class="n">BlockMappingStartToken</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">mark</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">mark</span><span class="p">))</span>
+
+            <span class="c1"># There cannot be two simple keys one after another.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># It must be a part of a complex key.</span>
+        <span class="k">else</span><span class="p">:</span>
+            
+            <span class="c1"># Block context needs additional checks.</span>
+            <span class="c1"># (Do we really need them? They will be caught by the parser</span>
+            <span class="c1"># anyway.)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+
+                <span class="c1"># We are allowed to start a complex value if and only if</span>
+                <span class="c1"># we can start a simple key.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="s2">&quot;mapping values are not allowed here&quot;</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+
+            <span class="c1"># If this value starts a new block mapping, we need to add</span>
+            <span class="c1"># BLOCK-MAPPING-START.  It will be detected as an error later by</span>
+            <span class="c1"># the parser.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_indent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">column</span><span class="p">):</span>
+                    <span class="n">mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BlockMappingStartToken</span><span class="p">(</span><span class="n">mark</span><span class="p">,</span> <span class="n">mark</span><span class="p">))</span>
+
+            <span class="c1"># Simple keys are allowed after &#39;:&#39; in the block context.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span>
+
+            <span class="c1"># Reset possible simple key on the current level.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># Add VALUE.</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ValueToken</span><span class="p">(</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># ALIAS could be a simple key.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># No simple keys after ALIAS.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Scan and add ALIAS.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_anchor</span><span class="p">(</span><span class="n">AliasToken</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_anchor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># ANCHOR could start a simple key.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># No simple keys after ANCHOR.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Scan and add ANCHOR.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_anchor</span><span class="p">(</span><span class="n">AnchorToken</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># TAG could start a simple key.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># No simple keys after TAG.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Scan and add TAG.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_tag</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">fetch_literal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_block_scalar</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fetch_folded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_block_scalar</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&#39;&gt;&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fetch_block_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
+
+        <span class="c1"># A simple key may follow a block scalar.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Reset possible simple key on the current level.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># Scan and add SCALAR.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_block_scalar</span><span class="p">(</span><span class="n">style</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_single</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_scalar</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fetch_double</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_flow_scalar</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fetch_flow_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
+
+        <span class="c1"># A flow scalar could be a simple key.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># No simple keys after flow scalars.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Scan and add SCALAR.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_flow_scalar</span><span class="p">(</span><span class="n">style</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">fetch_plain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># A plain scalar could be a simple key.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_possible_simple_key</span><span class="p">()</span>
+
+        <span class="c1"># No simple keys after plain scalars. But note that `scan_plain` will</span>
+        <span class="c1"># change this flag if the scan is finished at the beginning of the</span>
+        <span class="c1"># line.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Scan and add SCALAR. May change `allow_simple_key`.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_plain</span><span class="p">())</span>
+
+    <span class="c1"># Checkers.</span>
+
+    <span class="k">def</span> <span class="nf">check_directive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># DIRECTIVE:        ^ &#39;%&#39; ...</span>
+        <span class="c1"># The &#39;%&#39; indicator is already checked.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">check_document_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># DOCUMENT-START:   ^ &#39;---&#39; (&#39; &#39;|&#39;\n&#39;)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;---&#39;</span>  \
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">check_document_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># DOCUMENT-END:     ^ &#39;...&#39; (&#39; &#39;|&#39;\n&#39;)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;...&#39;</span>  \
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">check_block_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># BLOCK-ENTRY:      &#39;-&#39; (&#39; &#39;|&#39;\n&#39;)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span>
+
+    <span class="k">def</span> <span class="nf">check_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># KEY(flow context):    &#39;?&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="c1"># KEY(block context):   &#39;?&#39; (&#39; &#39;|&#39;\n&#39;)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span>
+
+    <span class="k">def</span> <span class="nf">check_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># VALUE(flow context):  &#39;:&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="c1"># VALUE(block context): &#39;:&#39; (&#39; &#39;|&#39;\n&#39;)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span>
+
+    <span class="k">def</span> <span class="nf">check_plain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># A plain scalar may start with any non-space character except:</span>
+        <span class="c1">#   &#39;-&#39;, &#39;?&#39;, &#39;:&#39;, &#39;,&#39;, &#39;[&#39;, &#39;]&#39;, &#39;{&#39;, &#39;}&#39;,</span>
+        <span class="c1">#   &#39;#&#39;, &#39;&amp;&#39;, &#39;*&#39;, &#39;!&#39;, &#39;|&#39;, &#39;&gt;&#39;, &#39;\&#39;&#39;, &#39;\&quot;&#39;,</span>
+        <span class="c1">#   &#39;%&#39;, &#39;@&#39;, &#39;`&#39;.</span>
+        <span class="c1">#</span>
+        <span class="c1"># It may also start with</span>
+        <span class="c1">#   &#39;-&#39;, &#39;?&#39;, &#39;:&#39;</span>
+        <span class="c1"># if it is followed by a non-space character.</span>
+        <span class="c1">#</span>
+        <span class="c1"># Note that we limit the last rule to the block context (except the</span>
+        <span class="c1"># &#39;-&#39; character) because we want the flow context to be space</span>
+        <span class="c1"># independent.</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">-?:,[]</span><span class="si">{}</span><span class="s1">#&amp;*!|&gt;</span><span class="se">\&#39;\&quot;</span><span class="s1">%@`&#39;</span>  \
+                <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span>
+                        <span class="ow">and</span> <span class="p">(</span><span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span> <span class="ow">and</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;?:&#39;</span><span class="p">)))</span>
+
+    <span class="c1"># Scanners.</span>
+
+    <span class="k">def</span> <span class="nf">scan_to_next_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># We ignore spaces, line breaks and comments.</span>
+        <span class="c1"># If we find a line break in the block context, we set the flag</span>
+        <span class="c1"># `allow_simple_key` on.</span>
+        <span class="c1"># The byte order mark is stripped if it&#39;s the first character in the</span>
+        <span class="c1"># stream. We do not yet support BOM inside the stream as the</span>
+        <span class="c1"># specification requires. Any such mark will be considered as a part</span>
+        <span class="c1"># of the document.</span>
+        <span class="c1">#</span>
+        <span class="c1"># TODO: We need to make tab handling rules more sane. A good rule is</span>
+        <span class="c1">#   Tabs cannot precede tokens</span>
+        <span class="c1">#   BLOCK-SEQUENCE-START, BLOCK-MAPPING-START, BLOCK-END,</span>
+        <span class="c1">#   KEY(block), VALUE(block), BLOCK-ENTRY</span>
+        <span class="c1"># So the checking code is</span>
+        <span class="c1">#   if &lt;TAB&gt;:</span>
+        <span class="c1">#       self.allow_simple_keys = False</span>
+        <span class="c1"># We also need to add the check for `allow_simple_keys == True` to</span>
+        <span class="c1"># `unwind_indent` before issuing BLOCK-END.</span>
+        <span class="c1"># Scanners for block, flow, and plain scalars need to be modified.</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\uFEFF</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">:</span>
+                <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">scan_directive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_directive_name</span><span class="p">(</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;YAML&#39;</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_yaml_directive_value</span><span class="p">(</span><span class="n">start_mark</span><span class="p">)</span>
+            <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_tag_directive_value</span><span class="p">(</span><span class="n">start_mark</span><span class="p">)</span>
+            <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scan_directive_ignored_line</span><span class="p">(</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DirectiveToken</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">scan_directive_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">while</span> <span class="s1">&#39;0&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;9&#39;</span> <span class="ow">or</span> <span class="s1">&#39;A&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span> <span class="ow">or</span> <span class="s1">&#39;a&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;z&#39;</span>  \
+                <span class="ow">or</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;-_&#39;</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">length</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a directive&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected alphabetic or numeric character, but found </span><span class="si">%r</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a directive&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected alphabetic or numeric character, but found </span><span class="si">%r</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">scan_yaml_directive_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">major</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_yaml_directive_number</span><span class="p">(</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;.&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a directive&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected a digit or &#39;.&#39;, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">minor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_yaml_directive_number</span><span class="p">(</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a directive&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected a digit or &#39; &#39;, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">major</span><span class="p">,</span> <span class="n">minor</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">scan_yaml_directive_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;0&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;9&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a directive&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected a digit, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="s1">&#39;0&#39;</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="s1">&#39;9&#39;</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">scan_tag_directive_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">handle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_tag_directive_handle</span><span class="p">(</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_tag_directive_prefix</span><span class="p">(</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">scan_tag_directive_handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_tag_handle</span><span class="p">(</span><span class="s1">&#39;directive&#39;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">)</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">!=</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a directive&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected &#39; &#39;, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">scan_tag_directive_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_tag_uri</span><span class="p">(</span><span class="s1">&#39;directive&#39;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">)</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a directive&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected &#39; &#39;, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">scan_directive_ignored_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">:</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a directive&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected a comment or a line break, but found </span><span class="si">%r</span><span class="s2">&quot;</span>
+                        <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">scan_anchor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">TokenClass</span><span class="p">):</span>
+        <span class="c1"># The specification does not restrict characters for anchors and</span>
+        <span class="c1"># aliases. This may lead to problems, for instance, the document:</span>
+        <span class="c1">#   [ *alias, value ]</span>
+        <span class="c1"># can be interpreted in two ways, as</span>
+        <span class="c1">#   [ &quot;value&quot; ]</span>
+        <span class="c1"># and</span>
+        <span class="c1">#   [ *alias , &quot;value&quot; ]</span>
+        <span class="c1"># Therefore we restrict aliases to numbers and ASCII letters.</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="n">indicator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">indicator</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;alias&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;anchor&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">while</span> <span class="s1">&#39;0&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;9&#39;</span> <span class="ow">or</span> <span class="s1">&#39;A&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span> <span class="ow">or</span> <span class="s1">&#39;a&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;z&#39;</span>  \
+                <span class="ow">or</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;-_&#39;</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">length</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning an </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected alphabetic or numeric character, but found </span><span class="si">%r</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">?:,]}%@`&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning an </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected alphabetic or numeric character, but found </span><span class="si">%r</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">TokenClass</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">scan_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">:</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">suffix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_tag_uri</span><span class="p">(</span><span class="s1">&#39;tag&#39;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while parsing a tag&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                        <span class="s2">&quot;expected &#39;&gt;&#39;, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;!&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">use_handle</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">while</span> <span class="n">ch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;!&#39;</span><span class="p">:</span>
+                    <span class="n">use_handle</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+                <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="s1">&#39;!&#39;</span>
+            <span class="k">if</span> <span class="n">use_handle</span><span class="p">:</span>
+                <span class="n">handle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_tag_handle</span><span class="p">(</span><span class="s1">&#39;tag&#39;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">handle</span> <span class="o">=</span> <span class="s1">&#39;!&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+            <span class="n">suffix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_tag_uri</span><span class="p">(</span><span class="s1">&#39;tag&#39;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">)</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a tag&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected &#39; &#39;, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">TagToken</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">scan_block_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+
+        <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">:</span>
+            <span class="n">folded</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">folded</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+
+        <span class="c1"># Scan the header.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">chomping</span><span class="p">,</span> <span class="n">increment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_block_scalar_indicators</span><span class="p">(</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scan_block_scalar_ignored_line</span><span class="p">(</span><span class="n">start_mark</span><span class="p">)</span>
+
+        <span class="c1"># Determine the indentation level and go to the first non-empty line.</span>
+        <span class="n">min_indent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indent</span><span class="o">+</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="n">min_indent</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">min_indent</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">increment</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">breaks</span><span class="p">,</span> <span class="n">max_indent</span><span class="p">,</span> <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_block_scalar_indentation</span><span class="p">()</span>
+            <span class="n">indent</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_indent</span><span class="p">,</span> <span class="n">max_indent</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">indent</span> <span class="o">=</span> <span class="n">min_indent</span><span class="o">+</span><span class="n">increment</span><span class="o">-</span><span class="mi">1</span>
+            <span class="n">breaks</span><span class="p">,</span> <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_block_scalar_breaks</span><span class="p">(</span><span class="n">indent</span><span class="p">)</span>
+        <span class="n">line_break</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="c1"># Scan the inner part of the block scalar.</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span> <span class="o">==</span> <span class="n">indent</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">breaks</span><span class="p">)</span>
+            <span class="n">leading_non_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39; </span><span class="se">\t</span><span class="s1">&#39;</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+            <span class="n">line_break</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">()</span>
+            <span class="n">breaks</span><span class="p">,</span> <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_block_scalar_breaks</span><span class="p">(</span><span class="n">indent</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span> <span class="o">==</span> <span class="n">indent</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">:</span>
+
+                <span class="c1"># Unfortunately, folding rules are ambiguous.</span>
+                <span class="c1">#</span>
+                <span class="c1"># This is the folding according to the specification:</span>
+                
+                <span class="k">if</span> <span class="n">folded</span> <span class="ow">and</span> <span class="n">line_break</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>    \
+                        <span class="ow">and</span> <span class="n">leading_non_space</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39; </span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">breaks</span><span class="p">:</span>
+                        <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_break</span><span class="p">)</span>
+                
+                <span class="c1"># This is Clark Evans&#39;s interpretation (also in the spec</span>
+                <span class="c1"># examples):</span>
+                <span class="c1">#</span>
+                <span class="c1">#if folded and line_break == &#39;\n&#39;:</span>
+                <span class="c1">#    if not breaks:</span>
+                <span class="c1">#        if self.peek() not in &#39; \t&#39;:</span>
+                <span class="c1">#            chunks.append(&#39; &#39;)</span>
+                <span class="c1">#        else:</span>
+                <span class="c1">#            chunks.append(line_break)</span>
+                <span class="c1">#else:</span>
+                <span class="c1">#    chunks.append(line_break)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="c1"># Chomp the tail.</span>
+        <span class="k">if</span> <span class="n">chomping</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_break</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chomping</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">breaks</span><span class="p">)</span>
+
+        <span class="c1"># We are done.</span>
+        <span class="k">return</span> <span class="n">ScalarToken</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chunks</span><span class="p">),</span> <span class="kc">False</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span>
+                <span class="n">style</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">scan_block_scalar_indicators</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">chomping</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">increment</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;+-&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
+                <span class="n">chomping</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">chomping</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+            <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;0123456789&#39;</span><span class="p">:</span>
+                <span class="n">increment</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">increment</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a block scalar&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                            <span class="s2">&quot;expected indentation indicator in the range 1-9, but found 0&quot;</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;0123456789&#39;</span><span class="p">:</span>
+            <span class="n">increment</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">increment</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a block scalar&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                        <span class="s2">&quot;expected indentation indicator in the range 1-9, but found 0&quot;</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+            <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;+-&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
+                    <span class="n">chomping</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">chomping</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a block scalar&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected chomping or indentation indicators, but found </span><span class="si">%r</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">chomping</span><span class="p">,</span> <span class="n">increment</span>
+
+    <span class="k">def</span> <span class="nf">scan_block_scalar_ignored_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">:</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a block scalar&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected a comment or a line break, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ch</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">scan_block_scalar_indentation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">max_indent</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">in</span> <span class="s1">&#39; </span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">())</span>
+                <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span> <span class="o">&gt;</span> <span class="n">max_indent</span><span class="p">:</span>
+                    <span class="n">max_indent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span>
+        <span class="k">return</span> <span class="n">chunks</span><span class="p">,</span> <span class="n">max_indent</span><span class="p">,</span> <span class="n">end_mark</span>
+
+    <span class="k">def</span> <span class="nf">scan_block_scalar_breaks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span> <span class="o">&lt;</span> <span class="n">indent</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">())</span>
+            <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span> <span class="o">&lt;</span> <span class="n">indent</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">chunks</span><span class="p">,</span> <span class="n">end_mark</span>
+
+    <span class="k">def</span> <span class="nf">scan_flow_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="c1"># Note that we loose indentation rules for quoted scalars. Quoted</span>
+        <span class="c1"># scalars don&#39;t need to adhere indentation because &quot; and &#39; clearly</span>
+        <span class="c1"># mark the beginning and the end of them. Therefore we are less</span>
+        <span class="c1"># restrictive then the specification requires. We only need to check</span>
+        <span class="c1"># that document separators are not included in scalars.</span>
+        <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">:</span>
+            <span class="n">double</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">double</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="n">quote</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">chunks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_flow_scalar_non_spaces</span><span class="p">(</span><span class="n">double</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">))</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">!=</span> <span class="n">quote</span><span class="p">:</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_flow_scalar_spaces</span><span class="p">(</span><span class="n">double</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">))</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_flow_scalar_non_spaces</span><span class="p">(</span><span class="n">double</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ScalarToken</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chunks</span><span class="p">),</span> <span class="kc">False</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span>
+                <span class="n">style</span><span class="p">)</span>
+
+    <span class="n">ESCAPE_REPLACEMENTS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;0&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;a&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\x07</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;b&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\x08</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;t&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\x09</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">:</span>   <span class="s1">&#39;</span><span class="se">\x09</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;n&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\x0A</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;v&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\x0B</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;f&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\x0C</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;r&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\x0D</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;e&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\x1B</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39; &#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\x20</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;</span><span class="se">\&quot;</span><span class="s1">&#39;</span><span class="p">:</span>   <span class="s1">&#39;</span><span class="se">\&quot;</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">:</span>   <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;/&#39;</span><span class="p">:</span>    <span class="s1">&#39;/&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;N&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\x85</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\xA0</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;L&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\u2028</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;P&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\u2029</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">ESCAPE_CODES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;x&#39;</span><span class="p">:</span>    <span class="mi">2</span><span class="p">,</span>
+        <span class="s1">&#39;u&#39;</span><span class="p">:</span>    <span class="mi">4</span><span class="p">,</span>
+        <span class="s1">&#39;U&#39;</span><span class="p">:</span>    <span class="mi">8</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">scan_flow_scalar_non_spaces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">double</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\&#39;\&quot;\\\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">length</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+            <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">double</span> <span class="ow">and</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">double</span> <span class="ow">and</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">double</span> <span class="ow">and</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\&quot;\\</span><span class="s1">&#39;</span><span class="p">):</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">double</span> <span class="ow">and</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+                <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ESCAPE_REPLACEMENTS</span><span class="p">:</span>
+                    <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ESCAPE_REPLACEMENTS</span><span class="p">[</span><span class="n">ch</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="n">ch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ESCAPE_CODES</span><span class="p">:</span>
+                    <span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ESCAPE_CODES</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;0123456789ABCDEFabcdef&#39;</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a double-quoted scalar&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                                    <span class="s2">&quot;expected escape sequence of </span><span class="si">%d</span><span class="s2"> hexdecimal numbers, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span>
+                                        <span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">k</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+                    <span class="n">code</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">),</span> <span class="mi">16</span><span class="p">)</span>
+                    <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="n">code</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">()</span>
+                    <span class="n">chunks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_flow_scalar_breaks</span><span class="p">(</span><span class="n">double</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a double-quoted scalar&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                            <span class="s2">&quot;found unknown escape character </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">chunks</span>
+
+    <span class="k">def</span> <span class="nf">scan_flow_scalar_spaces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">double</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39; </span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">whitespaces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a quoted scalar&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;found unexpected end of stream&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="n">line_break</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">()</span>
+            <span class="n">breaks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_flow_scalar_breaks</span><span class="p">(</span><span class="n">double</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">line_break</span> <span class="o">!=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_break</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">breaks</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">breaks</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">whitespaces</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chunks</span>
+
+    <span class="k">def</span> <span class="nf">scan_flow_scalar_breaks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">double</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># Instead of checking indentation, we check for document</span>
+            <span class="c1"># separators.</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">prefix</span> <span class="o">==</span> <span class="s1">&#39;---&#39;</span> <span class="ow">or</span> <span class="n">prefix</span> <span class="o">==</span> <span class="s1">&#39;...&#39;</span><span class="p">)</span>   \
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a quoted scalar&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                        <span class="s2">&quot;found unexpected document separator&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">in</span> <span class="s1">&#39; </span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">chunks</span>
+
+    <span class="k">def</span> <span class="nf">scan_plain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="c1"># We add an additional restriction for the flow context:</span>
+        <span class="c1">#   plain scalars in the flow context cannot contain &#39;,&#39; or &#39;?&#39;.</span>
+        <span class="c1"># We also keep track of the `allow_simple_key` flag here.</span>
+        <span class="c1"># Indentation rules are loosed for the flow context.</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="n">end_mark</span> <span class="o">=</span> <span class="n">start_mark</span>
+        <span class="n">indent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indent</span><span class="o">+</span><span class="mi">1</span>
+        <span class="c1"># We allow zero indentation for scalars, but then we need to check for</span>
+        <span class="c1"># document separators at the beginning of the line.</span>
+        <span class="c1">#if indent == 0:</span>
+        <span class="c1">#    indent = 1</span>
+        <span class="n">spaces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span>    \
+                        <span class="ow">or</span> <span class="p">(</span><span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;:&#39;</span> <span class="ow">and</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span>
+                                      <span class="o">+</span> <span class="p">(</span><span class="sa">u</span><span class="s1">&#39;,[]</span><span class="si">{}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span> <span class="k">else</span> <span class="sa">u</span><span class="s1">&#39;&#39;</span><span class="p">))</span>\
+                        <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span> <span class="ow">and</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;,?[]</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">):</span>
+                    <span class="k">break</span>
+                <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">spaces</span><span class="p">)</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+            <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+            <span class="n">spaces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_plain_spaces</span><span class="p">(</span><span class="n">indent</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">spaces</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span> \
+                    <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_level</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span> <span class="o">&lt;</span> <span class="n">indent</span><span class="p">):</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">ScalarToken</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chunks</span><span class="p">),</span> <span class="kc">True</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">scan_plain_spaces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="c1"># The specification is really confusing about tabs in plain scalars.</span>
+        <span class="c1"># We just forbid them completely. Do not use tabs in YAML!</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">whitespaces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="n">line_break</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allow_simple_key</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">prefix</span> <span class="o">==</span> <span class="s1">&#39;---&#39;</span> <span class="ow">or</span> <span class="n">prefix</span> <span class="o">==</span> <span class="s1">&#39;...&#39;</span><span class="p">)</span>   \
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="k">return</span>
+            <span class="n">breaks</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="ow">in</span> <span class="s1">&#39; </span><span class="se">\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">breaks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_line_break</span><span class="p">())</span>
+                    <span class="n">prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">prefix</span> <span class="o">==</span> <span class="s1">&#39;---&#39;</span> <span class="ow">or</span> <span class="n">prefix</span> <span class="o">==</span> <span class="s1">&#39;...&#39;</span><span class="p">)</span>   \
+                            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1"> </span><span class="se">\t\r\n\x85\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+                        <span class="k">return</span>
+            <span class="k">if</span> <span class="n">line_break</span> <span class="o">!=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_break</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">breaks</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">breaks</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">whitespaces</span><span class="p">:</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">whitespaces</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chunks</span>
+
+    <span class="k">def</span> <span class="nf">scan_tag_handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="c1"># For some strange reasons, the specification does not allow &#39;_&#39; in</span>
+        <span class="c1"># tag handles. I have allowed it anyway.</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">!=</span> <span class="s1">&#39;!&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected &#39;!&#39;, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">!=</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="k">while</span> <span class="s1">&#39;0&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;9&#39;</span> <span class="ow">or</span> <span class="s1">&#39;A&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span> <span class="ow">or</span> <span class="s1">&#39;a&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;z&#39;</span>  \
+                    <span class="ow">or</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;-_&#39;</span><span class="p">:</span>
+                <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ch</span> <span class="o">!=</span> <span class="s1">&#39;!&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                        <span class="s2">&quot;expected &#39;!&#39;, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+            <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">scan_tag_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="c1"># Note: we do not check if URI is well-formed.</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">while</span> <span class="s1">&#39;0&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;9&#39;</span> <span class="ow">or</span> <span class="s1">&#39;A&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span> <span class="ow">or</span> <span class="s1">&#39;a&#39;</span> <span class="o">&lt;=</span> <span class="n">ch</span> <span class="o">&lt;=</span> <span class="s1">&#39;z&#39;</span>  \
+                <span class="ow">or</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;-;/?:@&amp;=+$,_.!~*</span><span class="se">\&#39;</span><span class="s1">()[]%&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s1">&#39;%&#39;</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+                <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_uri_escapes</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">length</span><span class="p">:</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="n">length</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">chunks</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while parsing a </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                    <span class="s2">&quot;expected URI, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">scan_uri_escapes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">):</span>
+        <span class="c1"># See the specification for details.</span>
+        <span class="n">codes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">()</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;%&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;0123456789ABCDEFabcdef&#39;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                            <span class="s2">&quot;expected URI escape sequence of 2 hexdecimal numbers, but found </span><span class="si">%r</span><span class="s2">&quot;</span>
+                            <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mark</span><span class="p">())</span>
+            <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="mi">16</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">UnicodeDecodeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ScannerError</span><span class="p">(</span><span class="s2">&quot;while scanning a </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span> <span class="n">mark</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">scan_line_break</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Transforms:</span>
+        <span class="c1">#   &#39;\r\n&#39;      :   &#39;\n&#39;</span>
+        <span class="c1">#   &#39;\r&#39;        :   &#39;\n&#39;</span>
+        <span class="c1">#   &#39;\n&#39;        :   &#39;\n&#39;</span>
+        <span class="c1">#   &#39;\x85&#39;      :   &#39;\n&#39;</span>
+        <span class="c1">#   &#39;\u2028&#39;    :   &#39;\u2028&#39;</span>
+        <span class="c1">#   &#39;\u2029     :   &#39;\u2029&#39;</span>
+        <span class="c1">#   default     :   &#39;&#39;</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\r\n\x85</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+            <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">elif</span> <span class="n">ch</span> <span class="ow">in</span> <span class="s1">&#39;</span><span class="se">\u2028\u2029</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">ch</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,322 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.orbit module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.online.orm_measure module" href="madgui.online.orm_measure.html" />
+    <link rel="prev" title="madgui.online.offcal module" href="madgui.online.offcal.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.online.html">madgui.online package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.online.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.online.html">madgui.online package</a> &raquo;</li>
+        
+      <li>madgui.online.orbit module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.online.orbit.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.online.orbit">
+<span id="madgui-online-orbit-module"></span><h1>madgui.online.orbit module<a class="headerlink" href="#module-madgui.online.orbit" title="Permalink to this headline">¶</a></h1>
+<p>Contains functions to deduce initial particle coordinates from given
+measurements.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.orbit.Readout" title="madgui.online.orbit.Readout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Readout</span></code></a>(name, posx, posy)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.orbit.add_offsets" title="madgui.online.orbit.add_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_offsets</span></code></a>(readouts, offsets)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.orbit.fit_particle_readouts" title="madgui.online.orbit.fit_particle_readouts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_particle_readouts</span></code></a>(model, readouts[, to])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.orbit.fit_particle_orbit" title="madgui.online.orbit.fit_particle_orbit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_particle_orbit</span></code></a>(model, records, secmaps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.orbit.fit_initial_orbit" title="madgui.online.orbit.fit_initial_orbit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_initial_orbit</span></code></a>(records[, rcond])</p></td>
+<td><p>Compute initial beam position/momentum from multiple recorded monitor readouts + associated transfer maps.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.online.orbit.Readout">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.orbit.</code><code class="sig-name descname">Readout</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">posx</span></em>, <em class="sig-param"><span class="n">posy</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/orbit.html#Readout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.orbit.Readout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.online.orbit.add_offsets">
+<code class="sig-prename descclassname">madgui.online.orbit.</code><code class="sig-name descname">add_offsets</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">readouts</span></em>, <em class="sig-param"><span class="n">offsets</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/orbit.html#add_offsets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.orbit.add_offsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.online.orbit.fit_initial_orbit">
+<code class="sig-prename descclassname">madgui.online.orbit.</code><code class="sig-name descname">fit_initial_orbit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">records</span></em>, <em class="sig-param"><span class="n">rcond</span><span class="o">=</span><span class="default_value">1e-06</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/orbit.html#fit_initial_orbit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.orbit.fit_initial_orbit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute initial beam position/momentum from multiple recorded monitor
+readouts + associated transfer maps.</p>
+<p>Call as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; fit_initial_orbit([(T1, K1, Y1), (T2, K2, Y2), …])
+</pre></div>
+</div>
+<p>where</p>
+<blockquote>
+<div><p>T are the 4D/6D SECTORMAPs from start to the monitor.
+K are the 4D/6D KICKs of the map from the start to the monitor.
+Y are the 2D measurement vectors (x, y)</p>
+</div></blockquote>
+<p>This function solves the linear system:</p>
+<blockquote>
+<div><p>T1 X + K1 = Y1
+T2 X + K2 = Y2
+…</p>
+</div></blockquote>
+<p>for the 4D phase space vector X = (x, px, y, py).</p>
+<p>Returns:    [x,px,y,py],    chi_squared,    underdetermined</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.online.orbit.fit_particle_orbit">
+<code class="sig-prename descclassname">madgui.online.orbit.</code><code class="sig-name descname">fit_particle_orbit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">records</span></em>, <em class="sig-param"><span class="n">secmaps</span></em>, <em class="sig-param"><span class="n">from_</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">to</span><span class="o">=</span><span class="default_value">'#s'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/orbit.html#fit_particle_orbit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.orbit.fit_particle_orbit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.online.orbit.fit_particle_readouts">
+<code class="sig-prename descclassname">madgui.online.orbit.</code><code class="sig-name descname">fit_particle_readouts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">readouts</span></em>, <em class="sig-param"><span class="n">to</span><span class="o">=</span><span class="default_value">'#s'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/orbit.html#fit_particle_readouts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.orbit.fit_particle_readouts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.online.orm_measure.html" class="btn btn-neutral float-right" title="madgui.online.orm_measure module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.online.offcal.html" class="btn btn-neutral float-left" title="madgui.online.offcal module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

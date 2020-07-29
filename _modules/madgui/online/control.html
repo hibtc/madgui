@@ -1,0 +1,511 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.control &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.online.control</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.online.control</h1><div class="highlight"><pre>
+<span></span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Plugin that integrates a beamoptikdll UI into MadGUI.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Control&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BeamSampler&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MonitorReadout&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">import_module</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">QTimer</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+<span class="kn">from</span> <span class="nn">madgui.util.qt</span> <span class="kn">import</span> <span class="n">SingleWindow</span>
+<span class="kn">from</span> <span class="nn">madgui.util.collections</span> <span class="kn">import</span> <span class="n">Bool</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="c1"># TODO: catch exceptions and display error messages</span>
+
+
+<div class="viewcode-block" id="Control"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control">[docs]</a><span class="k">class</span> <span class="nc">Control</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plugin class for MadGUI.</span>
+
+<span class="sd">    When connected, the plugin can be used to access parameters in the online</span>
+<span class="sd">    database. This works only if the corresponding parameters were named</span>
+<span class="sd">    exactly as in the database and are assigned with the &quot;:=&quot; operator.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">BeamSampler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c1"># menu conditions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_connected</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_backend</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">can_connect</span> <span class="o">=</span> <span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">is_connected</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_backend</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_sequence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_connected</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">online_control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;settings&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_model_changed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Control.set_backend"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.set_backend">[docs]</a>    <span class="k">def</span> <span class="nf">set_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qualname</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_spec</span> <span class="o">=</span> <span class="n">qualname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_backend</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">qualname</span><span class="p">))</span></div>
+
+    <span class="c1"># menu handlers</span>
+
+<div class="viewcode-block" id="Control.connect"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">qualname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend_spec</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Connecting online control: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">qualname</span><span class="p">))</span>
+        <span class="n">modname</span><span class="p">,</span> <span class="n">clsname</span> <span class="o">=</span> <span class="n">qualname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">clsname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_connected</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">user_ns</span><span class="o">.</span><span class="n">acs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_model_changed</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_on_model_changed</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;No connection to backend was possible&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Try to connect again&#39;</span><span class="p">)</span>
+            <span class="c1"># Implemented since there has been reports of madgui</span>
+            <span class="c1"># crashing after connecting and disconnecting from</span>
+            <span class="c1"># beamOptikDLL. Should we try here to disconnect again</span>
+            <span class="c1"># and implement a loop to try multiple times to connect?</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Control.disconnect"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.disconnect">[docs]</a>    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_settings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">user_ns</span><span class="o">.</span><span class="n">acs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_connected</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_model_changed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_model_changed</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_on_model_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+        <span class="n">elems</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_connected</span><span class="p">()</span> <span class="ow">and</span> <span class="n">model</span> <span class="ow">and</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span> <span class="ow">or</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">monitors</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">elems</span>
+            <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">base_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;monitor&#39;</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">elem</span><span class="o">.</span><span class="n">base_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;instrument&#39;</span>
+        <span class="p">]</span>
+
+<div class="viewcode-block" id="Control.export_settings"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.export_settings">[docs]</a>    <span class="k">def</span> <span class="nf">export_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="s1">&#39;export_settings&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">export_settings</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span></div>
+
+<div class="viewcode-block" id="Control.get_knobs"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.get_knobs">[docs]</a>    <span class="k">def</span> <span class="nf">get_knobs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get dict of lowercase name → :class:`ParamInfo`.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">knob</span><span class="p">:</span> <span class="n">info</span>
+            <span class="k">for</span> <span class="n">knob</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">export_globals</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">param_info</span><span class="p">(</span><span class="n">knob</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">info</span>
+        <span class="p">}</span></div>
+
+    <span class="c1"># TODO: unify export/import dialog -&gt; &quot;show knobs&quot;</span>
+    <span class="c1"># TODO: can we drop the read-all button in favor of automatic reads?</span>
+    <span class="c1"># (SetNewValueCallback?)</span>
+<div class="viewcode-block" id="Control.on_read_all"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.on_read_all">[docs]</a>    <span class="k">def</span> <span class="nf">on_read_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read all parameters from the online database.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">madgui.online.dialogs</span> <span class="kn">import</span> <span class="n">ImportParamWidget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_show_sync_dialog</span><span class="p">(</span><span class="n">ImportParamWidget</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_all</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Control.on_write_all"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.on_write_all">[docs]</a>    <span class="k">def</span> <span class="nf">on_write_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write all parameters to the online database.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">madgui.online.dialogs</span> <span class="kn">import</span> <span class="n">ExportParamWidget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_show_sync_dialog</span><span class="p">(</span><span class="n">ExportParamWidget</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_all</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_show_sync_dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">apply</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.online.dialogs</span> <span class="kn">import</span> <span class="n">SyncParamItem</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.dialog</span> <span class="kn">import</span> <span class="n">Dialog</span>
+        <span class="n">model</span><span class="p">,</span> <span class="n">live</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">SyncParamItem</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">live</span><span class="o">.</span><span class="n">read_param</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">model</span><span class="o">.</span><span class="n">read_param</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_knobs</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">data_key</span> <span class="o">=</span> <span class="s1">&#39;acs_parameters&#39;</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">window</span><span class="p">())</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">setExportWidget</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">serious</span><span class="o">.</span><span class="n">addCustomButton</span><span class="p">(</span><span class="s1">&#39;Sync Model&#39;</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">on_sync_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dialog</span><span class="p">))</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">serious</span><span class="o">.</span><span class="n">updateButtons</span><span class="p">()</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">accepted</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">apply</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">dialog</span>
+
+<div class="viewcode-block" id="Control.on_sync_model"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.on_sync_model">[docs]</a>    <span class="k">class</span> <span class="nc">on_sync_model</span><span class="p">:</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">widget</span> <span class="o">=</span> <span class="n">widget</span>
+
+        <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onSyncModel</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Control.on_sync_model.onSyncModel"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.on_sync_model.onSyncModel">[docs]</a>        <span class="k">def</span> <span class="nf">onSyncModel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">vAcc_to_model</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_on_model_changed</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">on_read_all</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="Control.read_all"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.read_all">[docs]</a>    <span class="k">def</span> <span class="nf">read_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">knobs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">live</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">write_params</span><span class="p">([</span>
+            <span class="p">(</span><span class="n">knob</span><span class="p">,</span> <span class="n">live</span><span class="o">.</span><span class="n">read_param</span><span class="p">(</span><span class="n">knob</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">knob</span> <span class="ow">in</span> <span class="n">knobs</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_knobs</span><span class="p">()</span>
+        <span class="p">],</span> <span class="s2">&quot;Read params from online control&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Control.write_all"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.write_all">[docs]</a>    <span class="k">def</span> <span class="nf">write_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">knobs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_params</span><span class="p">([</span>
+            <span class="p">(</span><span class="n">knob</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">read_param</span><span class="p">(</span><span class="n">knob</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">knob</span> <span class="ow">in</span> <span class="n">knobs</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_knobs</span><span class="p">()</span>
+        <span class="p">])</span></div>
+
+<div class="viewcode-block" id="Control.on_read_beam"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.on_read_beam">[docs]</a>    <span class="k">def</span> <span class="nf">on_read_beam</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO: add confirmation dialog</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_beam</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Control.read_beam"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.read_beam">[docs]</a>    <span class="k">def</span> <span class="nf">read_beam</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">update_beam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">get_beam</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Control.read_monitor"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.read_monitor">[docs]</a>    <span class="k">def</span> <span class="nf">read_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">read_monitor</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+    <span class="nd">@SingleWindow</span><span class="o">.</span><span class="n">factory</span>
+    <span class="k">def</span> <span class="nf">monitor_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read out SD values (beam position/envelope).&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">madgui.online.diagnostic</span> <span class="kn">import</span> <span class="n">MonitorWidget</span>
+        <span class="k">return</span> <span class="n">MonitorWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+
+    <span class="nd">@SingleWindow</span><span class="o">.</span><span class="n">factory</span>
+    <span class="k">def</span> <span class="nf">orm_measure_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Measure ORM for later analysis.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.dialog</span> <span class="kn">import</span> <span class="n">Dialog</span>
+        <span class="kn">from</span> <span class="nn">madgui.online.orm_measure</span> <span class="kn">import</span> <span class="n">MeasureWidget</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="n">MeasureWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">window</span><span class="p">(),</span> <span class="n">widget</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Control.on_correct_multi_grid_method"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.on_correct_multi_grid_method">[docs]</a>    <span class="k">def</span> <span class="nf">on_correct_multi_grid_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.correct.multi_grid</span> <span class="kn">import</span> <span class="n">CorrectorWidget</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.dialog</span> <span class="kn">import</span> <span class="n">Dialog</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="n">CorrectorWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">window</span><span class="p">(),</span> <span class="n">widget</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Control.on_correct_optic_variation_method"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.on_correct_optic_variation_method">[docs]</a>    <span class="k">def</span> <span class="nf">on_correct_optic_variation_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.correct.optic_variation</span> <span class="kn">import</span> <span class="n">CorrectorWidget</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.dialog</span> <span class="kn">import</span> <span class="n">Dialog</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="n">CorrectorWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">window</span><span class="p">(),</span> <span class="n">widget</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Control.on_correct_measured_response_method"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.on_correct_measured_response_method">[docs]</a>    <span class="k">def</span> <span class="nf">on_correct_measured_response_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.correct.mor_dialog</span> <span class="kn">import</span> <span class="n">CorrectorWidget</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.dialog</span> <span class="kn">import</span> <span class="n">Dialog</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="n">CorrectorWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">window</span><span class="p">(),</span> <span class="n">widget</span><span class="p">)</span></div>
+
+    <span class="c1"># helper functions</span>
+
+<div class="viewcode-block" id="Control.write_params"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.write_params">[docs]</a>    <span class="k">def</span> <span class="nf">write_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="n">write</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">write_param</span>
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="n">write</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Control.read_param"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.Control.read_param">[docs]</a>    <span class="k">def</span> <span class="nf">read_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">read_param</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="BeamSampler"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.BeamSampler">[docs]</a><span class="k">class</span> <span class="nc">BeamSampler</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Beam surveillance utility.</span>
+
+<span class="sd">    Keeps track of BPMs and broadcasts new readouts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">updated</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">([</span><span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control</span><span class="p">,</span> <span class="n">monitors</span><span class="o">=</span><span class="p">()):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitors</span> <span class="o">=</span> <span class="n">monitors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_control</span> <span class="o">=</span> <span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="n">QTimer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_poll</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_confirmed</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_candidate</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_confirmed_time</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_candidate_time</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readouts_list</span> <span class="o">=</span> <span class="n">List</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">readouts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_confirmed</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_confirmed_time</span>
+
+    <span class="k">def</span> <span class="nf">_poll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_control</span><span class="o">.</span><span class="n">is_connected</span><span class="p">():</span>
+            <span class="k">return</span>
+        <span class="n">readouts</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_control</span><span class="o">.</span><span class="n">read_monitor</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitors</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">readouts</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_candidate</span><span class="p">:</span>
+            <span class="n">activity</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">readouts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_confirmed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_candidate</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_confirmed</span> <span class="o">=</span> <span class="n">readouts</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_confirmed_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_candidate_time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">readouts_list</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">monitors</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_candidate_time</span><span class="p">,</span> <span class="n">activity</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">readouts</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_confirmed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_candidate</span> <span class="o">=</span> <span class="n">readouts</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_candidate_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BeamSampler.fetch"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.BeamSampler.fetch">[docs]</a>    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">monitors</span><span class="p">):</span>
+        <span class="n">readouts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readouts</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">MonitorReadout</span><span class="p">(</span><span class="n">mon</span><span class="p">,</span> <span class="n">readouts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mon</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="p">{}))</span>
+            <span class="k">for</span> <span class="n">mon</span> <span class="ow">in</span> <span class="n">monitors</span>
+        <span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="MonitorReadout"><a class="viewcode-back" href="../../../api/madgui.online.control.html#madgui.online.control.MonitorReadout">[docs]</a><span class="k">class</span> <span class="nc">MonitorReadout</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">posx</span> <span class="o">=</span> <span class="n">posx</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;posx&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">posy</span> <span class="o">=</span> <span class="n">posy</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;posy&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">envx</span> <span class="o">=</span> <span class="n">envx</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;envx&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">envy</span> <span class="o">=</span> <span class="n">envy</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;envy&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="p">(</span><span class="n">envx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">envx</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span>
+                      <span class="n">envy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">envy</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span>
+                      <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">posx</span><span class="p">,</span> <span class="o">-</span><span class="mf">9.999</span><span class="p">)</span> <span class="ow">and</span>
+                      <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">posy</span><span class="p">,</span> <span class="o">-</span><span class="mf">9.999</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

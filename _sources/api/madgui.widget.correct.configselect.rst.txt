@@ -1,0 +1,7 @@
+madgui.widget.correct.configselect module
+=========================================
+
+.. automodule:: madgui.widget.correct.configselect
+   :members:
+   :undoc-members:
+   :show-inheritance:

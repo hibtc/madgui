@@ -1,0 +1,7 @@
+madgui.survey.gl\_widget module
+===============================
+
+.. automodule:: madgui.survey.gl_widget
+   :members:
+   :undoc-members:
+   :show-inheritance:

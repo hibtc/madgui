@@ -1,0 +1,344 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.plot module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.pyshell module" href="madgui.widget.pyshell.html" />
+    <link rel="prev" title="madgui.widget.params module" href="madgui.widget.params.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.plot module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.plot.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.plot">
+<span id="madgui-widget-plot-module"></span><h1>madgui.widget.plot module<a class="headerlink" href="#module-madgui.widget.plot" title="Permalink to this headline">¶</a></h1>
+<p>Utilities to create plots using matplotlib via the Qt5Agg backend.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.plot.Toolbar" title="madgui.widget.plot.Toolbar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Toolbar</span></code></a>(canvas, parent[, coordinates])</p></td>
+<td><p>Toolbar that autoscales the figure when pressing the “Home” button.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.plot.PlotWidget" title="madgui.widget.plot.PlotWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PlotWidget</span></code></a>([figure])</p></td>
+<td><p>Widget containing a matplotlib figure and toolbar.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.plot.PlotWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.plot.</code><code class="sig-name descname">PlotWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">figure</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/plot.html#PlotWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.plot.PlotWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>Widget containing a matplotlib figure and toolbar. It fixes the annoying
+cursor loading quirk of the original matplotlib widget and adds an API for
+adding mouse capture buttons in the toolbar.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.plot.PlotWidget.addAction" title="madgui.widget.plot.PlotWidget.addAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">addAction</span></code></a>(self, QAction)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.plot.PlotWidget.addCapture" title="madgui.widget.plot.PlotWidget.addCapture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">addCapture</span></code></a>(mode, update)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.plot.PlotWidget.addTool" title="madgui.widget.plot.PlotWidget.addTool"><code class="xref py py-obj docutils literal notranslate"><span class="pre">addTool</span></code></a>(tool)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.plot.PlotWidget.endCapture" title="madgui.widget.plot.PlotWidget.endCapture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">endCapture</span></code></a>(mode)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.plot.PlotWidget.startCapture" title="madgui.widget.plot.PlotWidget.startCapture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">startCapture</span></code></a>(mode, message)</p></td>
+<td><p>Capture the mouse for the plot widget using the specified mode name.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.plot.PlotWidget.addAction">
+<code class="sig-name descname">addAction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QAction</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/plot.html#PlotWidget.addAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.plot.PlotWidget.addAction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.plot.PlotWidget.addCapture">
+<code class="sig-name descname">addCapture</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mode</span></em>, <em class="sig-param"><span class="n">update</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/plot.html#PlotWidget.addCapture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.plot.PlotWidget.addCapture" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.plot.PlotWidget.addTool">
+<code class="sig-name descname">addTool</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tool</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/plot.html#PlotWidget.addTool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.plot.PlotWidget.addTool" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.plot.PlotWidget.endCapture">
+<code class="sig-name descname">endCapture</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mode</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/plot.html#PlotWidget.endCapture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.plot.PlotWidget.endCapture" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.plot.PlotWidget.startCapture">
+<code class="sig-name descname">startCapture</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mode</span></em>, <em class="sig-param"><span class="n">message</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/plot.html#PlotWidget.startCapture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.plot.PlotWidget.startCapture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Capture the mouse for the plot widget using the specified mode name.
+This manages the toolbar’s active mouse mode and invokes the cleanup
+routine when another mode receives mouse capture (e.g. ZOOM/PAN).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.plot.Toolbar">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.plot.</code><code class="sig-name descname">Toolbar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">canvas</span></em>, <em class="sig-param"><span class="n">parent</span></em>, <em class="sig-param"><span class="n">coordinates</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/plot.html#Toolbar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.plot.Toolbar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.backends.backend_qt5.NavigationToolbar2QT</span></code></p>
+<p>Toolbar that autoscales the figure when pressing the “Home” button.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.plot.Toolbar.home" title="madgui.widget.plot.Toolbar.home"><code class="xref py py-obj docutils literal notranslate"><span class="pre">home</span></code></a>()</p></td>
+<td><p>Restore the original view.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.plot.Toolbar.home">
+<code class="sig-name descname">home</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/plot.html#Toolbar.home"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.plot.Toolbar.home" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restore the original view.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.pyshell.html" class="btn btn-neutral float-right" title="madgui.widget.pyshell module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.params.html" class="btn btn-neutral float-left" title="madgui.widget.params module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

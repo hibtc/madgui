@@ -1,0 +1,17 @@
+madgui.core package
+===================
+
+.. automodule:: madgui.core
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   madgui.core.app
+   madgui.core.config
+   madgui.core.session

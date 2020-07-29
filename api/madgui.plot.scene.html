@@ -1,0 +1,574 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.plot.scene module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.plot.twissfigure module" href="madgui.plot.twissfigure.html" />
+    <link rel="prev" title="madgui.plot package" href="madgui.plot.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.plot.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.plot.html">madgui.plot package</a> &raquo;</li>
+        
+      <li>madgui.plot.scene module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.plot.scene.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.plot.scene">
+<span id="madgui-plot-scene-module"></span><h1>madgui.plot.scene module<a class="headerlink" href="#module-madgui.plot.scene" title="Permalink to this headline">¶</a></h1>
+<p>Plot base classes.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode" title="madgui.plot.scene.SceneNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneNode</span></code></a>()</p></td>
+<td><p>An element of a figure.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.SimpleArtist" title="madgui.plot.scene.SimpleArtist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimpleArtist</span></code></a>(name, artist, *args, **kwargs)</p></td>
+<td><p>Delegates to draw function that returns a list of matplotlib artists.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneGraph" title="madgui.plot.scene.SceneGraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneGraph</span></code></a>(name[, items, figure])</p></td>
+<td><p>A scene element that is composed of multiple elements.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.ListView" title="madgui.plot.scene.ListView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ListView</span></code></a>(name, model, fn, *args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.LineBundle" title="madgui.plot.scene.LineBundle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LineBundle</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.plot_line" title="madgui.plot.scene.plot_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_line</span></code></a>(ax, get_xydata, **style)</p></td>
+<td><p>Plot a single line using an fetch function.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.plot.scene.LineBundle">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.plot.scene.</code><code class="sig-name descname">LineBundle</code><a class="reference internal" href="../_modules/madgui/plot/scene.html#LineBundle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.LineBundle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.LineBundle.redraw" title="madgui.plot.scene.LineBundle.redraw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">redraw</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.LineBundle.remove" title="madgui.plot.scene.LineBundle.remove"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove</span></code></a>(value)</p></td>
+<td><p>Raises ValueError if the value is not present.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.plot.scene.LineBundle.redraw">
+<code class="sig-name descname">redraw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#LineBundle.redraw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.LineBundle.redraw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.LineBundle.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span> &#x2192; None – remove first occurrence of value.<a class="reference internal" href="../_modules/madgui/plot/scene.html#LineBundle.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.LineBundle.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raises ValueError if the value is not present.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.plot.scene.ListView">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.plot.scene.</code><code class="sig-name descname">ListView</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">fn</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#ListView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.ListView" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.plot.scene.SceneGraph" title="madgui.plot.scene.SceneGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.plot.scene.SceneGraph</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.ListView.destroy" title="madgui.plot.scene.ListView.destroy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">destroy</span></code></a>()</p></td>
+<td><p>Cleanup all allocated ressources and disconnect signals.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.plot.scene.ListView.destroy">
+<code class="sig-name descname">destroy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#ListView.destroy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.ListView.destroy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleanup all allocated ressources and disconnect signals. Called when
+the SceneNode is removed from the graph and not needed anymore.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.plot.scene.SceneGraph">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.plot.scene.</code><code class="sig-name descname">SceneGraph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">items</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">figure</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneGraph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.plot.scene.SceneNode" title="madgui.plot.scene.SceneNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.plot.scene.SceneNode</span></code></a></p>
+<p>A scene element that is composed of multiple elements.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneGraph.add" title="madgui.plot.scene.SceneGraph.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add</span></code></a>(*items)</p></td>
+<td><p>Extend by several children.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneGraph.destroy" title="madgui.plot.scene.SceneGraph.destroy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">destroy</span></code></a>()</p></td>
+<td><p>Cleanup all allocated ressources and disconnect signals.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneGraph.extend" title="madgui.plot.scene.SceneGraph.extend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extend</span></code></a>(items)</p></td>
+<td><p>Extend by several children.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneGraph.insert" title="madgui.plot.scene.SceneGraph.insert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">insert</span></code></a>(index, item)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneGraph.on_clear_figure" title="madgui.plot.scene.SceneGraph.on_clear_figure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_clear_figure</span></code></a>()</p></td>
+<td><p>cleanup references to drawn state. Called when the figure was cleared,</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneGraph.pop" title="madgui.plot.scene.SceneGraph.pop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop</span></code></a>(item)</p></td>
+<td><p>Remove and hide one item (by value).</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneGraph.add">
+<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">items</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneGraph.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneGraph.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend by several children.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneGraph.destroy">
+<code class="sig-name descname">destroy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneGraph.destroy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneGraph.destroy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleanup all allocated ressources and disconnect signals. Called when
+the SceneNode is removed from the graph and not needed anymore.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneGraph.extend">
+<code class="sig-name descname">extend</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">items</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneGraph.extend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneGraph.extend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend by several children.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneGraph.insert">
+<code class="sig-name descname">insert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">item</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneGraph.insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneGraph.insert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneGraph.on_clear_figure">
+<code class="sig-name descname">on_clear_figure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneGraph.on_clear_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneGraph.on_clear_figure" title="Permalink to this definition">¶</a></dt>
+<dd><p>cleanup references to drawn state. Called when the figure was cleared,
+but the SceneNode is still part of the SceneGraph for next redraw.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneGraph.pop">
+<code class="sig-name descname">pop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">item</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneGraph.pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneGraph.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove and hide one item (by value).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.plot.scene.SceneNode">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.plot.scene.</code><code class="sig-name descname">SceneNode</code><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>An element of a figure.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.destroy" title="madgui.plot.scene.SceneNode.destroy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">destroy</span></code></a>()</p></td>
+<td><p>Cleanup all allocated ressources and disconnect signals.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.draw_idle" title="madgui.plot.scene.SceneNode.draw_idle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">draw_idle</span></code></a>()</p></td>
+<td><p>Let the canvas know that it has to redraw.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.enable" title="madgui.plot.scene.SceneNode.enable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enable</span></code></a>([enabled])</p></td>
+<td><p>Enable/disable the element individually.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.enabled" title="madgui.plot.scene.SceneNode.enabled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enabled</span></code></a>()</p></td>
+<td><p>Check whether this element should be drawn.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.invalidate" title="madgui.plot.scene.SceneNode.invalidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">invalidate</span></code></a>()</p></td>
+<td><p>Mark drawn state as stale and redraw if needed.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.node" title="madgui.plot.scene.SceneNode.node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node</span></code></a>(name)</p></td>
+<td><p>Find and return child node by name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.on_clear_figure" title="madgui.plot.scene.SceneNode.on_clear_figure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_clear_figure</span></code></a>()</p></td>
+<td><p>cleanup references to drawn state. Called when the figure was cleared,</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.render" title="madgui.plot.scene.SceneNode.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>([show])</p></td>
+<td><p>Draw or remove this node (and all children) from the figure.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.figure" title="madgui.plot.scene.SceneNode.figure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">figure</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.items" title="madgui.plot.scene.SceneNode.items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">items</span></code></a></p></td>
+<td><p>tuple() -&gt; empty tuple</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.SceneNode.shown" title="madgui.plot.scene.SceneNode.shown"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shown</span></code></a></p></td>
+<td><p>bool(x) -&gt; bool</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneNode.destroy">
+<code class="sig-name descname">destroy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneNode.destroy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneNode.destroy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleanup all allocated ressources and disconnect signals. Called when
+the SceneNode is removed from the graph and not needed anymore.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneNode.draw_idle">
+<code class="sig-name descname">draw_idle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneNode.draw_idle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneNode.draw_idle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Let the canvas know that it has to redraw.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneNode.enable">
+<code class="sig-name descname">enable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">enabled</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneNode.enable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneNode.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable/disable the element individually.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneNode.enabled">
+<code class="sig-name descname">enabled</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneNode.enabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneNode.enabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether this element should be drawn.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneNode.figure">
+<em class="property">property </em><code class="sig-name descname">figure</code><a class="headerlink" href="#madgui.plot.scene.SceneNode.figure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneNode.invalidate">
+<code class="sig-name descname">invalidate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneNode.invalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneNode.invalidate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark drawn state as stale and redraw if needed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.plot.scene.SceneNode.items">
+<code class="sig-name descname">items</code><em class="property"> = ()</em><a class="headerlink" href="#madgui.plot.scene.SceneNode.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.plot.scene.SceneNode.lines">
+<code class="sig-name descname">lines</code><em class="property"> = None</em><a class="headerlink" href="#madgui.plot.scene.SceneNode.lines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.plot.scene.SceneNode.name">
+<code class="sig-name descname">name</code><em class="property"> = None</em><a class="headerlink" href="#madgui.plot.scene.SceneNode.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneNode.node">
+<code class="sig-name descname">node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneNode.node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneNode.node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find and return child node by name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneNode.on_clear_figure">
+<code class="sig-name descname">on_clear_figure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneNode.on_clear_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneNode.on_clear_figure" title="Permalink to this definition">¶</a></dt>
+<dd><p>cleanup references to drawn state. Called when the figure was cleared,
+but the SceneNode is still part of the SceneGraph for next redraw.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.plot.scene.SceneNode.parent">
+<code class="sig-name descname">parent</code><em class="property"> = None</em><a class="headerlink" href="#madgui.plot.scene.SceneNode.parent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.SceneNode.render">
+<code class="sig-name descname">render</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">show</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SceneNode.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SceneNode.render" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw or remove this node (and all children) from the figure.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.plot.scene.SceneNode.shown">
+<code class="sig-name descname">shown</code><em class="property"> = False</em><a class="headerlink" href="#madgui.plot.scene.SceneNode.shown" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.plot.scene.SimpleArtist">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.plot.scene.</code><code class="sig-name descname">SimpleArtist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">artist</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#SimpleArtist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.SimpleArtist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.plot.scene.SceneNode" title="madgui.plot.scene.SceneNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.plot.scene.SceneNode</span></code></a></p>
+<p>Delegates to draw function that returns a list of matplotlib artists.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.plot.scene.plot_line">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.plot.scene.</code><code class="sig-name descname">plot_line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">get_xydata</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">style</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#plot_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.plot_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Plot a single line using an fetch function.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.plot.scene.plot_line.redraw" title="madgui.plot.scene.plot_line.redraw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">redraw</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.plot.scene.plot_line.remove" title="madgui.plot.scene.plot_line.remove"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.plot.scene.plot_line.redraw">
+<code class="sig-name descname">redraw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#plot_line.redraw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.plot_line.redraw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.plot.scene.plot_line.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/plot/scene.html#plot_line.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.plot.scene.plot_line.remove" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.plot.twissfigure.html" class="btn btn-neutral float-right" title="madgui.plot.twissfigure module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.plot.html" class="btn btn-neutral float-left" title="madgui.plot package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

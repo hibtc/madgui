@@ -1,0 +1,736 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.floor_plan &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.floor_plan</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.floor_plan</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Components to draw a 2D floor plan of a given MAD-X lattice.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># TODO: improve display of vertically oriented elements</span>
+<span class="c1"># TODO: adjust display for custom entry/exit pole faces</span>
+<span class="c1"># TODO: load styles from config</span>
+<span class="c1"># TODO: rotate/place scene according to space requirements</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;FloorCoords&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;FloorPlanWidget&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;LatticeFloorPlan&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">atan2</span><span class="p">,</span> <span class="n">floor</span><span class="p">,</span> <span class="n">log10</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">QMarginsF</span><span class="p">,</span> <span class="n">QPointF</span><span class="p">,</span> <span class="n">QRectF</span><span class="p">,</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QBrush</span><span class="p">,</span> <span class="n">QColor</span><span class="p">,</span> <span class="n">QFont</span><span class="p">,</span> <span class="n">QFontMetrics</span><span class="p">,</span> <span class="n">QPainter</span><span class="p">,</span> <span class="n">QPainterPath</span><span class="p">,</span>
+    <span class="n">QPen</span><span class="p">,</span> <span class="n">QPolygonF</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QGraphicsItem</span><span class="p">,</span> <span class="n">QGraphicsScene</span><span class="p">,</span> <span class="n">QGraphicsView</span><span class="p">,</span>
+    <span class="n">QPushButton</span><span class="p">,</span> <span class="n">QWidget</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.layout</span> <span class="kn">import</span> <span class="n">VBoxLayout</span>
+
+
+<span class="n">FloorCoords</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;FloorCoords&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;phi&#39;</span><span class="p">,</span> <span class="s1">&#39;psi&#39;</span><span class="p">])</span>
+
+
+<span class="n">ELEMENT_COLOR</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;E_GUN&#39;</span><span class="p">:</span>       <span class="s1">&#39;purple&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SBEND&#39;</span><span class="p">:</span>       <span class="s1">&#39;red&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;QUADRUPOLE&#39;</span><span class="p">:</span>  <span class="s1">&#39;blue&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DRIFT&#39;</span><span class="p">:</span>       <span class="s1">&#39;black&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;LCAVITY&#39;</span><span class="p">:</span>     <span class="s1">&#39;green&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;RFCAVITY&#39;</span><span class="p">:</span>    <span class="s1">&#39;green&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SEXTUPOLE&#39;</span><span class="p">:</span>   <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;WIGGLER&#39;</span><span class="p">:</span>     <span class="s1">&#39;orange&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">ELEMENT_WIDTH</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;E_GUN&#39;</span><span class="p">:</span>       <span class="mf">1.0</span><span class="p">,</span>
+    <span class="s1">&#39;LCAVITY&#39;</span><span class="p">:</span>     <span class="mf">0.4</span><span class="p">,</span>
+    <span class="s1">&#39;RFCAVITY&#39;</span><span class="p">:</span>    <span class="mf">0.4</span><span class="p">,</span>
+    <span class="s1">&#39;SBEND&#39;</span><span class="p">:</span>       <span class="mf">0.6</span><span class="p">,</span>
+    <span class="s1">&#39;QUADRUPOLE&#39;</span><span class="p">:</span>  <span class="mf">0.4</span><span class="p">,</span>
+    <span class="s1">&#39;SEXTUPOLE&#39;</span><span class="p">:</span>   <span class="mf">0.5</span><span class="p">,</span>
+    <span class="s1">&#39;DRIFT&#39;</span><span class="p">:</span>       <span class="mf">0.1</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">rot90</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+
+
+<span class="k">def</span> <span class="nf">Rotation2</span><span class="p">(</span><span class="n">phi</span><span class="p">):</span>
+    <span class="n">c</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="n">c</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">s</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">s</span><span class="o">*</span><span class="n">x</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">Rotation3</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">Rotation2</span><span class="o">=</span><span class="n">Rotation2</span><span class="p">):</span>
+    <span class="n">ry</span> <span class="o">=</span> <span class="n">Rotation2</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">rx</span> <span class="o">=</span> <span class="n">Rotation2</span><span class="p">(</span><span class="o">-</span><span class="n">phi</span><span class="p">)</span>
+    <span class="n">rz</span> <span class="o">=</span> <span class="n">Rotation2</span><span class="p">(</span><span class="n">psi</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">rz</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">rx</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="n">z</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">ry</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span>
+    <span class="k">return</span> <span class="n">rotate</span>
+
+
+<span class="k">def</span> <span class="nf">Projection</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">):</span>
+    <span class="n">ax1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ax1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax1</span><span class="p">)</span>
+    <span class="n">ax2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ax2</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">ax2</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">vec</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vec</span> <span class="o">/</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">vec</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="FloorPlanWidget"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.FloorPlanWidget">[docs]</a><span class="k">class</span> <span class="nc">FloorPlanWidget</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;2D floor plan&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">floorplan</span> <span class="o">=</span> <span class="n">LatticeFloorPlan</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">floorplan</span><span class="o">.</span><span class="n">set_session</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">VBoxLayout</span><span class="p">([</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">floorplan</span><span class="p">,</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_button</span><span class="p">(</span><span class="s2">&quot;Z|X&quot;</span><span class="p">,</span> <span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_button</span><span class="p">(</span><span class="s2">&quot;X|Y&quot;</span><span class="p">,</span>     <span class="mi">0</span><span class="p">,</span>    <span class="mi">0</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_button</span><span class="p">(</span><span class="s2">&quot;Z|Y&quot;</span><span class="p">,</span> <span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>    <span class="mi">0</span><span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">floorplan</span><span class="o">.</span><span class="n">setProjection</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">button</span></div>
+
+
+<div class="viewcode-block" id="LatticeFloorPlan"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan">[docs]</a><span class="k">class</span> <span class="nc">LatticeFloorPlan</span><span class="p">(</span><span class="n">QGraphicsView</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Graphics widget to draw 2D floor plan of given lattice.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setInteractive</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setDragMode</span><span class="p">(</span><span class="n">QGraphicsView</span><span class="o">.</span><span class="n">ScrollHandDrag</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setBackgroundBrush</span><span class="p">(</span><span class="n">QBrush</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">white</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">SolidPattern</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setProjection</span><span class="p">(</span><span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+<div class="viewcode-block" id="LatticeFloorPlan.setProjection"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.setProjection">[docs]</a>    <span class="k">def</span> <span class="nf">setProjection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">psi</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">rot</span> <span class="o">=</span> <span class="n">Rotation3</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">psi</span><span class="p">)</span>
+        <span class="n">ax1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">rot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+        <span class="n">ax2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">rot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi</span> <span class="o">=</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">psi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">projection</span> <span class="o">=</span> <span class="n">Projection</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="o">-</span><span class="n">ax2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">replay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="p">()</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setElements</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">replay</span><span class="p">)</span></div>
+
+    <span class="n">session</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="LatticeFloorPlan.set_session"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.set_session">[docs]</a>    <span class="k">def</span> <span class="nf">set_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_model</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">model</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="LatticeFloorPlan.set_model"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.set_model">[docs]</a>    <span class="k">def</span> <span class="nf">set_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="c1"># TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">selected_elements</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateSurvey</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="k">if</span> <span class="n">model</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateSurvey</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateSurvey</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_updateSurvey</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">survey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">survey</span><span class="p">()</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">survey</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">FloorCoords</span><span class="o">.</span><span class="n">_fields</span><span class="p">])</span>
+        <span class="n">floor</span> <span class="o">=</span> <span class="p">[</span><span class="n">FloorCoords</span><span class="p">(</span><span class="o">*</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">array</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setElements</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">,</span> <span class="n">floor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="p">)</span>
+
+    <span class="n">replay</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="LatticeFloorPlan.setElements"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.setElements">[docs]</a>    <span class="k">def</span> <span class="nf">setElements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span> <span class="n">survey</span><span class="p">,</span> <span class="n">selection</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">replay</span> <span class="o">=</span> <span class="n">elements</span><span class="p">,</span> <span class="n">survey</span><span class="p">,</span> <span class="n">selection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setScene</span><span class="p">(</span><span class="n">QGraphicsScene</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="n">survey</span> <span class="o">=</span> <span class="p">[</span><span class="n">FloorCoords</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> <span class="n">survey</span>
+        <span class="k">for</span> <span class="n">element</span><span class="p">,</span> <span class="n">coords</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">survey</span><span class="p">,</span> <span class="n">survey</span><span class="p">[</span><span class="mi">1</span><span class="p">:])):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="p">()</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span>
+                <span class="n">ElementGraphicsItem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">selection</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_axes</span> <span class="o">=</span> <span class="n">CoordinateAxes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale_indicator</span> <span class="o">=</span> <span class="n">ScaleIndicator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="p">()</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinate_axes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="p">()</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_indicator</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setViewRect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sceneRect</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">selection</span><span class="p">,</span> <span class="s1">&#39;update_finished&#39;</span><span class="p">):</span>
+            <span class="n">selection</span><span class="o">.</span><span class="n">update_finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_selection</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_sceneRect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">rect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="p">()</span><span class="o">.</span><span class="n">sceneRect</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">rect</span><span class="o">.</span><span class="n">marginsAdded</span><span class="p">(</span><span class="n">QMarginsF</span><span class="p">(</span>
+            <span class="mf">0.05</span><span class="o">*</span><span class="n">rect</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="mf">0.05</span><span class="o">*</span><span class="n">rect</span><span class="o">.</span><span class="n">height</span><span class="p">(),</span>
+            <span class="mf">0.05</span><span class="o">*</span><span class="n">rect</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="mf">0.05</span><span class="o">*</span><span class="n">rect</span><span class="o">.</span><span class="n">height</span><span class="p">(),</span>
+        <span class="p">))</span>
+
+<div class="viewcode-block" id="LatticeFloorPlan.resizeEvent"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.resizeEvent">[docs]</a>    <span class="k">def</span> <span class="nf">resizeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maintain visible region on resize.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setViewRect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view_rect</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">resizeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LatticeFloorPlan.mapRectToScene"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.mapRectToScene">[docs]</a>    <span class="k">def</span> <span class="nf">mapRectToScene</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rect</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Map topleft/botright rect from viewport to scene coordinates.</span>
+
+<span class="sd">        This assumes there is no rotation/shearing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">QRectF</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mapToScene</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">topLeft</span><span class="p">()),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mapToScene</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">bottomRight</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="LatticeFloorPlan.setViewRect"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.setViewRect">[docs]</a>    <span class="k">def</span> <span class="nf">setViewRect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rect</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fit the given scene rectangle into the visible view.</span>
+
+<span class="sd">        This assumes there is no rotation/shearing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapRectToScene</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">viewport</span><span class="p">()</span><span class="o">.</span><span class="n">rect</span><span class="p">())</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">rect</span><span class="o">.</span><span class="n">intersected</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sceneRect</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">width</span><span class="p">()</span><span class="o">/</span><span class="n">new</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span>
+                      <span class="n">cur</span><span class="o">.</span><span class="n">height</span><span class="p">()</span><span class="o">/</span><span class="n">new</span><span class="o">.</span><span class="n">height</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view_rect</span> <span class="o">=</span> <span class="n">new</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_axes</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale_indicator</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LatticeFloorPlan.zoom"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.zoom">[docs]</a>    <span class="k">def</span> <span class="nf">zoom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Scale the figure uniformly along both axes.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view_rect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapRectToScene</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">viewport</span><span class="p">()</span><span class="o">.</span><span class="n">rect</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="LatticeFloorPlan.wheelEvent"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.wheelEvent">[docs]</a>    <span class="k">def</span> <span class="nf">wheelEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle mouse wheel as zoom.&quot;&quot;&quot;</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">angleDelta</span><span class="p">()</span><span class="o">.</span><span class="n">y</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">delta</span><span class="o">/</span><span class="mf">1000.0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LatticeFloorPlan.mousePressEvent"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.mousePressEvent">[docs]</a>    <span class="k">def</span> <span class="nf">mousePressEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_mouse_position</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">mousePressEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LatticeFloorPlan.mouseMoveEvent"><a class="viewcode-back" href="../../../api/madgui.widget.floor_plan.html#madgui.widget.floor_plan.LatticeFloorPlan.mouseMoveEvent">[docs]</a>    <span class="k">def</span> <span class="nf">mouseMoveEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">buttons</span><span class="p">()</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">RightButton</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_mouse_position</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">+</span> <span class="n">delta</span><span class="o">.</span><span class="n">x</span><span class="p">()</span><span class="o">/</span><span class="mi">100</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi</span> <span class="o">+</span> <span class="n">delta</span><span class="o">.</span><span class="n">y</span><span class="p">()</span><span class="o">/</span><span class="mi">100</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setProjection</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_mouse_position</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">mouseMoveEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_update_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="n">old_values</span><span class="p">,</span> <span class="n">new_values</span><span class="p">):</span>
+        <span class="n">insert</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">new_values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">old_values</span><span class="p">)</span>
+        <span class="n">delete</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">old_values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">new_values</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">el_id</span> <span class="ow">in</span> <span class="n">insert</span><span class="p">:</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">setSelected</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">el_id</span> <span class="ow">in</span> <span class="n">delete</span><span class="p">:</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">setSelected</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">ElementGraphicsItem</span><span class="p">(</span><span class="n">QGraphicsItem</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Base class for element graphics items.&quot;&quot;&quot;</span>
+
+    <span class="n">outline_pen</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="n">orbit_pen</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">DashLine</span><span class="p">}</span>
+    <span class="n">select_pen</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">DashLine</span><span class="p">,</span>
+                  <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">selection</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan</span> <span class="o">=</span> <span class="n">plan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotate</span> <span class="o">=</span> <span class="p">(</span><span class="n">Rotation3</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">psi</span><span class="p">),</span>
+                       <span class="n">Rotation3</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">psi</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="o">=</span> <span class="n">element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angle</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angle&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">getElementWidth</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">getElementColor</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">walls</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>   <span class="c1"># inner/outer wall widths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection</span> <span class="o">=</span> <span class="n">selection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outline</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_orbit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orbit</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFlag</span><span class="p">(</span><span class="n">QGraphicsItem</span><span class="o">.</span><span class="n">ItemIsSelectable</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setSelected</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">el_id</span> <span class="ow">in</span> <span class="n">selection</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">el_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">index</span>
+
+    <span class="k">def</span> <span class="nf">itemChange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">change</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">change</span> <span class="o">==</span> <span class="n">QGraphicsItem</span><span class="o">.</span><span class="n">ItemSelectedHasChanged</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_on_select</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">_on_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">select</span><span class="p">):</span>
+        <span class="n">is_selected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">el_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selection</span>
+        <span class="k">if</span> <span class="n">select</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_selected</span><span class="p">:</span>
+            <span class="c1"># TODO: incorporate whether shift is clicked</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">el_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_selected</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">select</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">el_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outline</span>
+
+    <span class="k">def</span> <span class="nf">boundingRect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outline</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">paint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">painter</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Paint element + orbit + selection frame.&quot;&quot;&quot;</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">setRenderHint</span><span class="p">(</span><span class="n">QPainter</span><span class="o">.</span><span class="n">Antialiasing</span><span class="p">)</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">setBrush</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">NoBrush</span><span class="p">)</span>
+        <span class="c1"># draw element outline:</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">setPen</span><span class="p">(</span><span class="n">createPen</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">outline_pen</span><span class="p">))</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">fillPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outline</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">drawPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outline</span><span class="p">)</span>
+        <span class="c1"># draw beam orbit:</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">setPen</span><span class="p">(</span><span class="n">createPen</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">orbit_pen</span><span class="p">))</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">drawPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_orbit</span><span class="p">)</span>
+        <span class="c1"># highlight selected elements:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isSelected</span><span class="p">():</span>
+            <span class="n">painter</span><span class="o">.</span><span class="n">setPen</span><span class="p">(</span><span class="n">createPen</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">select_pen</span><span class="p">))</span>
+            <span class="n">painter</span><span class="o">.</span><span class="n">drawPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">endpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">proj2D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">dot</span>
+        <span class="n">p0</span><span class="p">,</span> <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">proj2D</span><span class="p">([</span><span class="n">p0</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p0</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">p0</span><span class="o">.</span><span class="n">z</span><span class="p">]),</span>
+                <span class="n">proj2D</span><span class="p">([</span><span class="n">p1</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p1</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">p1</span><span class="o">.</span><span class="n">z</span><span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">outline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a QPainterPath that outlines the element.&quot;&quot;&quot;</span>
+        <span class="n">r1</span><span class="p">,</span> <span class="n">r2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">walls</span>
+        <span class="n">p0</span><span class="p">,</span> <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">endpoints</span><span class="p">()</span>
+        <span class="n">proj2D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">dot</span>
+        <span class="n">vec0</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rot90</span><span class="p">,</span> <span class="n">proj2D</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotate</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))))</span>
+        <span class="n">vec1</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rot90</span><span class="p">,</span> <span class="n">proj2D</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotate</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))))</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">QPainterPath</span><span class="p">()</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">p0</span> <span class="o">-</span> <span class="n">r2</span><span class="o">*</span><span class="n">vec0</span><span class="p">))</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">lineTo</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">p1</span> <span class="o">-</span> <span class="n">r2</span><span class="o">*</span><span class="n">vec1</span><span class="p">))</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">lineTo</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">p1</span> <span class="o">+</span> <span class="n">r1</span><span class="o">*</span><span class="n">vec1</span><span class="p">))</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">lineTo</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">p0</span> <span class="o">+</span> <span class="n">r1</span><span class="o">*</span><span class="n">vec0</span><span class="p">))</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">closeSubpath</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">path</span>
+
+    <span class="k">def</span> <span class="nf">orbit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a QPainterPath that shows the beam orbit.&quot;&quot;&quot;</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">endpoints</span><span class="p">()</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">QPainterPath</span><span class="p">()</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="o">*</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">lineTo</span><span class="p">(</span><span class="o">*</span><span class="n">b</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path</span>
+
+
+<span class="k">def</span> <span class="nf">getElementColor</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">QColor</span><span class="p">(</span><span class="n">ELEMENT_COLOR</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">base_name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">default</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">getElementWidth</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ELEMENT_WIDTH</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">base_name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">default</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">createPen</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">SolidLine</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use this function to conveniently create a cosmetic pen with specified</span>
+<span class="sd">    width. Integer widths create cosmetic pens (default) and float widths</span>
+<span class="sd">    create scaling pens (this way you can set the figure style by changing a</span>
+<span class="sd">    number).</span>
+
+<span class="sd">    This is particularly important on PyQt5 where the default pen blacks out</span>
+<span class="sd">    large areas of the figure if not being careful.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pen</span> <span class="o">=</span> <span class="n">QPen</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
+    <span class="n">pen</span><span class="o">.</span><span class="n">setColor</span><span class="p">(</span><span class="n">QColor</span><span class="p">(</span><span class="n">color</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">pen</span><span class="o">.</span><span class="n">setWidth</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="n">pen</span><span class="o">.</span><span class="n">setCosmetic</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pen</span><span class="o">.</span><span class="n">setWidthF</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="n">pen</span><span class="o">.</span><span class="n">setCosmetic</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pen</span>
+
+
+<span class="k">class</span> <span class="nc">CoordinateAxes</span><span class="p">(</span><span class="n">QGraphicsItem</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Display axes of coordinates.&quot;&quot;&quot;</span>
+
+    <span class="n">el_id</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">pen</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">SolidLine</span><span class="p">,</span>
+           <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan</span> <span class="o">=</span> <span class="n">plan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFlag</span><span class="p">(</span><span class="n">QGraphicsItem</span><span class="o">.</span><span class="n">ItemIgnoresTransformations</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw_path</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span>
+
+    <span class="k">def</span> <span class="nf">boundingRect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Ignore this item when calculating the scene rect:</span>
+        <span class="k">return</span> <span class="n">QRectF</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">paint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">painter</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+        <span class="n">pen</span> <span class="o">=</span> <span class="n">createPen</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">pen</span><span class="p">)</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">setRenderHint</span><span class="p">(</span><span class="n">QPainter</span><span class="o">.</span><span class="n">Antialiasing</span><span class="p">)</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">setPen</span><span class="p">(</span><span class="n">pen</span><span class="p">)</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">setBrush</span><span class="p">(</span><span class="n">QBrush</span><span class="p">(</span><span class="n">pen</span><span class="o">.</span><span class="n">color</span><span class="p">(),</span> <span class="n">Qt</span><span class="o">.</span><span class="n">SolidPattern</span><span class="p">))</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">drawPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">l</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span>
+        <span class="n">proj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">dot</span>
+        <span class="n">orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">QPainterPath</span><span class="p">()</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">addPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_arrow</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">orig</span><span class="p">,</span> <span class="n">orig</span><span class="o">+</span><span class="n">l</span><span class="o">*</span><span class="n">proj</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">s</span><span class="p">))</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">addPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_arrow</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">orig</span><span class="p">,</span> <span class="n">orig</span><span class="o">+</span><span class="n">l</span><span class="o">*</span><span class="n">proj</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">s</span><span class="p">))</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">addPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_arrow</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">orig</span><span class="p">,</span> <span class="n">orig</span><span class="o">+</span><span class="n">l</span><span class="o">*</span><span class="n">proj</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">s</span><span class="p">))</span>
+
+        <span class="n">tran</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deviceTransform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">viewportTransform</span><span class="p">())</span><span class="o">.</span><span class="n">inverted</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">tran</span><span class="o">.</span><span class="n">mapRect</span><span class="p">(</span><span class="n">QRectF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">viewport</span><span class="p">()</span><span class="o">.</span><span class="n">rect</span><span class="p">()))</span>
+        <span class="n">rect</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">()</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">view</span><span class="o">.</span><span class="n">left</span><span class="p">()</span> <span class="o">+</span> <span class="n">view</span><span class="o">.</span><span class="n">width</span><span class="p">()</span><span class="o">/</span><span class="mi">15</span> <span class="o">-</span> <span class="n">rect</span><span class="o">.</span><span class="n">left</span><span class="p">(),</span>
+                       <span class="n">view</span><span class="o">.</span><span class="n">bottom</span><span class="p">()</span> <span class="o">-</span> <span class="n">view</span><span class="o">.</span><span class="n">height</span><span class="p">()</span><span class="o">/</span><span class="mi">15</span> <span class="o">-</span> <span class="n">rect</span><span class="o">.</span><span class="n">bottom</span><span class="p">())</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">QPainterPath</span><span class="p">()</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">addPath</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">addEllipse</span><span class="p">(</span><span class="o">-</span><span class="n">d</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="n">d</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path</span>
+
+    <span class="k">def</span> <span class="nf">axis_arrow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">arrow_size</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">arrow</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">arrow_size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">QPainterPath</span><span class="p">()</span>
+        <span class="n">plan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plan</span>
+        <span class="n">font</span> <span class="o">=</span> <span class="n">QFont</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">font</span><span class="p">())</span>
+        <span class="n">font</span><span class="o">.</span><span class="n">setPointSize</span><span class="p">(</span><span class="mi">14</span><span class="p">)</span>
+        <span class="n">metr</span> <span class="o">=</span> <span class="n">QFontMetrics</span><span class="p">(</span><span class="n">font</span><span class="p">)</span>
+        <span class="n">rect</span> <span class="o">=</span> <span class="n">metr</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">rect</span><span class="o">.</span><span class="n">setHeight</span><span class="p">(</span><span class="n">metr</span><span class="o">.</span><span class="n">xHeight</span><span class="p">())</span>
+        <span class="n">tran</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deviceTransform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">viewportTransform</span><span class="p">())</span><span class="o">.</span><span class="n">inverted</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">tran</span><span class="o">.</span><span class="n">mapRect</span><span class="p">(</span><span class="n">QRectF</span><span class="p">(</span><span class="n">rect</span><span class="p">))</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">size</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="n">size</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+        <span class="n">dir_</span> <span class="o">=</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span>
+        <span class="n">offs</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="o">+</span><span class="n">h</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">dir_</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">addText</span><span class="p">(</span><span class="n">QPointF</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">offs</span><span class="p">)),</span> <span class="n">font</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path</span>
+
+
+<span class="k">def</span> <span class="nf">arrow</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">arrow_size</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">arrow_angle</span><span class="o">=</span><span class="n">pi</span><span class="o">/</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span>
+    <span class="k">if</span> <span class="n">dy</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">dx</span><span class="o">**</span><span class="mi">2</span> <span class="o">&lt;</span> <span class="n">arrow_size</span><span class="o">**</span><span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">QPainterPath</span><span class="p">()</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="o">*</span><span class="n">x0</span><span class="p">)</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">lineTo</span><span class="p">(</span><span class="o">*</span><span class="n">x1</span><span class="p">)</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">atan2</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">dx</span><span class="p">)</span>
+    <span class="n">p1</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">+</span> <span class="p">[</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span> <span class="o">+</span> <span class="n">pi</span> <span class="o">+</span> <span class="n">arrow_angle</span><span class="p">)</span> <span class="o">*</span> <span class="n">arrow_size</span><span class="p">,</span>
+               <span class="n">sin</span><span class="p">(</span><span class="n">angle</span> <span class="o">+</span> <span class="n">pi</span> <span class="o">+</span> <span class="n">arrow_angle</span><span class="p">)</span> <span class="o">*</span> <span class="n">arrow_size</span><span class="p">]</span>
+    <span class="n">p2</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">+</span> <span class="p">[</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span> <span class="o">+</span> <span class="n">pi</span> <span class="o">-</span> <span class="n">arrow_angle</span><span class="p">)</span> <span class="o">*</span> <span class="n">arrow_size</span><span class="p">,</span>
+               <span class="n">sin</span><span class="p">(</span><span class="n">angle</span> <span class="o">+</span> <span class="n">pi</span> <span class="o">-</span> <span class="n">arrow_angle</span><span class="p">)</span> <span class="o">*</span> <span class="n">arrow_size</span><span class="p">]</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">addPolygon</span><span class="p">(</span><span class="n">QPolygonF</span><span class="p">([</span>
+        <span class="n">QPointF</span><span class="p">(</span><span class="o">*</span><span class="n">x1</span><span class="p">),</span>
+        <span class="n">QPointF</span><span class="p">(</span><span class="o">*</span><span class="n">p1</span><span class="p">),</span>
+        <span class="n">QPointF</span><span class="p">(</span><span class="o">*</span><span class="n">p2</span><span class="p">),</span>
+        <span class="n">QPointF</span><span class="p">(</span><span class="o">*</span><span class="n">x1</span><span class="p">),</span>
+    <span class="p">]))</span>
+    <span class="k">return</span> <span class="n">path</span>
+
+
+<span class="k">class</span> <span class="nc">ScaleIndicator</span><span class="p">(</span><span class="n">QGraphicsItem</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Display small scale indicator.&quot;&quot;&quot;</span>
+
+    <span class="n">el_id</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">pen</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">SolidLine</span><span class="p">,</span>
+           <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan</span> <span class="o">=</span> <span class="n">plan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFlag</span><span class="p">(</span><span class="n">QGraphicsItem</span><span class="o">.</span><span class="n">ItemIgnoresTransformations</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw_path</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span>
+
+    <span class="k">def</span> <span class="nf">boundingRect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Ignore this item when calculating the scene rect:</span>
+        <span class="k">return</span> <span class="n">QRectF</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">paint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">painter</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+        <span class="n">pen</span> <span class="o">=</span> <span class="n">createPen</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">pen</span><span class="p">)</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">setRenderHint</span><span class="p">(</span><span class="n">QPainter</span><span class="o">.</span><span class="n">Antialiasing</span><span class="p">)</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">setPen</span><span class="p">(</span><span class="n">pen</span><span class="p">)</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">setBrush</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">NoBrush</span><span class="p">)</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">drawPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">plan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plan</span>
+        <span class="n">rect</span> <span class="o">=</span> <span class="n">plan</span><span class="o">.</span><span class="n">mapRectToScene</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">viewport</span><span class="p">()</span><span class="o">.</span><span class="n">rect</span><span class="p">())</span>
+        <span class="n">rect</span><span class="o">.</span><span class="n">setWidth</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="n">floor</span><span class="p">(</span><span class="n">log10</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">width</span><span class="p">()</span><span class="o">/</span><span class="mi">2</span><span class="p">)))</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> m&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">width</span><span class="p">()))</span>
+
+        <span class="n">tran</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deviceTransform</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">viewportTransform</span><span class="p">())</span><span class="o">.</span><span class="n">inverted</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">tran</span><span class="o">.</span><span class="n">mapRect</span><span class="p">(</span><span class="n">QRectF</span><span class="p">(</span>
+            <span class="n">plan</span><span class="o">.</span><span class="n">mapFromScene</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">topLeft</span><span class="p">()),</span>
+            <span class="n">plan</span><span class="o">.</span><span class="n">mapFromScene</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">bottomRight</span><span class="p">())))</span><span class="o">.</span><span class="n">width</span><span class="p">()</span>
+
+        <span class="n">view</span> <span class="o">=</span> <span class="n">tran</span><span class="o">.</span><span class="n">mapRect</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">viewport</span><span class="p">()</span><span class="o">.</span><span class="n">rect</span><span class="p">())</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">QPointF</span><span class="p">(</span><span class="n">view</span><span class="o">.</span><span class="n">right</span><span class="p">()</span> <span class="o">-</span> <span class="n">view</span><span class="o">.</span><span class="n">width</span><span class="p">()</span><span class="o">/</span><span class="mi">15</span><span class="p">,</span>
+                     <span class="n">view</span><span class="o">.</span><span class="n">bottom</span><span class="p">()</span> <span class="o">-</span> <span class="n">view</span><span class="o">.</span><span class="n">height</span><span class="p">()</span><span class="o">/</span><span class="mi">15</span><span class="p">)</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">-</span> <span class="n">QPointF</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">head</span> <span class="o">=</span> <span class="n">QPointF</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">QPainterPath</span><span class="p">()</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">lineTo</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="n">x0</span> <span class="o">+</span> <span class="n">head</span><span class="p">)</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">lineTo</span><span class="p">(</span><span class="n">x0</span> <span class="o">-</span> <span class="n">head</span><span class="p">)</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">head</span><span class="p">)</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">lineTo</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">head</span><span class="p">)</span>
+
+        <span class="c1"># add label</span>
+        <span class="n">font</span> <span class="o">=</span> <span class="n">QFont</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">font</span><span class="p">())</span>
+        <span class="n">font</span><span class="o">.</span><span class="n">setPointSize</span><span class="p">(</span><span class="mi">14</span><span class="p">)</span>
+        <span class="n">rect</span> <span class="o">=</span> <span class="n">QFontMetrics</span><span class="p">(</span><span class="n">font</span><span class="p">)</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">tran</span><span class="o">.</span><span class="n">mapRect</span><span class="p">(</span><span class="n">QRectF</span><span class="p">(</span><span class="n">rect</span><span class="p">))</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">size</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="n">size</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+        <span class="n">offs</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="n">h</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">addText</span><span class="p">((</span><span class="n">x0</span><span class="o">+</span><span class="n">x1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="n">QPointF</span><span class="p">(</span><span class="o">*</span><span class="n">offs</span><span class="p">),</span> <span class="n">font</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

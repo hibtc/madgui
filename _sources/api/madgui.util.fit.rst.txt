@@ -1,0 +1,7 @@
+madgui.util.fit module
+======================
+
+.. automodule:: madgui.util.fit
+   :members:
+   :undoc-members:
+   :show-inheritance:

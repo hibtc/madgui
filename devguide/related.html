@@ -1,0 +1,295 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Related projects &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Infrastructure" href="infrastructure.html" />
+    <link rel="prev" title="Coding conventions" href="conventions.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer’s guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="setup.html">Development setup for madgui</a></li>
+<li class="toctree-l2"><a class="reference internal" href="proxy.html">Proxy Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conventions.html">Coding conventions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html">Creating a new version</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Developer’s guide</a> &raquo;</li>
+        
+      <li>Related projects</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/devguide/related.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="related-projects">
+<h1>Related projects<a class="headerlink" href="#related-projects" title="Permalink to this headline">¶</a></h1>
+<p>This is a short overview over the components involved in madgui development:</p>
+<div align="center" class="align-center"><div class="graphviz"><img src="../_images/graphviz-5fb33ee8bf6eb14a0fe0fc4b4e9c7a87184dbe72.png" alt="digraph {
+    node [fontsize=11];
+
+    subgraph cluster_0 {
+        madgui -&gt; pyqt;
+        madgui -&gt; hit_acs;
+        madgui -&gt; cpymad;
+
+        madgui [label = &quot;madgui&quot;];
+        pyqt [label = &quot;PyQt5&quot;];
+        hit_acs [label = &quot;hit_acs&quot;];
+        cpymad [label = &quot;cpymad&quot;];
+
+        { rank = same; pyqt; hit_acs; cpymad; }
+
+        label=&quot;python&quot;;
+        fontsize=10;
+        fontcolor=gray;
+        color=gray;
+    }
+
+    madgui -&gt; hit_models;
+    hit_models [label = &quot;hit_models&quot;];
+
+    hit_acs -&gt; beam;
+    cpymad -&gt; madx;
+    pyqt -&gt; user;
+
+    { rank = same; madx; beam; }
+
+    // hit_models -&gt; cpymad [style=dashed, color=gray];
+    hit_models -&gt; madx [style=dashed, color=gray, constraint=false];
+
+    madx [shape=rectangle, label=&quot;MAD-X&quot;];
+    beam [shape=rectangle, label=&quot;BeamOptikDLL&quot;];
+    user [shape=rectangle, label=&quot;User&quot;];
+}" class="graphviz" /></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/hibtc/madgui">madgui</a>: main application repository that contains GUI code and orchestrates
+the interaction between different parts</p></li>
+<li><p><a class="reference external" href="https://github.com/hibtc/cpymad">cpymad</a>: python binding for <a class="reference external" href="https://github.com/MethodicalAcceleratorDesign/MAD-X">MAD-X</a>. It allows to start, access and control
+the MAD-X interpreter from python.</p></li>
+<li><p><a class="reference external" href="https://github.com/MethodicalAcceleratorDesign/MAD-X">MAD-X</a>: accelerator simulation code developed by CERN, used for underlying
+computations. Note that although “open source” it is <strong>not</strong> “free software”.</p></li>
+<li><p><a class="reference external" href="https://github.com/hibtc/hit_acs">hit_acs</a>: python binding for the hit accelerator control system,
+specifically the <code class="docutils literal notranslate"><span class="pre">BeamOptikDLL.dll</span></code>. This component is required for online
+access at HIT. It is possible to replace this component with another package
+with similar API to facilitate access to other control systems.</p></li>
+<li><p><a class="reference external" href="https://github.com/hibtc/hit_models">hit_models</a>: contains the MAD-X model definitions for the HIT beam lines</p></li>
+<li><p><a class="reference external" href="https://github.com/hibtc/madgui-installer">madgui-installer</a>: scripts to create an offline installer with all
+dependencies for usage on the control system PCs (which don’t have internet
+and therefore can’t download dependencies automatically)</p></li>
+<li><p><a class="reference external" href="http://pyqt.sourceforge.net/Docs/PyQt5/installation.html">PyQt5</a>: GUI framework.</p></li>
+</ul>
+<p>Further resources:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://mad.web.cern.ch/mad/documentation.html">the MAD-X user’s guide</a> is an essential resource and a <strong>must read</strong></p></li>
+<li><p><a class="reference external" href="https://hibtc.github.io/cpymad/">cpymad documentation</a></p></li>
+<li><p><a class="reference external" href="https://doc.qt.io/qt-5/">Qt5 documentation</a> use this as reference for developing with Qt. It is
+often much better and complete than PyQt-specific references. The PyQt API
+is essentially the same just with C++ translated to python.</p></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="infrastructure.html" class="btn btn-neutral float-right" title="Infrastructure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="conventions.html" class="btn btn-neutral float-left" title="Coding conventions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

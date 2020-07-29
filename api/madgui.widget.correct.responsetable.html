@@ -1,0 +1,422 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.correct.responsetable module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.about module" href="madgui.widget.about.html" />
+    <link rel="prev" title="madgui.widget.correct.recordstable module" href="madgui.widget.correct.recordstable.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.correct.html">madgui.widget.correct package</a> &raquo;</li>
+        
+      <li>madgui.widget.correct.responsetable module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.correct.responsetable.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.correct.responsetable">
+<span id="madgui-widget-correct-responsetable-module"></span><h1>madgui.widget.correct.responsetable module<a class="headerlink" href="#module-madgui.widget.correct.responsetable" title="Permalink to this headline">¶</a></h1>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ORM_Entry" title="madgui.widget.correct.responsetable.ORM_Entry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ORM_Entry</span></code></a>(monitor, knob, x, y)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable" title="madgui.widget.correct.responsetable.ResponseTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ResponseTable</span></code></a>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.correct.responsetable.ORM_Entry">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.correct.responsetable.</code><code class="sig-name descname">ORM_Entry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor</span></em>, <em class="sig-param"><span class="n">knob</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.widget.correct.responsetable.ORM_Entry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ORM_Entry.knob" title="madgui.widget.correct.responsetable.ORM_Entry.knob"><code class="xref py py-obj docutils literal notranslate"><span class="pre">knob</span></code></a></p></td>
+<td><p>Alias for field number 1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ORM_Entry.monitor" title="madgui.widget.correct.responsetable.ORM_Entry.monitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monitor</span></code></a></p></td>
+<td><p>Alias for field number 0</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ORM_Entry.x" title="madgui.widget.correct.responsetable.ORM_Entry.x"><code class="xref py py-obj docutils literal notranslate"><span class="pre">x</span></code></a></p></td>
+<td><p>Alias for field number 2</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ORM_Entry.y" title="madgui.widget.correct.responsetable.ORM_Entry.y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">y</span></code></a></p></td>
+<td><p>Alias for field number 3</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ORM_Entry.knob">
+<em class="property">property </em><code class="sig-name descname">knob</code><a class="headerlink" href="#madgui.widget.correct.responsetable.ORM_Entry.knob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ORM_Entry.monitor">
+<em class="property">property </em><code class="sig-name descname">monitor</code><a class="headerlink" href="#madgui.widget.correct.responsetable.ORM_Entry.monitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ORM_Entry.x">
+<em class="property">property </em><code class="sig-name descname">x</code><a class="headerlink" href="#madgui.widget.correct.responsetable.ORM_Entry.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ORM_Entry.y">
+<em class="property">property </em><code class="sig-name descname">y</code><a class="headerlink" href="#madgui.widget.correct.responsetable.ORM_Entry.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.correct.responsetable.ResponseTable">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.correct.responsetable.</code><code class="sig-name descname">ResponseTable</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/responsetable.html#ResponseTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.compute_orm" title="madgui.widget.correct.responsetable.ResponseTable.compute_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_orm</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.export_to" title="madgui.widget.correct.responsetable.ResponseTable.export_to"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_to</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.get_orm_row" title="madgui.widget.correct.responsetable.ResponseTable.get_orm_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_orm_row</span></code></a>(i, r)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.load_from" title="madgui.widget.correct.responsetable.ResponseTable.load_from"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_from</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.load_orm" title="madgui.widget.correct.responsetable.ResponseTable.load_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_orm</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.measure_orm" title="madgui.widget.correct.responsetable.ResponseTable.measure_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_orm</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.on_orms_changed" title="madgui.widget.correct.responsetable.ResponseTable.on_orms_changed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_orms_changed</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.save_orm" title="madgui.widget.correct.responsetable.ResponseTable.save_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_orm</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.set_corrector" title="madgui.widget.correct.responsetable.ResponseTable.set_corrector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_corrector</span></code></a>(corrector)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.exportFilters" title="madgui.widget.correct.responsetable.ResponseTable.exportFilters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportFilters</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.responsetable.ResponseTable.folder" title="madgui.widget.correct.responsetable.ResponseTable.folder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">folder</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.compute_orm">
+<code class="sig-name descname">compute_orm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/responsetable.html#ResponseTable.compute_orm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.compute_orm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.exportFilters">
+<code class="sig-name descname">exportFilters</code><em class="property"> = [('YAML file', '*.yml')]</em><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.exportFilters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.export_to">
+<code class="sig-name descname">export_to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/responsetable.html#ResponseTable.export_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.export_to" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.folder">
+<code class="sig-name descname">folder</code><em class="property"> = '.'</em><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.get_orm_row">
+<code class="sig-name descname">get_orm_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">r</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/responsetable.html#ResponseTable.get_orm_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.get_orm_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.load_from">
+<code class="sig-name descname">load_from</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/responsetable.html#ResponseTable.load_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.load_from" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.load_orm">
+<code class="sig-name descname">load_orm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/responsetable.html#ResponseTable.load_orm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.load_orm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.measure_orm">
+<code class="sig-name descname">measure_orm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/responsetable.html#ResponseTable.measure_orm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.measure_orm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.on_orms_changed">
+<code class="sig-name descname">on_orms_changed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/responsetable.html#ResponseTable.on_orms_changed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.on_orms_changed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.save_orm">
+<code class="sig-name descname">save_orm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/responsetable.html#ResponseTable.save_orm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.save_orm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.responsetable.ResponseTable.set_corrector">
+<code class="sig-name descname">set_corrector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">corrector</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/responsetable.html#ResponseTable.set_corrector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.responsetable.ResponseTable.set_corrector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.about.html" class="btn btn-neutral float-right" title="madgui.widget.about module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.correct.recordstable.html" class="btn btn-neutral float-left" title="madgui.widget.correct.recordstable module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

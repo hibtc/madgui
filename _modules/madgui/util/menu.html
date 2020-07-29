@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.menu &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.util.menu</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.util.menu</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for defining a window menu in a more concice notation than manually</span>
+<span class="sd">creating the ``QMenuItem`` and assigning properties.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Item&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Menu&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Separator&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;extend&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="kn">import</span> <span class="n">QIcon</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QAction</span><span class="p">,</span> <span class="n">QStyle</span>
+
+
+<div class="viewcode-block" id="Item"><a class="viewcode-back" href="../../../api/madgui.util.menu.html#madgui.util.menu.Item">[docs]</a><span class="k">class</span> <span class="nc">Item</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;Represents a menu item. Objects of this type will be realized as</span>
+<span class="sd">    ``QMenuItem``.</span>
+
+<span class="sd">    The following properties can be given:</span>
+
+<span class="sd">    :ivar str label: menu item label</span>
+<span class="sd">    :ivar str shortcut: shortcut, e.g. &quot;Ctrl+S&quot; (optional)</span>
+<span class="sd">    :ivar str description: tooltip and status bar message</span>
+<span class="sd">    :ivar callable callback: action to be taken when clicking the menu item</span>
+<span class="sd">    :ivar icon: icon, can be QStyle.StandardPixmap, an icon name defined in</span>
+<span class="sd">                the theme, or a QIcon</span>
+<span class="sd">    :ivar Bool enabled: whether the item is enabled (optional)</span>
+<span class="sd">    :ivar Bool checked: whether the item is checked (optional)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">shortcut</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">checked</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shortcut</span> <span class="o">=</span> <span class="n">shortcut</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="c1"># NOTE: the extra lambda is required to prevent deletion of bound</span>
+        <span class="c1"># methods upon disabling the action in PyQt4.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">icon</span> <span class="o">=</span> <span class="n">icon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">enabled</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checked</span> <span class="o">=</span> <span class="n">checked</span>
+
+<div class="viewcode-block" id="Item.action"><a class="viewcode-back" href="../../../api/madgui.util.menu.html#madgui.util.menu.Item.action">[docs]</a>    <span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a ``QAction`` from this item.&quot;&quot;&quot;</span>
+        <span class="n">checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checked</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">QAction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">checkable</span><span class="o">=</span><span class="n">checkable</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shortcut</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">setShortcut</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shortcut</span><span class="p">)</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">setShortcutContext</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">ApplicationShortcut</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">setStatusTip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">icon</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">icon</span><span class="p">,</span> <span class="n">QStyle</span><span class="o">.</span><span class="n">StandardPixmap</span><span class="p">):</span>
+                <span class="n">icon</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">style</span><span class="p">()</span><span class="o">.</span><span class="n">standardIcon</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">icon</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">icon</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">icon</span> <span class="o">=</span> <span class="n">QIcon</span><span class="o">.</span><span class="n">fromTheme</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">icon</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">icon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">icon</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">setIcon</span><span class="p">(</span><span class="n">icon</span><span class="p">)</span>
+        <span class="n">_set_from</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">)</span>
+        <span class="n">_set_from</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">setChecked</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">checked</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">action</span></div>
+
+<div class="viewcode-block" id="Item.append_to"><a class="viewcode-back" href="../../../api/madgui.util.menu.html#madgui.util.menu.Item.append_to">[docs]</a>    <span class="k">def</span> <span class="nf">append_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">menu</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Append this item to the given menu.&quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">action</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">_set_from</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Connect a :class:`~madgui.util.collections.Bool` to the given slot.</span>
+<span class="sd">    This is used to keep the state of ``QAction.checked`` and ``.enabled``</span>
+<span class="sd">    properties synchronized.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="n">val</span><span class="p">()</span>
+            <span class="n">val</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="n">slot</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Menu"><a class="viewcode-back" href="../../../api/madgui.util.menu.html#madgui.util.menu.Menu">[docs]</a><span class="k">class</span> <span class="nc">Menu</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;(Sub-)menu to be inserted.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="n">items</span>
+
+<div class="viewcode-block" id="Menu.append_to"><a class="viewcode-back" href="../../../api/madgui.util.menu.html#madgui.util.menu.Menu.append_to">[docs]</a>    <span class="k">def</span> <span class="nf">append_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">menu</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="n">submenu</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">addMenu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">extend</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">submenu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">submenu</span></div></div>
+
+
+<div class="viewcode-block" id="Separator"><a class="viewcode-back" href="../../../api/madgui.util.menu.html#madgui.util.menu.Separator">[docs]</a><span class="k">class</span> <span class="nc">Separator</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;Separator to be inserted in a menu.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Separator.append_to"><a class="viewcode-back" href="../../../api/madgui.util.menu.html#madgui.util.menu.Separator.append_to">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">append_to</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">menu</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="extend"><a class="viewcode-back" href="../../../api/madgui.util.menu.html#madgui.util.menu.extend">[docs]</a><span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">menu</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Append menu items to menu.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">append_to</span><span class="p">(</span><span class="n">menu</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span>
+            <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

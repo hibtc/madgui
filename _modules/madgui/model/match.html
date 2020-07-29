@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.model.match &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.model.match</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.model.match</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implementation of the matching system.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Constraint&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MATCH_RULES&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Matcher&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MatchTransform&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+<span class="kn">from</span> <span class="nn">madgui.util.collections</span> <span class="kn">import</span> <span class="n">List</span>
+
+
+<span class="n">Constraint</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Constraint&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;elem&#39;</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">,</span> <span class="s1">&#39;axis&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">])</span>
+
+
+<span class="c1"># Select which element paramters can be varied when matching a TWISS function:</span>
+<span class="c1"># TODO: fill in more rules</span>
+<span class="n">MATCH_RULES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;betx&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;bety&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;alfx&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;alfy&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;sig11&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;sig33&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;sig12&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;sig22&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;sig34&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;sig43&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;x&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">,</span> <span class="s1">&#39;sbend&#39;</span><span class="p">,</span> <span class="s1">&#39;kicker&#39;</span><span class="p">,</span> <span class="s1">&#39;hkicker&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;y&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">,</span> <span class="s1">&#39;sbend&#39;</span><span class="p">,</span> <span class="s1">&#39;kicker&#39;</span><span class="p">,</span> <span class="s1">&#39;vkicker&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;px&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">,</span> <span class="s1">&#39;sbend&#39;</span><span class="p">,</span> <span class="s1">&#39;kicker&#39;</span><span class="p">,</span> <span class="s1">&#39;hkicker&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;py&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="s1">&#39;quadrupole&#39;</span><span class="p">,</span> <span class="s1">&#39;sbend&#39;</span><span class="p">,</span> <span class="s1">&#39;kicker&#39;</span><span class="p">,</span> <span class="s1">&#39;vkicker&#39;</span><span class="p">],</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="Matcher"><a class="viewcode-back" href="../../../api/madgui.model.match.html#madgui.model.match.Matcher">[docs]</a><span class="k">class</span> <span class="nc">Matcher</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Responsible for managing a MATCH operation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">matched</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">()</span>
+    <span class="n">finished</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">rules</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create empty matcher.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rules</span> <span class="o">=</span> <span class="n">rules</span> <span class="o">=</span> <span class="n">rules</span> <span class="ow">or</span> <span class="n">MATCH_RULES</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">knobs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_knobs</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">=</span> <span class="n">List</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">List</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">match_results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">design_values</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mirror_mode</span> <span class="o">=</span> <span class="n">rules</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mirror&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Matcher.match"><a class="viewcode-back" href="../../../api/madgui.model.match.html#madgui.model.match.Matcher.match">[docs]</a>    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Match the :attr:`variables` to satisfy :attr:`constraints`.&quot;&quot;&quot;</span>
+        <span class="c1"># transform constraints (envx =&gt; betx, etc)</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">MatchTransform</span><span class="p">()</span>
+        <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Constraint</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">elem</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="o">*</span><span class="n">transform</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">tw</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span>
+            <span class="k">for</span> <span class="n">tw</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_tw_row</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">elem</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">pos</span><span class="p">)]</span>
+        <span class="p">]</span>
+        <span class="n">blacklist</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;readonly&#39;</span><span class="p">,</span> <span class="p">())]</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span>
+                     <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blacklist</span><span class="p">}</span>
+        <span class="n">num_vars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
+        <span class="n">num_cons</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempting to match </span><span class="si">{}</span><span class="s2"> constraints via </span><span class="si">{}</span><span class="s2"> variables.&quot;</span>
+                     <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_cons</span><span class="p">,</span> <span class="n">num_vars</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">num_vars</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">num_vars</span> <span class="o">!=</span> <span class="n">num_cons</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Aborted due to invalid number of constraints or variables.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">match_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mirror_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">match_results</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">match_results</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">touch</span><span class="p">()</span></div>
+
+    <span class="c1"># manage &#39;active&#39; state</span>
+
+    <span class="n">started</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Matcher.start"><a class="viewcode-back" href="../../../api/madgui.model.match.html#madgui.model.match.Matcher.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">started</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">started</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_values</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">globals</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Matcher.stop"><a class="viewcode-back" href="../../../api/madgui.model.match.html#madgui.model.match.Matcher.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">started</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">started</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Matcher.apply"><a class="viewcode-back" href="../../../api/madgui.model.match.html#madgui.model.match.Matcher.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">design_values</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">globals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">touch</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Matcher.clear"><a class="viewcode-back" href="../../../api/madgui.model.match.html#madgui.model.match.Matcher.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">design_values</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Matcher.reset"><a class="viewcode-back" href="../../../api/madgui.model.match.html#madgui.model.match.Matcher.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">undo_stack</span><span class="o">.</span><span class="n">macro</span><span class="p">(</span><span class="s2">&quot;Reset matching&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_globals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_tw_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_elem_twiss</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Matcher.next_best_variable"><a class="viewcode-back" href="../../../api/madgui.model.match.html#madgui.model.match.Matcher.next_best_variable">[docs]</a>    <span class="k">def</span> <span class="nf">next_best_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">knobs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Matcher.detect_variables"><a class="viewcode-back" href="../../../api/madgui.model.match.html#madgui.model.match.Matcher.detect_variables">[docs]</a>    <span class="k">def</span> <span class="nf">detect_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fill :attr:`variables` to the same length as :attr:`constraints`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The following uses the most naive, greedy and probably stupid</span>
+        <span class="c1"># algorithm to select all elements that can be used for varying.</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">MatchTransform</span><span class="p">()</span>
+        <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Constraint</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">elem</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="o">*</span><span class="n">transform</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">tw</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span>
+            <span class="k">for</span> <span class="n">tw</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_tw_row</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">elem</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">pos</span><span class="p">)]</span>
+        <span class="p">]</span>
+        <span class="c1"># Copy all needed variable lists (for later modification):</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="o">.</span><span class="n">axis</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">}</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="p">{</span><span class="n">axis</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allvars</span><span class="p">(</span><span class="n">axis</span><span class="p">)[:]</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">}</span>
+        <span class="n">used</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">pos</span><span class="p">):</span>
+            <span class="c1"># Stop as soon as we have enough variables:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">constraints</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># TODO: just bisect this…</span>
+                <span class="n">var</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">elem</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">axis</span><span class="p">])</span>
+                           <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">position</span> <span class="o">&lt;</span> <span class="n">c</span><span class="o">.</span><span class="n">pos</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">used</span><span class="p">)</span>
+                <span class="n">variables</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">var</span><span class="p">)</span>
+                <span class="n">used</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                <span class="c1"># No variable in range found! Ok?</span>
+                <span class="k">pass</span></div>
+
+    <span class="k">def</span> <span class="nf">_allvars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find all usable constraints for the given axis.</span>
+
+<span class="sd">        :returns: list of :class:`Variable`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">elem_types</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="p">())</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">knob</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span>
+            <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">base_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">elem_types</span>
+            <span class="k">for</span> <span class="n">knob</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_elem_knobs</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+        <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="MatchTransform"><a class="viewcode-back" href="../../../api/madgui.model.match.html#madgui.model.match.MatchTransform">[docs]</a><span class="k">class</span> <span class="nc">MatchTransform</span><span class="p">:</span>
+
+    <span class="n">_transform</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;alfx&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">tw</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;sig12&#39;</span><span class="p">,</span> <span class="o">-</span><span class="n">val</span><span class="o">*</span><span class="n">tw</span><span class="o">.</span><span class="n">ex</span><span class="p">),</span>
+        <span class="s1">&#39;alfy&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">tw</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;sig34&#39;</span><span class="p">,</span> <span class="o">-</span><span class="n">val</span><span class="o">*</span><span class="n">tw</span><span class="o">.</span><span class="n">ey</span><span class="p">),</span>
+        <span class="s1">&#39;betx&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">tw</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;sig11&#39;</span><span class="p">,</span>  <span class="n">val</span><span class="o">*</span><span class="n">tw</span><span class="o">.</span><span class="n">ex</span><span class="p">),</span>
+        <span class="s1">&#39;bety&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">tw</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;sig33&#39;</span><span class="p">,</span>  <span class="n">val</span><span class="o">*</span><span class="n">tw</span><span class="o">.</span><span class="n">ey</span><span class="p">),</span>
+        <span class="s1">&#39;gamx&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">tw</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;sig22&#39;</span><span class="p">,</span>  <span class="n">val</span><span class="o">*</span><span class="n">tw</span><span class="o">.</span><span class="n">ex</span><span class="p">),</span>
+        <span class="s1">&#39;gamy&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">tw</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;sig44&#39;</span><span class="p">,</span>  <span class="n">val</span><span class="o">*</span><span class="n">tw</span><span class="o">.</span><span class="n">ey</span><span class="p">),</span>
+        <span class="s1">&#39;envx&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">tw</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;sig11&#39;</span><span class="p">,</span>  <span class="n">val</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span>
+        <span class="s1">&#39;envy&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">tw</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;sig33&#39;</span><span class="p">,</span>  <span class="n">val</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">tw</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="n">val</span><span class="p">,</span> <span class="n">tw</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

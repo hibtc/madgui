@@ -1,0 +1,735 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.diagnostic &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.online.diagnostic</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.online.diagnostic</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Widgets for online beam diagnostic tasks, such as emittance estimation,</span>
+<span class="sd">adding monitor readouts to plot.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;MonitorWidget&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MonitorWidgetBase&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PlotMonitorWidget&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;OffsetsWidget&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;OrbitWidget&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;EmittanceDialog&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;solve_emit_sys&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;twiss_from_sigma&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">isnan</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">accumulate</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="kn">import</span> <span class="n">QColor</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QAbstractItemView</span><span class="p">,</span> <span class="n">QDialog</span><span class="p">,</span> <span class="n">QDialogButtonBox</span><span class="p">,</span> <span class="n">QTabWidget</span><span class="p">,</span> <span class="n">QWidget</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.qt</span> <span class="kn">import</span> <span class="n">load_ui</span>
+<span class="kn">from</span> <span class="nn">madgui.util.unit</span> <span class="kn">import</span> <span class="n">ui_units</span>
+<span class="kn">from</span> <span class="nn">madgui.util</span> <span class="kn">import</span> <span class="n">yaml</span>
+<span class="kn">from</span> <span class="nn">madgui.util.layout</span> <span class="kn">import</span> <span class="n">VBoxLayout</span>
+<span class="kn">from</span> <span class="nn">madgui.util.collections</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">madgui.widget.tableview</span> <span class="kn">import</span> <span class="n">TableItem</span>
+
+<span class="kn">from</span> <span class="nn">madgui.online.orbit</span> <span class="kn">import</span> <span class="n">fit_particle_orbit</span><span class="p">,</span> <span class="n">add_offsets</span>
+
+<span class="n">Button</span> <span class="o">=</span> <span class="n">QDialogButtonBox</span>
+
+
+<div class="viewcode-block" id="MonitorWidget"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidget">[docs]</a><span class="k">class</span> <span class="nc">MonitorWidget</span><span class="p">(</span><span class="n">QDialog</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">window</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tabWidget</span> <span class="o">=</span> <span class="n">QTabWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tabWidget</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">PlotMonitorWidget</span><span class="p">(</span><span class="n">session</span><span class="p">),</span> <span class="s2">&quot;Plot&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tabWidget</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">OrbitWidget</span><span class="p">(</span><span class="n">session</span><span class="p">),</span> <span class="s2">&quot;Orbit&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tabWidget</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">EmittanceDialog</span><span class="p">(</span><span class="n">session</span><span class="p">),</span> <span class="s2">&quot;Optics&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tabWidget</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">OffsetsWidget</span><span class="p">(</span><span class="n">session</span><span class="p">),</span> <span class="s2">&quot;Offsets&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">VBoxLayout</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">tabWidget</span><span class="p">],</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setSizeGripEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<span class="n">ResultItem</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ResultItem&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">get_monitor_textcolor</span><span class="p">(</span><span class="n">mon</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">QColor</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">black</span> <span class="k">if</span> <span class="n">mon</span><span class="o">.</span><span class="n">valid</span> <span class="k">else</span> <span class="n">Qt</span><span class="o">.</span><span class="n">darkGray</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="MonitorWidgetBase"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase">[docs]</a><span class="k">class</span> <span class="nc">MonitorWidgetBase</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dialog for selecting SD monitor values to be imported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Set values in ACS from current sequence&#39;</span>
+    <span class="n">headline</span> <span class="o">=</span> <span class="s2">&quot;Select for which monitors to plot measurements:&quot;</span>
+    <span class="n">folder</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">window</span><span class="p">())</span>
+        <span class="n">load_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__package__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui_file</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">window</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readouts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">readouts_list</span>
+        <span class="c1"># TODO: we should eventually load this from model-specific session</span>
+        <span class="c1"># file, but it&#39;s fine like this for now:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_monconf</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;online_control&#39;</span><span class="p">][</span><span class="s1">&#39;monitors&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;online_control&#39;</span><span class="p">][</span><span class="s1">&#39;offsets&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">set_viewmodel</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_monitor_row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">readouts</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">setSelectionBehavior</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">SelectRows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">ExtendedSelection</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonBox</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonBox</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Save</span><span class="p">)</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MonitorWidgetBase.accept"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.accept">[docs]</a>    <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">()</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MonitorWidgetBase.selected"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.selected">[docs]</a>    <span class="k">def</span> <span class="nf">selected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">monitor</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selected</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">monitor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MonitorWidgetBase.num_selected"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.num_selected">[docs]</a>    <span class="k">def</span> <span class="nf">num_selected</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">readouts</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="MonitorWidgetBase.select"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.select">[docs]</a>    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">readouts</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MonitorWidgetBase.deselect"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.deselect">[docs]</a>    <span class="k">def</span> <span class="nf">deselect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">readouts</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MonitorWidgetBase.update"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MonitorWidgetBase.remove"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">hide_monitor_readouts</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MonitorWidgetBase.draw"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.draw">[docs]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">shown</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monconf</span><span class="p">[</span><span class="s1">&#39;show&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">show_monitor_readouts</span><span class="p">([</span>
+            <span class="n">mon</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">for</span> <span class="n">mon</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">readouts</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected</span><span class="p">(</span><span class="n">mon</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">shown</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mon</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="p">])</span></div>
+
+    <span class="n">exportFilters</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;YAML file&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yml&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<div class="viewcode-block" id="MonitorWidgetBase.export"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.filedialog</span> <span class="kn">import</span> <span class="n">getSaveFileName</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">getSaveFileName</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">(),</span> <span class="s1">&#39;Export values&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exportFilters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">export_to</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MonitorWidgetBase.set_monitor_show"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.set_monitor_show">[docs]</a>    <span class="k">def</span> <span class="nf">set_monitor_show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">mon</span><span class="p">,</span> <span class="n">show</span><span class="p">):</span>
+        <span class="n">shown</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected</span><span class="p">(</span><span class="n">mon</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">shown</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">show</span> <span class="ow">and</span> <span class="n">shown</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">deselect</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MonitorWidgetBase.get_monitor_row"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.MonitorWidgetBase.get_monitor_row">[docs]</a>    <span class="k">def</span> <span class="nf">get_monitor_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s2">&quot;Monitor&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;Δx&quot;</span><span class="p">,</span> <span class="s2">&quot;Δy&quot;</span><span class="p">):</span>
+        <span class="n">fg</span> <span class="o">=</span> <span class="n">get_monitor_textcolor</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">checkable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="n">fg</span><span class="p">,</span>
+                      <span class="n">checked</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">selected</span><span class="p">(</span><span class="n">m</span><span class="p">),</span>
+                      <span class="n">set_checked</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">set_monitor_show</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">posx</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;posx&#39;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="n">fg</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">posy</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;posy&#39;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="n">fg</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">envx</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;envx&#39;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="n">fg</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">envy</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;envy&#39;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="n">fg</span><span class="p">),</span>
+        <span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="PlotMonitorWidget"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.PlotMonitorWidget">[docs]</a><span class="k">class</span> <span class="nc">PlotMonitorWidget</span><span class="p">(</span><span class="n">MonitorWidgetBase</span><span class="p">):</span>
+
+    <span class="n">ui_file</span> <span class="o">=</span> <span class="s1">&#39;monitorwidget.ui&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monconf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;show&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+<div class="viewcode-block" id="PlotMonitorWidget.showEvent"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.PlotMonitorWidget.showEvent">[docs]</a>    <span class="k">def</span> <span class="nf">showEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">open_graph</span><span class="p">(</span>
+            <span class="s1">&#39;envelope&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">graphs</span><span class="p">(</span><span class="s1">&#39;envelope&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;orbit&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+    <span class="n">exportFilters</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;YAML file&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yml&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;TEXT file (numpy compatible)&quot;</span><span class="p">,</span> <span class="s2">&quot;*.txt&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<div class="viewcode-block" id="PlotMonitorWidget.export_to"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.PlotMonitorWidget.export_to">[docs]</a>    <span class="k">def</span> <span class="nf">export_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="c1"># TODO: add &#39;.tfs&#39; output format?</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.yml&#39;</span><span class="p">:</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;monitor&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">posx</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">posy</span><span class="p">,</span>
+                         <span class="s1">&#39;envx&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">envx</span><span class="p">,</span> <span class="s1">&#39;envy&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">envy</span><span class="p">}</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">rows</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+            <span class="p">}})</span>
+        <span class="k">elif</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.txt&#39;</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">pos</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                <span class="p">[</span><span class="n">pos</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">posx</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">posy</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">envx</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">envy</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">rows</span>
+                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">selected</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+            <span class="p">])</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s1">&#39;s x y envx envy&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Don&#39;t know how to serialize to </span><span class="si">{!r}</span><span class="s2"> format.&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ext</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="OffsetsWidget"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OffsetsWidget">[docs]</a><span class="k">class</span> <span class="nc">OffsetsWidget</span><span class="p">(</span><span class="n">MonitorWidgetBase</span><span class="p">):</span>
+
+    <span class="n">ui_file</span> <span class="o">=</span> <span class="s1">&#39;offsetswidget.ui&#39;</span>
+
+<div class="viewcode-block" id="OffsetsWidget.get_monitor_row"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OffsetsWidget.get_monitor_row">[docs]</a>    <span class="k">def</span> <span class="nf">get_monitor_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s2">&quot;Monitor&quot;</span><span class="p">,</span> <span class="s2">&quot;Δx&quot;</span><span class="p">,</span> <span class="s2">&quot;Δy&quot;</span><span class="p">):</span>
+        <span class="n">fg</span> <span class="o">=</span> <span class="n">get_monitor_textcolor</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">checkable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="n">fg</span><span class="p">,</span>
+                      <span class="n">checked</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">selected</span><span class="p">(</span><span class="n">m</span><span class="p">),</span>
+                      <span class="n">set_checked</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">set_monitor_show</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;posx&#39;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="n">fg</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;posy&#39;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="n">fg</span><span class="p">),</span>
+        <span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offsetsButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_offsets</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calibrateButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calibrate_offsets</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonBox</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Open</span><span class="p">)</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonBox</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Discard</span><span class="p">)</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discard</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monconf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;backtrack&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+<div class="viewcode-block" id="OffsetsWidget.showEvent"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OffsetsWidget.showEvent">[docs]</a>    <span class="k">def</span> <span class="nf">showEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">open_graph</span><span class="p">(</span><span class="s1">&#39;orbit&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="OffsetsWidget.discard"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OffsetsWidget.discard">[docs]</a>    <span class="k">def</span> <span class="nf">discard</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="OffsetsWidget.load"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OffsetsWidget.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.filedialog</span> <span class="kn">import</span> <span class="n">getOpenFileName</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">getOpenFileName</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">(),</span> <span class="s1">&#39;Load offsets&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exportFilters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_from</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OffsetsWidget.load_from"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OffsetsWidget.load_from">[docs]</a>    <span class="k">def</span> <span class="nf">load_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">offsets</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="s1">&#39;offsets&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">offsets</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="OffsetsWidget.export_to"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OffsetsWidget.export_to">[docs]</a>    <span class="k">def</span> <span class="nf">export_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">yaml</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;offsets&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">,</span>
+        <span class="p">})</span></div>
+
+<div class="viewcode-block" id="OffsetsWidget.save_offsets"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OffsetsWidget.save_offsets">[docs]</a>    <span class="k">def</span> <span class="nf">save_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">readouts</span><span class="p">:</span>
+            <span class="n">tw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_elem_twiss</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">tw</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">posx</span><span class="p">,</span>
+                    <span class="n">tw</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">posy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="OffsetsWidget.calibrate_offsets"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OffsetsWidget.calibrate_offsets">[docs]</a>    <span class="k">def</span> <span class="nf">calibrate_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.offcal</span> <span class="kn">import</span> <span class="n">OffsetCalibrationWidget</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.dialog</span> <span class="kn">import</span> <span class="n">Dialog</span>
+        <span class="k">return</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">OffsetCalibrationWidget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">[</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">readouts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected</span><span class="p">(</span><span class="n">m</span><span class="p">)]))</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">_FitWidget</span><span class="p">(</span><span class="n">MonitorWidgetBase</span><span class="p">):</span>
+
+    <span class="n">ui_file</span> <span class="o">=</span> <span class="s1">&#39;emittance.ui&#39;</span>
+
+    <span class="k">def</span> <span class="nf">get_result_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Model&quot;</span><span class="p">,</span> <span class="s2">&quot;Fit&quot;</span><span class="p">,</span> <span class="s2">&quot;Unit&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">fit</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">ui_units</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">)),</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">applyButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">apply</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">List</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">resultsTable</span><span class="o">.</span><span class="n">setSelectionBehavior</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">SelectRows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resultsTable</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">ExtendedSelection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resultsTable</span><span class="o">.</span><span class="n">set_viewmodel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_result_row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_update</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="OrbitWidget"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OrbitWidget">[docs]</a><span class="k">class</span> <span class="nc">OrbitWidget</span><span class="p">(</span><span class="n">_FitWidget</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optionsWidget</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">hideColumn</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">hideColumn</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monconf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;backtrack&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+<div class="viewcode-block" id="OrbitWidget.showEvent"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OrbitWidget.showEvent">[docs]</a>    <span class="k">def</span> <span class="nf">showEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">open_graph</span><span class="p">(</span><span class="s1">&#39;orbit&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="OrbitWidget.export_to"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OrbitWidget.export_to">[docs]</a>    <span class="k">def</span> <span class="nf">export_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">yaml</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;twiss&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_orbit</span><span class="p">,</span>
+        <span class="p">})</span></div>
+
+<div class="viewcode-block" id="OrbitWidget.apply"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OrbitWidget.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">singular</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_twiss_args</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_orbit</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OrbitWidget.on_update"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OrbitWidget.on_update">[docs]</a>    <span class="k">def</span> <span class="nf">on_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_orbit</span><span class="p">,</span> <span class="n">chi_squared</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">singular</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">fit_particle_orbit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">singular</span><span class="p">:</span>
+            <span class="n">initial</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">twiss_args</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">ResultItem</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">initial</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_orbit</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">]</span></div>
+
+<div class="viewcode-block" id="OrbitWidget.fit_particle_orbit"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.OrbitWidget.fit_particle_orbit">[docs]</a>    <span class="k">def</span> <span class="nf">fit_particle_orbit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_selected</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{},</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">readouts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected</span><span class="p">(</span><span class="n">m</span><span class="p">)]</span>
+        <span class="n">secmaps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_transfer_maps</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">records</span><span class="p">])</span>
+        <span class="n">secmaps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+        <span class="n">range_start</span> <span class="o">=</span> <span class="n">records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">ret</span><span class="p">,</span> <span class="n">curve</span> <span class="o">=</span> <span class="n">fit_particle_orbit</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">add_offsets</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">),</span> <span class="n">secmaps</span><span class="p">,</span> <span class="n">range_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">add_curve</span><span class="p">(</span><span class="s2">&quot;backtrack&quot;</span><span class="p">,</span> <span class="n">curve</span><span class="p">,</span> <span class="s1">&#39;backtrack_style&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div></div>
+
+
+<div class="viewcode-block" id="EmittanceDialog"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.EmittanceDialog">[docs]</a><span class="k">class</span> <span class="nc">EmittanceDialog</span><span class="p">(</span><span class="n">_FitWidget</span><span class="p">):</span>
+
+    <span class="c1"># The three steps of UI initialization</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">longCheckBox</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">match_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dispersionCheckBox</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">match_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">couplingCheckBox</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">match_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">hideColumn</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">hideColumn</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monconf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;optics&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+<div class="viewcode-block" id="EmittanceDialog.showEvent"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.EmittanceDialog.showEvent">[docs]</a>    <span class="k">def</span> <span class="nf">showEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">open_graph</span><span class="p">(</span><span class="s1">&#39;envelope&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="EmittanceDialog.apply"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.EmittanceDialog.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">fit</span>
+                   <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+                   <span class="k">if</span> <span class="ow">not</span> <span class="n">isnan</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">fit</span><span class="p">)}</span>
+        <span class="k">if</span> <span class="n">results</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">update_beam</span><span class="p">({</span>
+                <span class="s1">&#39;ex&#39;</span><span class="p">:</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ex&#39;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">ex</span><span class="p">()),</span>
+                <span class="s1">&#39;ey&#39;</span><span class="p">:</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ey&#39;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">ey</span><span class="p">()),</span>
+            <span class="p">})</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">update_twiss_args</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EmittanceDialog.export_to"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.EmittanceDialog.export_to">[docs]</a>    <span class="k">def</span> <span class="nf">export_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">beam_params</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;ex&#39;</span><span class="p">,</span> <span class="s1">&#39;ey&#39;</span><span class="p">,</span> <span class="s1">&#39;et&#39;</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[(</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">r</span><span class="o">.</span><span class="n">fit</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+                   <span class="k">if</span> <span class="ow">not</span> <span class="n">isnan</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">fit</span><span class="p">)]</span>
+        <span class="n">yaml</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;twiss&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">beam_params</span><span class="p">},</span>
+            <span class="s1">&#39;beam&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">beam_params</span><span class="p">},</span>
+        <span class="p">})</span></div>
+
+<div class="viewcode-block" id="EmittanceDialog.on_update"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.EmittanceDialog.on_update">[docs]</a>    <span class="k">def</span> <span class="nf">on_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">match_values</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="EmittanceDialog.match_values"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.EmittanceDialog.match_values">[docs]</a>    <span class="k">def</span> <span class="nf">match_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">longCheckBox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">longCheckBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+        <span class="n">dispersionCheckBox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dispersionCheckBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+        <span class="n">couplingCheckBox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">couplingCheckBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+
+        <span class="n">min_monitors</span> <span class="o">=</span> <span class="mi">6</span> <span class="k">if</span> <span class="n">dispersionCheckBox</span> <span class="k">else</span> <span class="mi">3</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_selected</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">min_monitors</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">return</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+
+        <span class="n">readouts</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">readouts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected</span><span class="p">(</span><span class="n">m</span><span class="p">)]</span>
+        <span class="n">readouts</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">readouts</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="n">tms</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_transfer_maps</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">readouts</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">longCheckBox</span><span class="p">:</span>
+            <span class="n">tms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+        <span class="n">tms</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">accumulate</span><span class="p">(</span><span class="n">tms</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">)))</span>
+        <span class="c1"># keep X,PX,Y,PY,PT:</span>
+        <span class="n">tms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tms</span><span class="p">)[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">:][:,</span> <span class="p">:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]]</span>
+
+        <span class="c1"># TODO: button for &quot;resync model&quot;</span>
+
+        <span class="c1"># TODO: when &#39;interpolate&#39; is on -&gt; choose correct element...?</span>
+        <span class="c1"># -&gt; not important for l=0 monitors</span>
+
+        <span class="n">coup_xy</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">tms</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">coup_yx</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">tms</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">coup_xt</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">tms</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">coup_yt</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">tms</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">coupled</span> <span class="o">=</span> <span class="n">coup_xy</span> <span class="ow">or</span> <span class="n">coup_yx</span>
+        <span class="n">dispersive</span> <span class="o">=</span> <span class="n">coup_xt</span> <span class="ow">or</span> <span class="n">coup_yt</span>
+
+        <span class="n">envx</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">envx</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">readouts</span><span class="p">]</span>
+        <span class="n">envy</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">envy</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">readouts</span><span class="p">]</span>
+        <span class="n">xcs</span> <span class="o">=</span> <span class="p">[[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">cx</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">cy</span><span class="o">**</span><span class="mi">2</span><span class="p">)]</span>
+               <span class="k">for</span> <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">envx</span><span class="p">,</span> <span class="n">envy</span><span class="p">)]</span>
+
+        <span class="c1"># TODO: do we need to add dpt*D to sig11 in online control?</span>
+
+        <span class="k">def</span> <span class="nf">calc_sigma</span><span class="p">(</span><span class="n">tms</span><span class="p">,</span> <span class="n">xcs</span><span class="p">,</span> <span class="n">dispersive</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">dispersive</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dispersionCheckBox</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Dispersive lattice!&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">dispersionCheckBox</span><span class="p">:</span>
+                <span class="n">tms</span> <span class="o">=</span> <span class="n">tms</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">sigma</span><span class="p">,</span> <span class="n">residuals</span><span class="p">,</span> <span class="n">singular</span> <span class="o">=</span> <span class="n">solve_emit_sys</span><span class="p">(</span><span class="n">tms</span><span class="p">,</span> <span class="n">xcs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">sigma</span>
+
+        <span class="c1"># TODO: assert no dispersion / or use 6 monitors...</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">couplingCheckBox</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">coupled</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Coupled lattice!&quot;</span><span class="p">)</span>
+            <span class="n">tmx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">tms</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">tmy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">tms</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">xcx</span> <span class="o">=</span> <span class="p">[[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">cx</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="k">for</span> <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="ow">in</span> <span class="n">xcs</span><span class="p">]</span>
+            <span class="n">xcy</span> <span class="o">=</span> <span class="p">[[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">cy</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="k">for</span> <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="ow">in</span> <span class="n">xcs</span><span class="p">]</span>
+            <span class="n">sigmax</span> <span class="o">=</span> <span class="n">calc_sigma</span><span class="p">(</span><span class="n">tmx</span><span class="p">,</span> <span class="n">xcx</span><span class="p">,</span> <span class="n">coup_xt</span><span class="p">)</span>
+            <span class="n">sigmay</span> <span class="o">=</span> <span class="n">calc_sigma</span><span class="p">(</span><span class="n">tmy</span><span class="p">,</span> <span class="n">xcy</span><span class="p">,</span> <span class="n">coup_yt</span><span class="p">)</span>
+            <span class="n">ex</span><span class="p">,</span> <span class="n">betx</span><span class="p">,</span> <span class="n">alfx</span> <span class="o">=</span> <span class="n">twiss_from_sigma</span><span class="p">(</span><span class="n">sigmax</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">ey</span><span class="p">,</span> <span class="n">bety</span><span class="p">,</span> <span class="n">alfy</span> <span class="o">=</span> <span class="n">twiss_from_sigma</span><span class="p">(</span><span class="n">sigmay</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">pt</span> <span class="o">=</span> <span class="n">sigmax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sigma</span> <span class="o">=</span> <span class="n">calc_sigma</span><span class="p">(</span><span class="n">tms</span><span class="p">,</span> <span class="n">xcs</span><span class="p">,</span> <span class="n">dispersive</span><span class="p">)</span>
+            <span class="n">ex</span><span class="p">,</span> <span class="n">betx</span><span class="p">,</span> <span class="n">alfx</span> <span class="o">=</span> <span class="n">twiss_from_sigma</span><span class="p">(</span><span class="n">sigma</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">ey</span><span class="p">,</span> <span class="n">bety</span><span class="p">,</span> <span class="n">alfy</span> <span class="o">=</span> <span class="n">twiss_from_sigma</span><span class="p">(</span><span class="n">sigma</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span>
+            <span class="n">pt</span> <span class="o">=</span> <span class="n">sigma</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">beam</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequence</span><span class="o">.</span><span class="n">beam</span>
+        <span class="n">twiss_args</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">twiss_args</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">results</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">ResultItem</span><span class="p">(</span><span class="s1">&#39;ex&#39;</span><span class="p">,</span>   <span class="n">ex</span><span class="p">,</span>   <span class="n">beam</span><span class="o">.</span><span class="n">ex</span><span class="p">),</span>
+            <span class="n">ResultItem</span><span class="p">(</span><span class="s1">&#39;ey&#39;</span><span class="p">,</span>   <span class="n">ey</span><span class="p">,</span>   <span class="n">beam</span><span class="o">.</span><span class="n">ey</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">results</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">ResultItem</span><span class="p">(</span><span class="s1">&#39;pt&#39;</span><span class="p">,</span>   <span class="n">pt</span><span class="p">,</span>   <span class="n">beam</span><span class="o">.</span><span class="n">et</span><span class="p">),</span>
+        <span class="p">]</span> <span class="k">if</span> <span class="n">dispersionCheckBox</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="n">results</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">ResultItem</span><span class="p">(</span><span class="s1">&#39;betx&#39;</span><span class="p">,</span> <span class="n">betx</span><span class="p">,</span> <span class="n">twiss_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;betx&#39;</span><span class="p">)),</span>
+            <span class="n">ResultItem</span><span class="p">(</span><span class="s1">&#39;bety&#39;</span><span class="p">,</span> <span class="n">bety</span><span class="p">,</span> <span class="n">twiss_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bety&#39;</span><span class="p">)),</span>
+            <span class="n">ResultItem</span><span class="p">(</span><span class="s1">&#39;alfx&#39;</span><span class="p">,</span> <span class="n">alfx</span><span class="p">,</span> <span class="n">twiss_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alfx&#39;</span><span class="p">)),</span>
+            <span class="n">ResultItem</span><span class="p">(</span><span class="s1">&#39;alfy&#39;</span><span class="p">,</span> <span class="n">alfy</span><span class="p">,</span> <span class="n">twiss_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alfy&#39;</span><span class="p">)),</span>
+        <span class="p">]</span> <span class="k">if</span> <span class="n">longCheckBox</span> <span class="k">else</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">results</span></div></div>
+
+
+<div class="viewcode-block" id="solve_emit_sys"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.solve_emit_sys">[docs]</a><span class="k">def</span> <span class="nf">solve_emit_sys</span><span class="p">(</span><span class="n">Ms</span><span class="p">,</span> <span class="n">XCs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Solve for S the linear system of equations:</span>
+
+<span class="sd">        (M S Mᵀ)ₓₓ = C</span>
+
+<span class="sd">    For some M, x and C.</span>
+
+<span class="sd">    M can be coupled, but S is assumed to be block diagonal, i.e. decoupled:</span>
+
+<span class="sd">        S = (X 0 0</span>
+<span class="sd">             0 Y 0</span>
+<span class="sd">             0 0 T)</span>
+
+<span class="sd">    Returns S as numpy array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">Ms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">con_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="p">[</span>
+        <span class="n">M</span><span class="p">[[</span><span class="n">x</span><span class="p">]]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">[[</span><span class="n">x</span><span class="p">]]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>   <span class="c1"># linear beam transport!</span>
+        <span class="k">for</span> <span class="n">M</span><span class="p">,</span> <span class="n">xc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Ms</span><span class="p">,</span> <span class="n">XCs</span><span class="p">)</span>           <span class="c1"># for every given transfer matrix</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">xc</span>                      <span class="c1"># and measured constraint</span>
+    <span class="p">]</span>
+
+    <span class="n">sq_matrix_basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">d</span><span class="o">*</span><span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="o">*</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">d</span><span class="o">*</span><span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span>
+    <span class="n">is_upper_triang</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sq_matrix_basis</span><span class="p">)</span>
+                       <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="n">m</span><span class="p">)</span>
+                       <span class="ow">and</span> <span class="p">(</span><span class="n">d</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span> <span class="mi">0</span><span class="p">))]</span>
+
+    <span class="n">lhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span>
+        <span class="n">con_func</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">u</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">tril</span><span class="p">(</span><span class="n">u</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">sq_matrix_basis</span><span class="p">[</span><span class="n">is_upper_triang</span><span class="p">]</span>
+    <span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">rhs</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">xc</span> <span class="ow">in</span> <span class="n">XCs</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">xc</span><span class="p">]</span>
+
+    <span class="n">x0</span><span class="p">,</span> <span class="n">residuals</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">singular</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tensordot</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">sq_matrix_basis</span><span class="p">[</span><span class="n">is_upper_triang</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">res</span> <span class="o">+</span> <span class="n">res</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">tril</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">residuals</span><span class="p">),</span> <span class="p">(</span><span class="n">rank</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">x0</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="twiss_from_sigma"><a class="viewcode-back" href="../../../api/madgui.online.diagnostic.html#madgui.online.diagnostic.twiss_from_sigma">[docs]</a><span class="k">def</span> <span class="nf">twiss_from_sigma</span><span class="p">(</span><span class="n">sigma</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute 1D twiss parameters from 2x2 sigma matrix.&quot;&quot;&quot;</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">sigma</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">sigma</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># = sigma[1, 0] !</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">sigma</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">b</span><span class="o">*</span><span class="n">c</span> <span class="o">&lt;=</span> <span class="n">a</span><span class="o">*</span><span class="n">a</span><span class="p">:</span>
+        <span class="n">nan</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nan</span><span class="p">,</span> <span class="n">nan</span><span class="p">,</span> <span class="n">nan</span>
+    <span class="n">emit</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">b</span><span class="o">*</span><span class="n">c</span> <span class="o">-</span> <span class="n">a</span><span class="o">*</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">b</span><span class="o">/</span><span class="n">emit</span>
+    <span class="n">alfa</span> <span class="o">=</span> <span class="n">a</span><span class="o">/</span><span class="n">emit</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">emit</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">alfa</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

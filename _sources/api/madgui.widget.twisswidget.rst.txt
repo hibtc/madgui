@@ -1,0 +1,7 @@
+madgui.widget.twisswidget module
+================================
+
+.. automodule:: madgui.widget.twisswidget
+   :members:
+   :undoc-members:
+   :show-inheritance:

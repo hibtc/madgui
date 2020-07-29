@@ -1,0 +1,393 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.orm_measure &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.online.orm_measure</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.online.orm_measure</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Contains a widget for measuring orbit response matrix in an online</span>
+<span class="sd">environment.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;MeasureWidget&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">QSize</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QWidget</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.qt</span> <span class="kn">import</span> <span class="n">load_ui</span>
+<span class="kn">from</span> <span class="nn">madgui.widget.tableview</span> <span class="kn">import</span> <span class="n">TableItem</span><span class="p">,</span> <span class="n">delegates</span>
+
+<span class="kn">from</span> <span class="nn">madgui.online.procedure</span> <span class="kn">import</span> <span class="n">Corrector</span><span class="p">,</span> <span class="n">ProcBot</span>
+
+
+<div class="viewcode-block" id="MeasureWidget"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget">[docs]</a><span class="k">class</span> <span class="nc">MeasureWidget</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="n">ui_file</span> <span class="o">=</span> <span class="s1">&#39;orm_measure.ui&#39;</span>
+    <span class="n">extension</span> <span class="o">=</span> <span class="s1">&#39;.orm_measurement.yml&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">load_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__package__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span> <span class="o">=</span> <span class="n">Corrector</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">setup</span><span class="p">({</span>
+            <span class="s1">&#39;monitors&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bot</span> <span class="o">=</span> <span class="n">ProcBot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_controls</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_initial_values</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_signals</span><span class="p">()</span>
+
+<div class="viewcode-block" id="MeasureWidget.sizeHint"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.sizeHint">[docs]</a>    <span class="k">def</span> <span class="nf">sizeHint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">QSize</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.init_controls"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.init_controls">[docs]</a>    <span class="k">def</span> <span class="nf">init_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">set_viewmodel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_corrector_row</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">set_viewmodel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_monitor_row</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">window</span><span class="p">()</span><span class="o">.</span><span class="n">open_graph</span><span class="p">(</span><span class="s1">&#39;orbit&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.set_initial_values"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.set_initial_values">[docs]</a>    <span class="k">def</span> <span class="nf">set_initial_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_folder</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>    <span class="c1"># FIXME</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileEdit</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">{date}</span><span class="s2">_</span><span class="si">{time}</span><span class="s2">_</span><span class="si">{sequence}</span><span class="s2">_</span><span class="si">{monitor}</span><span class="s2">&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">extension</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_phi</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">rows</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">rows</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">all_monitors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_ui</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.connect_signals"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.connect_signals">[docs]</a>    <span class="k">def</span> <span class="nf">connect_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folderButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">change_output_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">startButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_bot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancelButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">cancel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">selectionModel</span><span class="p">()</span><span class="o">.</span><span class="n">selectionChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">monitor_selection_changed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filterEdit</span><span class="o">.</span><span class="n">textChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_knobs</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultSpinBox</span><span class="o">.</span><span class="n">valueChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">rows</span><span class="o">.</span><span class="n">touch</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.get_monitor_row"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.get_monitor_row">[docs]</a>    <span class="k">def</span> <span class="nf">get_monitor_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s2">&quot;Monitor&quot;</span><span class="p">,):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">m</span><span class="p">),</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.get_corrector_row"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.get_corrector_row">[docs]</a>    <span class="k">def</span> <span class="nf">get_corrector_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s2">&quot;Param&quot;</span><span class="p">,</span> <span class="s2">&quot;Δ [rad]&quot;</span><span class="p">):</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaultSpinBox</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="ow">or</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">d_phi</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">default</span><span class="p">),</span>
+                <span class="n">set_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">set_delta</span><span class="p">,</span>
+                <span class="n">delegate</span><span class="o">=</span><span class="n">delegates</span><span class="p">[</span><span class="nb">float</span><span class="p">]),</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.set_delta"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.set_delta">[docs]</a>    <span class="k">def</span> <span class="nf">set_delta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_phi</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.monitor_selection_changed"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.monitor_selection_changed">[docs]</a>    <span class="k">def</span> <span class="nf">monitor_selection_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selected</span><span class="p">,</span> <span class="n">deselected</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">setup</span><span class="p">({</span>
+            <span class="s1">&#39;monitors&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">all_monitors</span><span class="p">[</span><span class="n">idx</span><span class="o">.</span><span class="n">row</span><span class="p">()]</span>
+                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">selectedIndexes</span><span class="p">()</span>
+            <span class="p">],</span>
+        <span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_knobs</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_ui</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_update_knobs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_filter</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span>
+        <span class="n">last_mon</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">monitors</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">_knobs</span><span class="p">[</span><span class="n">knob</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+            <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">elements</span>
+            <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="n">last_mon</span>
+            <span class="k">for</span> <span class="n">knob</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_elem_knobs</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">knob</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">_knobs</span>
+            <span class="ow">and</span> <span class="n">match</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">knob</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_get_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filterEdit</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">ASCII</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="MeasureWidget.change_output_file"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.change_output_file">[docs]</a>    <span class="k">def</span> <span class="nf">change_output_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.filedialog</span> <span class="kn">import</span> <span class="n">getSaveFolderName</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="n">getSaveFolderName</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">(),</span> <span class="s1">&#39;Output folder&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">folder</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_folder</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.set_folder"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.set_folder">[docs]</a>    <span class="k">def</span> <span class="nf">set_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folderEdit</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">running</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">running</span>
+
+<div class="viewcode-block" id="MeasureWidget.closeEvent"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.closeEvent">[docs]</a>    <span class="k">def</span> <span class="nf">closeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">closeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.update_ui"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.update_ui">[docs]</a>    <span class="k">def</span> <span class="nf">update_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">running</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">rows</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_filter</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancelButton</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">running</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">startButton</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span> <span class="ow">and</span> <span class="n">valid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folderButton</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numIgnoredSpinBox</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numUsedSpinBox</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitorTable</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">running</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progressBar</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">running</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progressBar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">totalops</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progressBar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">progress</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.set_progress"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.set_progress">[docs]</a>    <span class="k">def</span> <span class="nf">set_progress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">progress</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progressBar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">progress</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.update_fit"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.update_fit">[docs]</a>    <span class="k">def</span> <span class="nf">update_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called when procedure finishes succesfully.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.start_bot"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.start_bot">[docs]</a>    <span class="k">def</span> <span class="nf">start_bot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">set_optics_delta</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaultSpinBox</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+
+        <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folderEdit</span><span class="o">.</span><span class="n">text</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fileEdit</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">date</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">now</span><span class="p">),</span>
+                <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%H-%M-%S&quot;</span><span class="p">,</span> <span class="n">now</span><span class="p">),</span>
+                <span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">seq_name</span><span class="p">,</span>
+                <span class="n">monitor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">monitors</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">open_export</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">start</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numIgnoredSpinBox</span><span class="o">.</span><span class="n">value</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numUsedSpinBox</span><span class="o">.</span><span class="n">value</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="MeasureWidget.log"><a class="viewcode-back" href="../../../api/madgui.online.orm_measure.html#madgui.online.orm_measure.MeasureWidget.log">[docs]</a>    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">formatted</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">formatted</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logEdit</span><span class="o">.</span><span class="n">appendPlainText</span><span class="p">(</span><span class="n">formatted</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

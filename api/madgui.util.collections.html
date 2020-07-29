@@ -1,0 +1,551 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.collections module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.util.enum module" href="madgui.util.enum.html" />
+    <link rel="prev" title="madgui.util package" href="madgui.util.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.util.html">madgui.util package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.util.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.util.html">madgui.util package</a> &raquo;</li>
+        
+      <li>madgui.util.collections module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.util.collections.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.util.collections">
+<span id="madgui-util-collections-module"></span><h1>madgui.util.collections module<a class="headerlink" href="#module-madgui.util.collections" title="Permalink to this headline">¶</a></h1>
+<p>Observable collection classes.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.Boxed" title="madgui.util.collections.Boxed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Boxed</span></code></a>(value)</p></td>
+<td><p>A box that holds a single object and can be observed for changes (assigning a different object).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.Bool" title="madgui.util.collections.Bool"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.List" title="madgui.util.collections.List"><code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code></a>([items])</p></td>
+<td><p>A list-like class that can be observed for changes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.Selection" title="madgui.util.collections.Selection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Selection</span></code></a>()</p></td>
+<td><p>Set of items with the additional notion of a cursor to the least recently <em>active</em> element.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.util.collections.Bool">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.collections.</code><code class="sig-name descname">Bool</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#Bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.Bool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.util.collections.Boxed" title="madgui.util.collections.Boxed"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.util.collections.Boxed</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.util.collections.Boxed">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.collections.</code><code class="sig-name descname">Boxed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#Boxed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.Boxed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A box that holds a single object and can be observed for changes
+(assigning a different object).</p>
+<p>Storing an object inside another one is the only way to pass around
+variable references in python (which doesn’t have native pointer or
+references variables otherwise and therefore only supports passing the
+objects themselves).</p>
+<p>This class also provides a signal that notifies about changes in value.</p>
+<p>This has some similarities to what is called a BehaviourSubject in RX.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.Boxed.changed" title="madgui.util.collections.Boxed.changed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">changed</span></code></a></p></td>
+<td><p>Signal&lt;[&lt;class ‘object’&gt;]&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.Boxed.changed2" title="madgui.util.collections.Boxed.changed2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">changed2</span></code></a></p></td>
+<td><p>Signal&lt;[&lt;class ‘object’&gt;, &lt;class ‘object’&gt;]&gt;</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.Boxed.changed_singleshot" title="madgui.util.collections.Boxed.changed_singleshot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">changed_singleshot</span></code></a>(callback)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.Boxed.set" title="madgui.util.collections.Boxed.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a>(value[, force])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.util.collections.Boxed.changed">
+<code class="sig-name descname">changed</code><a class="headerlink" href="#madgui.util.collections.Boxed.changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;[&lt;class ‘object’&gt;]&gt;</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.util.collections.Boxed.changed2">
+<code class="sig-name descname">changed2</code><a class="headerlink" href="#madgui.util.collections.Boxed.changed2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;[&lt;class ‘object’&gt;, &lt;class ‘object’&gt;]&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.Boxed.changed_singleshot">
+<code class="sig-name descname">changed_singleshot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">callback</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#Boxed.changed_singleshot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.Boxed.changed_singleshot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.Boxed.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">force</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#Boxed.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.Boxed.set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.util.collections.List">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.collections.</code><code class="sig-name descname">List</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">items</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#List"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.List" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A list-like class that can be observed for changes.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.List.append" title="madgui.util.collections.List.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code></a>(value)</p></td>
+<td><p>S.append(value) – append value to the end of the sequence</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.List.clear" title="madgui.util.collections.List.clear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.List.count" title="madgui.util.collections.List.count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">count</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.List.emit_changed_if" title="madgui.util.collections.List.emit_changed_if"><code class="xref py py-obj docutils literal notranslate"><span class="pre">emit_changed_if</span></code></a>(old, new)</p></td>
+<td><p>Decide when self.changed should be emitted upon assigning a new value into an existing index.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.List.extend" title="madgui.util.collections.List.extend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extend</span></code></a>(values)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.List.index" title="madgui.util.collections.List.index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">index</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.List.insert" title="madgui.util.collections.List.insert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">insert</span></code></a>(index, value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.List.pop" title="madgui.util.collections.List.pop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop</span></code></a>([index])</p></td>
+<td><p>Raise IndexError if list is empty or index is out of range.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.List.remove" title="madgui.util.collections.List.remove"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove</span></code></a>(value)</p></td>
+<td><p>S.remove(value) – remove first occurrence of value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.List.reverse" title="madgui.util.collections.List.reverse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reverse</span></code></a>()</p></td>
+<td><p>S.reverse() – reverse <em>IN PLACE</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.List.touch" title="madgui.util.collections.List.touch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">touch</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.List.update_notify" title="madgui.util.collections.List.update_notify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_notify</span></code></a>(slice, new_values)</p></td>
+<td><p>Emit update signals, only when .</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.List.changed" title="madgui.util.collections.List.changed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">changed</span></code></a></p></td>
+<td><p>Signal&lt;[&lt;class ‘int’&gt;, &lt;class ‘object’&gt;]&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.List.inserted" title="madgui.util.collections.List.inserted"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inserted</span></code></a></p></td>
+<td><p>Signal&lt;[&lt;class ‘int’&gt;, &lt;class ‘object’&gt;]&gt;</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.List.removed" title="madgui.util.collections.List.removed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">removed</span></code></a></p></td>
+<td><p>Signal&lt;[&lt;class ‘int’&gt;]&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.List.update_finished" title="madgui.util.collections.List.update_finished"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_finished</span></code></a></p></td>
+<td><p>Signal&lt;[&lt;class ‘object’&gt;, &lt;class ‘object’&gt;, &lt;class ‘object’&gt;]&gt;</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.List.update_started" title="madgui.util.collections.List.update_started"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_started</span></code></a></p></td>
+<td><p>Signal&lt;[&lt;class ‘object’&gt;, &lt;class ‘object’&gt;, &lt;class ‘object’&gt;]&gt;</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.util.collections.List.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.util.collections.List.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>S.append(value) – append value to the end of the sequence</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.util.collections.List.changed">
+<code class="sig-name descname">changed</code><a class="headerlink" href="#madgui.util.collections.List.changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;[&lt;class ‘int’&gt;, &lt;class ‘object’&gt;]&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#List.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.List.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.count">
+<code class="sig-name descname">count</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#List.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.List.count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.emit_changed_if">
+<code class="sig-name descname">emit_changed_if</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">old</span></em>, <em class="sig-param"><span class="n">new</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#List.emit_changed_if"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.List.emit_changed_if" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decide when self.changed should be emitted upon assigning a new
+value into an existing index. Can be overridden by the user to change
+our behaviour.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.extend">
+<code class="sig-name descname">extend</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">values</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#List.extend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.List.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.index">
+<code class="sig-name descname">index</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#List.index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.List.index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.insert">
+<code class="sig-name descname">insert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#List.insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.List.insert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.util.collections.List.inserted">
+<code class="sig-name descname">inserted</code><a class="headerlink" href="#madgui.util.collections.List.inserted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;[&lt;class ‘int’&gt;, &lt;class ‘object’&gt;]&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.pop">
+<code class="sig-name descname">pop</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">index</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; item – remove and return item at index (default last).<a class="headerlink" href="#madgui.util.collections.List.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raise IndexError if list is empty or index is out of range.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.util.collections.List.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>S.remove(value) – remove first occurrence of value.
+Raise ValueError if the value is not present.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.util.collections.List.removed">
+<code class="sig-name descname">removed</code><a class="headerlink" href="#madgui.util.collections.List.removed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;[&lt;class ‘int’&gt;]&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.reverse">
+<code class="sig-name descname">reverse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#madgui.util.collections.List.reverse" title="Permalink to this definition">¶</a></dt>
+<dd><p>S.reverse() – reverse <em>IN PLACE</em></p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.touch">
+<code class="sig-name descname">touch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#List.touch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.List.touch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.util.collections.List.update_finished">
+<code class="sig-name descname">update_finished</code><a class="headerlink" href="#madgui.util.collections.List.update_finished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;[&lt;class ‘object’&gt;, &lt;class ‘object’&gt;, &lt;class ‘object’&gt;]&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.List.update_notify">
+<code class="sig-name descname">update_notify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">slice</span></em>, <em class="sig-param"><span class="n">new_values</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#List.update_notify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.List.update_notify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Emit update signals, only when .</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.util.collections.List.update_started">
+<code class="sig-name descname">update_started</code><a class="headerlink" href="#madgui.util.collections.List.update_started" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;[&lt;class ‘object’&gt;, &lt;class ‘object’&gt;, &lt;class ‘object’&gt;]&gt;</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.util.collections.Selection">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.collections.</code><code class="sig-name descname">Selection</code><a class="reference internal" href="../_modules/madgui/util/collections.html#Selection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.Selection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.util.collections.List" title="madgui.util.collections.List"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.util.collections.List</span></code></a></p>
+<p>Set of items with the additional notion of a cursor to the least
+recently <em>active</em> element. Each item can occur only once in the set.</p>
+<p>Note that the inherited <code class="docutils literal notranslate"><span class="pre">List</span></code> methods and signals can be used to listen
+for selection changes, and to query or delete items. However, for
+<em>inserting</em> or <em>modifying</em> elements, only use the methods defined in the
+<code class="docutils literal notranslate"><span class="pre">Selection</span></code> class can be used to ensure that items stay unique.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.collections.Selection.add" title="madgui.util.collections.Selection.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add</span></code></a>(item[, replace])</p></td>
+<td><p>Add the item to the set if not already present.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.collections.Selection.cursor_item" title="madgui.util.collections.Selection.cursor_item"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cursor_item</span></code></a>()</p></td>
+<td><p>Return the currently active item.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.util.collections.Selection.add">
+<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">item</span></em>, <em class="sig-param"><span class="n">replace</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#Selection.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.Selection.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the item to the set if not already present. If <code class="docutils literal notranslate"><span class="pre">replace</span></code> is
+true, the currently active item will be replaced by the new item. In
+each case, set the active element to <code class="docutils literal notranslate"><span class="pre">item</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.collections.Selection.cursor_item">
+<code class="sig-name descname">cursor_item</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/collections.html#Selection.cursor_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.collections.Selection.cursor_item" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the currently active item.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.util.enum.html" class="btn btn-neutral float-right" title="madgui.util.enum module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.util.html" class="btn btn-neutral float-left" title="madgui.util package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

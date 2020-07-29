@@ -1,0 +1,429 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.plot.twissfigure &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.plot.twissfigure</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.plot.twissfigure</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities to create a plot of some TWISS parameter along the accelerator</span>
+<span class="sd">s-axis.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;plot_curve&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;plot_element_indicators&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;plot_element_indicator&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;plot_constraint&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;plot_selection_marker&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;plot_curves&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;draw_patch&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ax_label&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;indicator_params&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">SimpleNamespace</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.yaml</span> <span class="kn">import</span> <span class="n">load_resource</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.unit</span> <span class="kn">import</span> <span class="n">to_ui</span><span class="p">,</span> <span class="n">get_raw_label</span><span class="p">,</span> <span class="n">ui_units</span>
+<span class="kn">from</span> <span class="nn">madgui.plot.scene</span> <span class="kn">import</span> <span class="n">LineBundle</span><span class="p">,</span> <span class="n">plot_line</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.patheffects</span> <span class="k">as</span> <span class="nn">pe</span>
+<span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">mpl_colors</span>
+
+<span class="n">CONFIG</span> <span class="o">=</span> <span class="n">load_resource</span><span class="p">(</span><span class="n">__package__</span><span class="p">,</span> <span class="s1">&#39;twissfigure.yml&#39;</span><span class="p">)</span>
+<span class="n">ELEM_STYLES</span> <span class="o">=</span> <span class="n">CONFIG</span><span class="p">[</span><span class="s1">&#39;element_style&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="plot_curve"><a class="viewcode-back" href="../../../api/madgui.plot.twissfigure.html#madgui.plot.twissfigure.plot_curve">[docs]</a><span class="k">def</span> <span class="nf">plot_curve</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">x_name</span><span class="p">,</span> <span class="n">y_name</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot a TWISS parameter curve model into a 2D figure.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">get_xydata</span><span class="p">():</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">data</span><span class="p">()</span> <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">else</span> <span class="n">data</span>
+        <span class="n">xdata</span> <span class="o">=</span> <span class="n">_get_curve_data</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">x_name</span><span class="p">)</span>
+        <span class="n">ydata</span> <span class="o">=</span> <span class="n">_get_curve_data</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">y_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">xdata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ydata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(),</span> <span class="p">()</span>
+        <span class="k">return</span> <span class="n">xdata</span><span class="p">,</span> <span class="n">ydata</span>
+    <span class="k">return</span> <span class="n">plot_line</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">get_xydata</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">style</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_element_indicators"><a class="viewcode-back" href="../../../api/madgui.plot.twissfigure.html#madgui.plot.twissfigure.plot_element_indicators">[docs]</a><span class="k">def</span> <span class="nf">plot_element_indicators</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span> <span class="n">elem_styles</span><span class="o">=</span><span class="n">ELEM_STYLES</span><span class="p">,</span>
+                            <span class="n">default_style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">effects</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">defaults</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot element indicators, i.e. create lattice layout plot.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">LineBundle</span><span class="p">([</span>
+        <span class="n">plot_element_indicator</span><span class="p">(</span>
+            <span class="n">ax</span><span class="p">,</span> <span class="n">elem</span><span class="p">,</span> <span class="n">elem_styles</span><span class="p">,</span> <span class="n">default_style</span><span class="p">,</span> <span class="n">effects</span><span class="p">,</span> <span class="o">**</span><span class="n">defaults</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">elements</span>
+    <span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="draw_patch"><a class="viewcode-back" href="../../../api/madgui.plot.twissfigure.html#madgui.plot.twissfigure.draw_patch">[docs]</a><span class="k">def</span> <span class="nf">draw_patch</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
+    <span class="n">at</span> <span class="o">=</span> <span class="n">to_ui</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">patch_w</span> <span class="o">=</span> <span class="n">to_ui</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="n">at</span> <span class="o">+</span> <span class="n">patch_w</span><span class="p">,</span> <span class="o">**</span><span class="n">style</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="o">**</span><span class="n">style</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_element_indicator"><a class="viewcode-back" href="../../../api/madgui.plot.twissfigure.html#madgui.plot.twissfigure.plot_element_indicator">[docs]</a><span class="k">def</span> <span class="nf">plot_element_indicator</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">elem</span><span class="p">,</span> <span class="n">elem_styles</span><span class="o">=</span><span class="n">ELEM_STYLES</span><span class="p">,</span>
+                           <span class="n">default_style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">effects</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="o">**</span><span class="n">defaults</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the element type name used for properties like coloring.&quot;&quot;&quot;</span>
+    <span class="n">type_name</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">base_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">elem_styles</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">type_name</span><span class="p">,</span> <span class="n">default_style</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">LineBundle</span><span class="p">()</span>
+
+    <span class="n">axes_dirs</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">y_name</span><span class="p">}</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="s2">&quot;xy&quot;</span><span class="p">)</span>
+    <span class="c1"># sigmoid flavor with convenient output domain [-1,+1]:</span>
+    <span class="n">sigmoid</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">tanh</span>
+
+    <span class="n">style</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">defaults</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">style</span><span class="p">)</span>
+    <span class="n">styles</span> <span class="o">=</span> <span class="p">[(</span><span class="n">style</span><span class="p">,</span> <span class="n">elem</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">elem</span><span class="o">.</span><span class="n">length</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">type_name</span> <span class="o">==</span> <span class="s1">&#39;quadrupole&#39;</span><span class="p">:</span>
+        <span class="n">invert</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">y_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+        <span class="n">k1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">k1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>                   <span class="c1"># scale = 0.1/m²</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">k1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">invert</span><span class="p">)</span>
+        <span class="n">style</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span><span class="o">+</span><span class="n">scale</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">scale</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">scale</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">type_name</span> <span class="o">==</span> <span class="s1">&#39;sbend&#39;</span><span class="p">:</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">angle</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span>     <span class="c1"># scale = 1 degree</span>
+        <span class="n">ydis</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.15</span><span class="p">)</span>
+        <span class="n">style</span><span class="p">[</span><span class="s1">&#39;ymin&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">ydis</span>
+        <span class="n">style</span><span class="p">[</span><span class="s1">&#39;ymax&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">ydis</span>
+        <span class="c1"># MAD-X uses the condition k0=0 to check whether the attribute</span>
+        <span class="c1"># should be used (against my recommendations, and even though that</span>
+        <span class="c1"># means you can never have a kick that exactlycounteracts the</span>
+        <span class="c1"># bending angle):</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">k0</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="s1">&#39;hkicker&#39;</span> <span class="ow">in</span> <span class="n">elem_styles</span><span class="p">:</span>
+            <span class="n">style</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">elem_styles</span><span class="p">[</span><span class="s1">&#39;hkicker&#39;</span><span class="p">],</span>
+                         <span class="n">ymin</span><span class="o">=</span><span class="n">style</span><span class="p">[</span><span class="s1">&#39;ymin&#39;</span><span class="p">],</span> <span class="n">ymax</span><span class="o">=</span><span class="n">style</span><span class="p">[</span><span class="s1">&#39;ymax&#39;</span><span class="p">])</span>
+            <span class="n">styles</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">style</span><span class="p">,</span> <span class="n">elem</span><span class="o">.</span><span class="n">position</span><span class="o">+</span><span class="n">elem</span><span class="o">.</span><span class="n">length</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">type_name</span> <span class="o">=</span> <span class="s1">&#39;hkicker&#39;</span>
+
+    <span class="k">if</span> <span class="n">type_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;hkicker&#39;</span><span class="p">,</span> <span class="s1">&#39;vkicker&#39;</span><span class="p">):</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="s2">&quot;xy&quot;</span><span class="p">[</span><span class="n">type_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">)]</span>
+        <span class="n">kick</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">kick</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10000</span>         <span class="c1"># scale = 0.1 mrad</span>
+        <span class="n">ydis</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">kick</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span>
+        <span class="n">style</span><span class="p">[</span><span class="s1">&#39;ymin&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">ydis</span>
+        <span class="n">style</span><span class="p">[</span><span class="s1">&#39;ymax&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">ydis</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">axes_dirs</span><span class="p">:</span>
+            <span class="n">style</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.2</span>
+
+    <span class="n">effects</span> <span class="o">=</span> <span class="n">effects</span> <span class="ow">or</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">LineBundle</span><span class="p">([</span>
+        <span class="n">draw_patch</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">effects</span><span class="p">(</span><span class="n">style</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">style</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">styles</span>
+    <span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="indicator_params"><a class="viewcode-back" href="../../../api/madgui.plot.twissfigure.html#madgui.plot.twissfigure.indicator_params">[docs]</a><span class="k">def</span> <span class="nf">indicator_params</span><span class="p">(</span><span class="n">elem</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the parameters used by ``plot_element_indicator``. This is</span>
+<span class="sd">    useful for caching a reduced set of parameters that is faster to compare</span>
+<span class="sd">    for changes.&quot;&quot;&quot;</span>
+    <span class="n">base_name</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">base_name</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
+        <span class="n">position</span><span class="o">=</span><span class="n">elem</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+        <span class="n">length</span><span class="o">=</span><span class="n">elem</span><span class="o">.</span><span class="n">length</span><span class="p">,</span>
+        <span class="n">base_name</span><span class="o">=</span><span class="n">elem</span><span class="o">.</span><span class="n">base_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">base_name</span> <span class="o">==</span> <span class="s1">&#39;sbend&#39;</span><span class="p">:</span>
+        <span class="n">ns</span><span class="o">.</span><span class="n">angle</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">angle</span>
+        <span class="n">ns</span><span class="o">.</span><span class="n">k0</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">k0</span>
+        <span class="n">ns</span><span class="o">.</span><span class="n">kick</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">kick</span>
+    <span class="k">elif</span> <span class="n">base_name</span> <span class="o">==</span> <span class="s1">&#39;quadrupole&#39;</span><span class="p">:</span>
+        <span class="n">ns</span><span class="o">.</span><span class="n">k1</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">k1</span>
+    <span class="k">elif</span> <span class="n">base_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;kicker&#39;</span><span class="p">):</span>
+        <span class="n">ns</span><span class="o">.</span><span class="n">kick</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">kick</span>
+    <span class="k">return</span> <span class="n">ns</span></div>
+
+
+<div class="viewcode-block" id="plot_constraint"><a class="viewcode-back" href="../../../api/madgui.plot.twissfigure.html#madgui.plot.twissfigure.plot_constraint">[docs]</a><span class="k">def</span> <span class="nf">plot_constraint</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">constraint</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Draw one constraint representation in the graph.&quot;&quot;&quot;</span>
+    <span class="n">elem</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">constraint</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;constraint_style&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">LineBundle</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">to_ui</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="p">),</span>
+        <span class="n">to_ui</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">val</span><span class="p">),</span>
+        <span class="o">**</span><span class="n">style</span><span class="p">)</span> <span class="k">if</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">y_name</span> <span class="k">else</span> <span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="plot_selection_marker"><a class="viewcode-back" href="../../../api/madgui.plot.twissfigure.html#madgui.plot.twissfigure.plot_selection_marker">[docs]</a><span class="k">def</span> <span class="nf">plot_selection_marker</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">el_idx</span><span class="p">,</span> <span class="n">elem_styles</span><span class="o">=</span><span class="n">ELEM_STYLES</span><span class="p">,</span>
+                          <span class="n">highlight</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;In-figure markers for active/selected elements.&quot;&quot;&quot;</span>
+    <span class="n">elem</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">el_idx</span><span class="p">]</span>
+    <span class="n">drift_color</span> <span class="o">=</span> <span class="s1">&#39;#ffffff&#39;</span> <span class="k">if</span> <span class="n">highlight</span> <span class="k">else</span> <span class="s1">&#39;#eeeeee&#39;</span>
+    <span class="n">default</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ymin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">drift_color</span><span class="p">)</span>
+    <span class="n">effects</span> <span class="o">=</span> <span class="n">_hover_effects</span> <span class="k">if</span> <span class="n">highlight</span> <span class="k">else</span> <span class="n">_selection_effects</span>
+    <span class="k">return</span> <span class="n">plot_element_indicator</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">elem</span><span class="p">,</span> <span class="n">elem_styles</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">effects</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_selection_effects</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">mpl_colors</span><span class="o">.</span><span class="n">colorConverter</span><span class="o">.</span><span class="n">to_rgb</span><span class="p">(</span><span class="n">style</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">])</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">mpl_colors</span><span class="o">.</span><span class="n">rgb_to_hsv</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span> <span class="o">+</span> <span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">style</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">mpl_colors</span><span class="o">.</span><span class="n">hsv_to_rgb</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">)),</span>
+        <span class="n">path_effects</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">pe</span><span class="o">.</span><span class="n">withStroke</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s1">&#39;#000000&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_hover_effects</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">mpl_colors</span><span class="o">.</span><span class="n">colorConverter</span><span class="o">.</span><span class="n">to_rgb</span><span class="p">(</span><span class="n">style</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">])</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">mpl_colors</span><span class="o">.</span><span class="n">rgb_to_hsv</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span> <span class="o">+</span> <span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1.5</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1.025</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">style</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">mpl_colors</span><span class="o">.</span><span class="n">hsv_to_rgb</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">)),</span>
+        <span class="n">path_effects</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">pe</span><span class="o">.</span><span class="n">withStroke</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s1">&#39;#000000&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">plot_twiss_curve</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">x_name</span><span class="p">,</span> <span class="n">y_name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">with_outline</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">ax_label</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ui_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">y_name</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">plot_curves</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="p">[(</span><span class="n">x_name</span><span class="p">,</span> <span class="n">y_name</span><span class="p">)])</span>
+
+
+<span class="k">def</span> <span class="nf">plot_user_curve</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">x_names</span><span class="p">,</span> <span class="n">y_names</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">CONFIG</span><span class="p">[</span><span class="n">style</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">style</span>
+    <span class="k">return</span> <span class="n">plot_curves</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x_names</span><span class="p">,</span> <span class="n">y_names</span><span class="p">)))</span>
+
+
+<div class="viewcode-block" id="plot_curves"><a class="viewcode-back" href="../../../api/madgui.plot.twissfigure.html#madgui.plot.twissfigure.plot_curves">[docs]</a><span class="k">def</span> <span class="nf">plot_curves</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">names</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">LineBundle</span><span class="p">([</span>
+        <span class="n">plot_curve</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">x_name</span><span class="p">,</span> <span class="n">y_name</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x_name</span><span class="p">,</span> <span class="n">y_name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">x_name</span><span class="p">,</span> <span class="n">ax</span><span class="o">.</span><span class="n">y_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x_name</span><span class="p">,</span> <span class="n">y_name</span><span class="p">)</span> <span class="ow">in</span> <span class="n">names</span>
+    <span class="p">])</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_curve_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">to_ui</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Missing curve data </span><span class="si">{!r}</span><span class="s2">, we only know: </span><span class="si">{}</span><span class="s2">&quot;</span>
+                      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">)))</span>
+
+
+<div class="viewcode-block" id="ax_label"><a class="viewcode-back" href="../../../api/madgui.plot.twissfigure.html#madgui.plot.twissfigure.ax_label">[docs]</a><span class="k">def</span> <span class="nf">ax_label</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">label</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> [</span><span class="si">{}</span><span class="s2">]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">get_raw_label</span><span class="p">(</span><span class="n">unit</span><span class="p">))</span></div>
+
+
+<span class="k">def</span> <span class="nf">with_outline</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">path_effects</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">pe</span><span class="o">.</span><span class="n">withStroke</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="n">foreground</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">),</span>
+    <span class="p">])</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

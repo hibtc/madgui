@@ -1,0 +1,7 @@
+madgui.survey.shapes module
+===========================
+
+.. automodule:: madgui.survey.shapes
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,316 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.yaml &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.util.yaml</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.util.yaml</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for loading and writing YAML_ documents. We currently use YAML for</span>
+<span class="sd">config files, session data and various data exports.</span>
+
+<span class="sd">The functions here are merely thin wrappers on top of the PyYAML API. They</span>
+<span class="sd">mainly add these features:</span>
+
+<span class="sd">- the ``load`` functions are order preserving, i.e. they return dicts that when</span>
+<span class="sd">  iterated yield elements in the same order as written in the YAML document</span>
+<span class="sd">- the ``save`` family of functions handle serialization of :class:`OrderedDict`</span>
+<span class="sd">  and several numpy number types that would otherwise raise an error.</span>
+<span class="sd">- :func:`load_file` and :func:`save_file` allow to directly provide a filename</span>
+<span class="sd">  rather than having to pass a stream.</span>
+<span class="sd">- the :func:`save_file` function ensures that an existing file at the same</span>
+<span class="sd">  location will only be overwritten if the data can be serialized without</span>
+<span class="sd">  error.</span>
+<span class="sd">- :func:`save_file` creates directories as needed</span>
+
+<span class="sd">.. _YAML: https://en.wikipedia.org/wiki/YAML</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Let&#39;s not define bare `load`, `safe` for now:</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;load_file&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;safe_load&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;safe_dump&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;YAMLError&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ParserError&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ScannerError&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">from</span> <span class="nn">importlib_resources</span> <span class="kn">import</span> <span class="n">read_binary</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+
+
+<span class="c1"># For speed:</span>
+<span class="n">SafeLoader</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">yaml</span><span class="p">,</span> <span class="s1">&#39;CSafeLoader&#39;</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">SafeLoader</span><span class="p">)</span>
+<span class="n">SafeDumper</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">yaml</span><span class="p">,</span> <span class="s1">&#39;CSafeDumper&#39;</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">SafeDumper</span><span class="p">)</span>
+
+<span class="n">YAMLError</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">YAMLError</span>
+<span class="n">ParserError</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">ParserError</span>
+<span class="n">ScannerError</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">scanner</span><span class="o">.</span><span class="n">ScannerError</span>
+
+
+<div class="viewcode-block" id="load_file"><a class="viewcode-back" href="../../../api/madgui.util.yaml.html#madgui.util.yaml.load_file">[docs]</a><span class="k">def</span> <span class="nf">load_file</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load yaml document from filename.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">save_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write yaml document to file. This creates parent folders where necessary.</span>
+<span class="sd">    Note that this function deliberately serializes the data *before* opening</span>
+<span class="sd">    the file. This prevents accidentally truncating a useful file or leaving</span>
+<span class="sd">    the output in an inconsistent state if an error occurs during</span>
+<span class="sd">    serialization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;default_flow_style&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># Always serialize data to string first, before opening the file! If the</span>
+    <span class="c1"># serialization raises an exception, we will at least not accidentally</span>
+    <span class="c1"># have truncated an existing file!</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">safe_dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">load_resource</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">resource</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load yaml document from package resource.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">safe_load</span><span class="p">(</span><span class="n">read_binary</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">resource</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="safe_load"><a class="viewcode-back" href="../../../api/madgui.util.yaml.html#madgui.util.yaml.safe_load">[docs]</a><span class="k">def</span> <span class="nf">safe_load</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">SafeLoader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load YAML document from stream, returns dictionaries in the</span>
+<span class="sd">    written order within the YAML document.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">Loader</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="safe_dump"><a class="viewcode-back" href="../../../api/madgui.util.yaml.html#madgui.util.yaml.safe_dump">[docs]</a><span class="k">def</span> <span class="nf">safe_dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Dumper</span><span class="o">=</span><span class="n">SafeDumper</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Saves YAML document to stream (or returns as string). This function</span>
+<span class="sd">    takes care to correctly serialize ``OrderedDict``, as well as several</span>
+<span class="sd">    numpy number types, which would otherwise lead to errors.</span>
+
+<span class="sd">    Note that it is easy to accidentally have some of these types in your data</span>
+<span class="sd">    if not taking extreme care. For example, if you retrieve an array element</span>
+<span class="sd">    fron numpy using ``array[i]``, you will not get a python float or int, but</span>
+<span class="sd">    a numpy specific datatype.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">class</span> <span class="nc">OrderedDumper</span><span class="p">(</span><span class="n">Dumper</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_dict_representer</span><span class="p">(</span><span class="n">dumper</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">dumper</span><span class="o">.</span><span class="n">represent_mapping</span><span class="p">(</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">resolver</span><span class="o">.</span><span class="n">BaseResolver</span><span class="o">.</span><span class="n">DEFAULT_MAPPING_TAG</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="n">OrderedDumper</span><span class="o">.</span><span class="n">add_representer</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="n">_dict_representer</span><span class="p">)</span>
+    <span class="n">OrderedDumper</span><span class="o">.</span><span class="n">add_representer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="n">Dumper</span><span class="o">.</span><span class="n">represent_bool</span><span class="p">)</span>
+    <span class="n">OrderedDumper</span><span class="o">.</span><span class="n">add_representer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">Dumper</span><span class="o">.</span><span class="n">represent_int</span><span class="p">)</span>
+    <span class="n">OrderedDumper</span><span class="o">.</span><span class="n">add_representer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">Dumper</span><span class="o">.</span><span class="n">represent_int</span><span class="p">)</span>
+    <span class="n">OrderedDumper</span><span class="o">.</span><span class="n">add_representer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">Dumper</span><span class="o">.</span><span class="n">represent_float</span><span class="p">)</span>
+    <span class="n">OrderedDumper</span><span class="o">.</span><span class="n">add_representer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">Dumper</span><span class="o">.</span><span class="n">represent_float</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">OrderedDumper</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

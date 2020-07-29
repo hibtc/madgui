@@ -1,0 +1,7 @@
+madgui.widget.correct.mor\_dialog module
+========================================
+
+.. automodule:: madgui.widget.correct.mor_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:

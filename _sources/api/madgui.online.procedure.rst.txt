@@ -1,0 +1,7 @@
+madgui.online.procedure module
+==============================
+
+.. automodule:: madgui.online.procedure
+   :members:
+   :undoc-members:
+   :show-inheritance:

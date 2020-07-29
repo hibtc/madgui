@@ -1,0 +1,462 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.floor_plan module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.log module" href="madgui.widget.log.html" />
+    <link rel="prev" title="madgui.widget.filedialog module" href="madgui.widget.filedialog.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.floor_plan module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.floor_plan.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.floor_plan">
+<span id="madgui-widget-floor-plan-module"></span><h1>madgui.widget.floor_plan module<a class="headerlink" href="#module-madgui.widget.floor_plan" title="Permalink to this headline">¶</a></h1>
+<p>Components to draw a 2D floor plan of a given MAD-X lattice.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.FloorCoords" title="madgui.widget.floor_plan.FloorCoords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FloorCoords</span></code></a>(x, y, z, theta, phi, psi)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.FloorPlanWidget" title="madgui.widget.floor_plan.FloorPlanWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FloorPlanWidget</span></code></a>(session)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan" title="madgui.widget.floor_plan.LatticeFloorPlan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LatticeFloorPlan</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Graphics widget to draw 2D floor plan of given lattice.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.floor_plan.FloorCoords">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.floor_plan.</code><code class="sig-name descname">FloorCoords</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">z</span></em>, <em class="sig-param"><span class="n">theta</span></em>, <em class="sig-param"><span class="n">phi</span></em>, <em class="sig-param"><span class="n">psi</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.widget.floor_plan.FloorCoords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.FloorCoords.phi" title="madgui.widget.floor_plan.FloorCoords.phi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phi</span></code></a></p></td>
+<td><p>Alias for field number 4</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.FloorCoords.psi" title="madgui.widget.floor_plan.FloorCoords.psi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">psi</span></code></a></p></td>
+<td><p>Alias for field number 5</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.FloorCoords.theta" title="madgui.widget.floor_plan.FloorCoords.theta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">theta</span></code></a></p></td>
+<td><p>Alias for field number 3</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.FloorCoords.x" title="madgui.widget.floor_plan.FloorCoords.x"><code class="xref py py-obj docutils literal notranslate"><span class="pre">x</span></code></a></p></td>
+<td><p>Alias for field number 0</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.FloorCoords.y" title="madgui.widget.floor_plan.FloorCoords.y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">y</span></code></a></p></td>
+<td><p>Alias for field number 1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.FloorCoords.z" title="madgui.widget.floor_plan.FloorCoords.z"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z</span></code></a></p></td>
+<td><p>Alias for field number 2</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.FloorCoords.phi">
+<em class="property">property </em><code class="sig-name descname">phi</code><a class="headerlink" href="#madgui.widget.floor_plan.FloorCoords.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.FloorCoords.psi">
+<em class="property">property </em><code class="sig-name descname">psi</code><a class="headerlink" href="#madgui.widget.floor_plan.FloorCoords.psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.FloorCoords.theta">
+<em class="property">property </em><code class="sig-name descname">theta</code><a class="headerlink" href="#madgui.widget.floor_plan.FloorCoords.theta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.FloorCoords.x">
+<em class="property">property </em><code class="sig-name descname">x</code><a class="headerlink" href="#madgui.widget.floor_plan.FloorCoords.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.FloorCoords.y">
+<em class="property">property </em><code class="sig-name descname">y</code><a class="headerlink" href="#madgui.widget.floor_plan.FloorCoords.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.FloorCoords.z">
+<em class="property">property </em><code class="sig-name descname">z</code><a class="headerlink" href="#madgui.widget.floor_plan.FloorCoords.z" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.floor_plan.FloorPlanWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.floor_plan.</code><code class="sig-name descname">FloorPlanWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#FloorPlanWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.FloorPlanWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.floor_plan.</code><code class="sig-name descname">LatticeFloorPlan</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QGraphicsView</span></code></p>
+<p>Graphics widget to draw 2D floor plan of given lattice.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.mapRectToScene" title="madgui.widget.floor_plan.LatticeFloorPlan.mapRectToScene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mapRectToScene</span></code></a>(rect)</p></td>
+<td><p>Map topleft/botright rect from viewport to scene coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.mouseMoveEvent" title="madgui.widget.floor_plan.LatticeFloorPlan.mouseMoveEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouseMoveEvent</span></code></a>(self, QMouseEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.mousePressEvent" title="madgui.widget.floor_plan.LatticeFloorPlan.mousePressEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mousePressEvent</span></code></a>(self, QMouseEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.resizeEvent" title="madgui.widget.floor_plan.LatticeFloorPlan.resizeEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resizeEvent</span></code></a>(event)</p></td>
+<td><p>Maintain visible region on resize.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.setElements" title="madgui.widget.floor_plan.LatticeFloorPlan.setElements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setElements</span></code></a>(elements, survey, selection)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.setProjection" title="madgui.widget.floor_plan.LatticeFloorPlan.setProjection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setProjection</span></code></a>(theta, phi[, psi])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.setViewRect" title="madgui.widget.floor_plan.LatticeFloorPlan.setViewRect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setViewRect</span></code></a>(rect)</p></td>
+<td><p>Fit the given scene rectangle into the visible view.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.set_model" title="madgui.widget.floor_plan.LatticeFloorPlan.set_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_model</span></code></a>(model)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.set_session" title="madgui.widget.floor_plan.LatticeFloorPlan.set_session"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_session</span></code></a>(session)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.wheelEvent" title="madgui.widget.floor_plan.LatticeFloorPlan.wheelEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wheelEvent</span></code></a>(event)</p></td>
+<td><p>Handle mouse wheel as zoom.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.floor_plan.LatticeFloorPlan.zoom" title="madgui.widget.floor_plan.LatticeFloorPlan.zoom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zoom</span></code></a>(scale)</p></td>
+<td><p>Scale the figure uniformly along both axes.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.mapRectToScene">
+<code class="sig-name descname">mapRectToScene</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rect</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.mapRectToScene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.mapRectToScene" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map topleft/botright rect from viewport to scene coordinates.</p>
+<p>This assumes there is no rotation/shearing.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.model">
+<code class="sig-name descname">model</code><em class="property"> = None</em><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.mouseMoveEvent">
+<code class="sig-name descname">mouseMoveEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QMouseEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.mouseMoveEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.mouseMoveEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.mousePressEvent">
+<code class="sig-name descname">mousePressEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QMouseEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.mousePressEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.mousePressEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.replay">
+<code class="sig-name descname">replay</code><em class="property"> = None</em><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.replay" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.resizeEvent">
+<code class="sig-name descname">resizeEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.resizeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.resizeEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maintain visible region on resize.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.session">
+<code class="sig-name descname">session</code><em class="property"> = None</em><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.setElements">
+<code class="sig-name descname">setElements</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elements</span></em>, <em class="sig-param"><span class="n">survey</span></em>, <em class="sig-param"><span class="n">selection</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.setElements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.setElements" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.setProjection">
+<code class="sig-name descname">setProjection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">theta</span></em>, <em class="sig-param"><span class="n">phi</span></em>, <em class="sig-param"><span class="n">psi</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.setProjection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.setProjection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.setViewRect">
+<code class="sig-name descname">setViewRect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rect</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.setViewRect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.setViewRect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the given scene rectangle into the visible view.</p>
+<p>This assumes there is no rotation/shearing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.set_model">
+<code class="sig-name descname">set_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.set_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.set_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.set_session">
+<code class="sig-name descname">set_session</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.set_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.set_session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.wheelEvent">
+<code class="sig-name descname">wheelEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.wheelEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.wheelEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle mouse wheel as zoom.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.floor_plan.LatticeFloorPlan.zoom">
+<code class="sig-name descname">zoom</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scale</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/floor_plan.html#LatticeFloorPlan.zoom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.floor_plan.LatticeFloorPlan.zoom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scale the figure uniformly along both axes.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.log.html" class="btn btn-neutral float-right" title="madgui.widget.log module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.filedialog.html" class="btn btn-neutral float-left" title="madgui.widget.filedialog module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

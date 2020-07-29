@@ -1,0 +1,570 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.log module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.mainwindow module" href="madgui.widget.mainwindow.html" />
+    <link rel="prev" title="madgui.widget.floor_plan module" href="madgui.widget.floor_plan.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.log module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.log.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.log">
+<span id="madgui-widget-log-module"></span><h1>madgui.widget.log module<a class="headerlink" href="#module-madgui.widget.log" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the parts involved in redirecting all logging events to a
+window.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogRecord" title="madgui.widget.log.LogRecord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LogRecord</span></code></a>(time, domain, text)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.RecordInfoBar" title="madgui.widget.log.RecordInfoBar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordInfoBar</span></code></a>(edit[, time_format, show_time])</p></td>
+<td><p>Widget that shows log domain and time next to the log widget text.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LogWindow</span></code></a>(*args)</p></td>
+<td><p>Simple log window based on QPlainTextEdit using ExtraSelection to</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.RecordHandler" title="madgui.widget.log.RecordHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordHandler</span></code></a>(log_window)</p></td>
+<td><p>Handler class that is needed for forwarding <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">logging</span></code></a> log events to <a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogWindow</span></code></a>.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.log.LogRecord">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.log.</code><code class="sig-name descname">LogRecord</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.widget.log.LogRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogRecord.domain" title="madgui.widget.log.LogRecord.domain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">domain</span></code></a></p></td>
+<td><p>Alias for field number 1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.LogRecord.text" title="madgui.widget.log.LogRecord.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<td><p>Alias for field number 2</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogRecord.time" title="madgui.widget.log.LogRecord.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time</span></code></a></p></td>
+<td><p>Alias for field number 0</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.log.LogRecord.domain">
+<em class="property">property </em><code class="sig-name descname">domain</code><a class="headerlink" href="#madgui.widget.log.LogRecord.domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogRecord.text">
+<em class="property">property </em><code class="sig-name descname">text</code><a class="headerlink" href="#madgui.widget.log.LogRecord.text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogRecord.time">
+<em class="property">property </em><code class="sig-name descname">time</code><a class="headerlink" href="#madgui.widget.log.LogRecord.time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.log.LogWindow">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.log.</code><code class="sig-name descname">LogWindow</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QFrame</span></code></p>
+<p>Simple log window based on QPlainTextEdit using ExtraSelection to
+highlight input/output sections with different backgrounds, see:
+<a class="reference external" href="http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html">http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html</a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.append" title="madgui.widget.log.LogWindow.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code></a>(record)</p></td>
+<td><p>Add a <a class="reference internal" href="#madgui.widget.log.LogRecord" title="madgui.widget.log.LogRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogRecord</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.append_from_binary_stream" title="madgui.widget.log.LogWindow.append_from_binary_stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append_from_binary_stream</span></code></a>(domain, text[, …])</p></td>
+<td><p>Append a log record from a binary utf-8 text stream.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.enable" title="madgui.widget.log.LogWindow.enable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enable</span></code></a>(domain, enable)</p></td>
+<td><p>Turn on/off log records with the given domain.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.enable_logging" title="madgui.widget.log.LogWindow.enable_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enable_logging</span></code></a>(enable)</p></td>
+<td><p>Turn on/off display of <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">logging</span></code></a> log events.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.enabled" title="madgui.widget.log.LogWindow.enabled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enabled</span></code></a>(domain)</p></td>
+<td><p>Return if the given domain is configured to be displayed.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.excepthook" title="madgui.widget.log.LogWindow.excepthook"><code class="xref py py-obj docutils literal notranslate"><span class="pre">excepthook</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Exception handler that prints exceptions and appends a log record instead of exiting.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.has_entries" title="madgui.widget.log.LogWindow.has_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_entries</span></code></a>(domain)</p></td>
+<td><p>Return if any log records with the given domain have been emitted.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.highlight" title="madgui.widget.log.LogWindow.highlight"><code class="xref py py-obj docutils literal notranslate"><span class="pre">highlight</span></code></a>(domain, color)</p></td>
+<td><p>Configure log records with the given <em>domain</em> to be colorized in the given color.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.rebuild_log" title="madgui.widget.log.LogWindow.rebuild_log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rebuild_log</span></code></a>()</p></td>
+<td><p>Clear and reinsert all configured log records into the text control.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.set_loglevel" title="madgui.widget.log.LogWindow.set_loglevel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_loglevel</span></code></a>(loglevel)</p></td>
+<td><p>Set minimum log level of displayed log events.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.setup_logging" title="madgui.widget.log.LogWindow.setup_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_logging</span></code></a>(level, fmt)</p></td>
+<td><p>Redirect exceptions and <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">logging</span></code></a> to this widget.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.LogWindow.maxlen" title="madgui.widget.log.LogWindow.maxlen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maxlen</span></code></a></p></td>
+<td><p>Maximum number of displayed log records.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">record</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a <a class="reference internal" href="#madgui.widget.log.LogRecord" title="madgui.widget.log.LogRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogRecord</span></code></a>. This can be called by users!</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.append_from_binary_stream">
+<code class="sig-name descname">append_from_binary_stream</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">text</span></em>, <em class="sig-param"><span class="n">encoding</span><span class="o">=</span><span class="default_value">'utf-8'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.append_from_binary_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.append_from_binary_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append a log record from a binary utf-8 text stream.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.enable">
+<code class="sig-name descname">enable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">domain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></span></em>, <em class="sig-param"><span class="n">enable</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.enable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn on/off log records with the given domain.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.enable_logging">
+<code class="sig-name descname">enable_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">enable</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.enable_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.enable_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn on/off display of <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">logging</span></code></a> log events.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.enabled">
+<code class="sig-name descname">enabled</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">domain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.enabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.enabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if the given domain is configured to be displayed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.excepthook">
+<code class="sig-name descname">excepthook</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.excepthook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.excepthook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception handler that prints exceptions and appends a log record
+instead of exiting.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.has_entries">
+<code class="sig-name descname">has_entries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">domain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.has_entries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.has_entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if any log records with the given domain have been
+emitted.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.highlight">
+<code class="sig-name descname">highlight</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">domain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></span></em>, <em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n">PyQt5.QtGui.QColor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.highlight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.highlight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure log records with the given <em>domain</em> to be colorized in
+the given color.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.maxlen">
+<em class="property">property </em><code class="sig-name descname">maxlen</code><a class="headerlink" href="#madgui.widget.log.LogWindow.maxlen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum number of displayed log records. Default is <code class="docutils literal notranslate"><span class="pre">0</span></code> which
+means infinite.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.rebuild_log">
+<code class="sig-name descname">rebuild_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.rebuild_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.rebuild_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear and reinsert all configured log records into the text
+control.</p>
+<p>This is used internally if the configuration has changed such that
+previously invisible log entries become visible or vice versa.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.set_loglevel">
+<code class="sig-name descname">set_loglevel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loglevel</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.set_loglevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.set_loglevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set minimum log level of displayed log events.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.LogWindow.setup_logging">
+<code class="sig-name descname">setup_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">level</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></span> <span class="o">=</span> <span class="default_value">'INFO'</span></em>, <em class="sig-param"><span class="n">fmt</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></span> <span class="o">=</span> <span class="default_value">'%(message)s'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#LogWindow.setup_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.LogWindow.setup_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redirect exceptions and <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">logging</span></code></a> to this widget.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.log.RecordHandler">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.log.</code><code class="sig-name descname">RecordHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_window</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow">madgui.widget.log.LogWindow</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#RecordHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.RecordHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Handler" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Handler</span></code></a></p>
+<p>Handler class that is needed for forwarding <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">logging</span></code></a> log events
+to <a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogWindow</span></code></a>.</p>
+<p>This class is instanciated by <a class="reference internal" href="#madgui.widget.log.LogWindow.setup_logging" title="madgui.widget.log.LogWindow.setup_logging"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LogWindow.setup_logging()</span></code></a> and there
+should be no need to instanciate it anywhere else.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.RecordHandler.emit" title="madgui.widget.log.RecordHandler.emit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">emit</span></code></a>(record)</p></td>
+<td><p>Override <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Handler.emit" title="(in Python v3.8)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">logging.Handler.emit()</span></code></a> to append to <a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogWindow</span></code></a>.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.log.RecordHandler.emit">
+<code class="sig-name descname">emit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">record</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#RecordHandler.emit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.RecordHandler.emit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Handler.emit" title="(in Python v3.8)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">logging.Handler.emit()</span></code></a> to append to
+<a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogWindow</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.log.RecordInfoBar">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.log.</code><code class="sig-name descname">RecordInfoBar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">edit</span></em>, <em class="sig-param"><span class="n">time_format</span><span class="o">=</span><span class="default_value">'%H:%M:%S'</span></em>, <em class="sig-param"><span class="n">show_time</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#RecordInfoBar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.RecordInfoBar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="madgui.widget.edit.html#madgui.widget.edit.LineNumberBar" title="madgui.widget.edit.LineNumberBar"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.edit.LineNumberBar</span></code></a></p>
+<p>Widget that shows log domain and time next to the log widget text.</p>
+<p>This class is taylored toward the behaviour of <a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogWindow</span></code></a> and
+should not be instanciated from elsewhere.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.RecordInfoBar.add_record" title="madgui.widget.log.RecordInfoBar.add_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_record</span></code></a>(record)</p></td>
+<td><p>Called by <a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogWindow</span></code></a> when it adds a visible record.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.RecordInfoBar.calc_width" title="madgui.widget.log.RecordInfoBar.calc_width"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_width</span></code></a>(count)</p></td>
+<td><p>Calculate the required widget width in pixels.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.RecordInfoBar.clear" title="madgui.widget.log.RecordInfoBar.clear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code></a>()</p></td>
+<td><p>Called by <a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogWindow</span></code></a> before rebuilding the list of displayed records.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.RecordInfoBar.draw_block" title="madgui.widget.log.RecordInfoBar.draw_block"><code class="xref py py-obj docutils literal notranslate"><span class="pre">draw_block</span></code></a>(painter, rect, block, first)</p></td>
+<td><p>Draw the info corresponding to a given block (text line) of the text document.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.log.RecordInfoBar.enable_timestamps" title="madgui.widget.log.RecordInfoBar.enable_timestamps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enable_timestamps</span></code></a>(enable)</p></td>
+<td><p>Turn on display of times, recalculate geometry, and redraw.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.log.RecordInfoBar.set_timeformat" title="madgui.widget.log.RecordInfoBar.set_timeformat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_timeformat</span></code></a>(format)</p></td>
+<td><p>Set a time display format for use with <a class="reference external" href="https://docs.python.org/3/library/time.html#time.strftime" title="(in Python v3.8)"><code class="xref py py-func docutils literal notranslate"><span class="pre">time.strftime()</span></code></a>, recalculate geometry, and redraw.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.log.RecordInfoBar.add_record">
+<code class="sig-name descname">add_record</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">record</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#madgui.widget.log.LogRecord" title="madgui.widget.log.LogRecord">madgui.widget.log.LogRecord</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#RecordInfoBar.add_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.RecordInfoBar.add_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogWindow</span></code></a> when it adds a visible record.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.RecordInfoBar.calc_width">
+<code class="sig-name descname">calc_width</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">count</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a></span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a><a class="reference internal" href="../_modules/madgui/widget/log.html#RecordInfoBar.calc_width"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.RecordInfoBar.calc_width" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the required widget width in pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>count</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – ignored here</p>
+</dd>
+</dl>
+<p>This overrides <code class="xref py py-class docutils literal notranslate"><span class="pre">LineNumberBar.calc_width</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.RecordInfoBar.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#RecordInfoBar.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.RecordInfoBar.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#madgui.widget.log.LogWindow" title="madgui.widget.log.LogWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogWindow</span></code></a> before rebuilding the list of
+displayed records.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.RecordInfoBar.draw_block">
+<code class="sig-name descname">draw_block</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">painter</span></em>, <em class="sig-param"><span class="n">rect</span></em>, <em class="sig-param"><span class="n">block</span></em>, <em class="sig-param"><span class="n">first</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#RecordInfoBar.draw_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.RecordInfoBar.draw_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw the info corresponding to a given block (text line) of the text
+document.</p>
+<p>This overrides <code class="xref py py-class docutils literal notranslate"><span class="pre">LineNumberBar.draw_block</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>painter</strong> (<em>QPainter</em>) – painter for the current widget</p></li>
+<li><p><strong>rect</strong> (<em>QRect</em>) – clipping rect for the text to be drawn</p></li>
+<li><p><strong>block</strong> (<em>QTextBlock</em>) – associated text block in the text edit</p></li>
+<li><p><strong>first</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – indicates the topmost visible block on screen</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.RecordInfoBar.enable_timestamps">
+<code class="sig-name descname">enable_timestamps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">enable</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#RecordInfoBar.enable_timestamps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.RecordInfoBar.enable_timestamps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn on display of times, recalculate geometry, and redraw.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.log.RecordInfoBar.set_timeformat">
+<code class="sig-name descname">set_timeformat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">format</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/log.html#RecordInfoBar.set_timeformat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.log.RecordInfoBar.set_timeformat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a time display format for use with <a class="reference external" href="https://docs.python.org/3/library/time.html#time.strftime" title="(in Python v3.8)"><code class="xref py py-func docutils literal notranslate"><span class="pre">time.strftime()</span></code></a>,
+recalculate geometry, and redraw.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.mainwindow.html" class="btn btn-neutral float-right" title="madgui.widget.mainwindow module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.floor_plan.html" class="btn btn-neutral float-left" title="madgui.widget.floor_plan module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

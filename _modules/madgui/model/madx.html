@@ -1,0 +1,1268 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.model.madx &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.model.madx</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.model.madx</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">MAD-X backend for madgui.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Model&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;reverse_sequence&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;reverse_sequence_inplace&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TwissTable&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;_guess_main_sequence&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;_get_seq_model&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;_get_twiss&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">reduce</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">bisect</span> <span class="kn">import</span> <span class="n">bisect_right</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">suppress</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">cpymad.madx</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Madx</span><span class="p">,</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">ArrayAttribute</span><span class="p">,</span> <span class="n">Command</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">ExpandedElementList</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">cpymad.util</span> <span class="kn">import</span> <span class="n">normalize_range_name</span>
+<span class="kn">from</span> <span class="nn">cpymad.types</span> <span class="kn">import</span> <span class="n">VAR_TYPE_DIRECT</span><span class="p">,</span> <span class="n">VAR_TYPE_DEFERRED</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.undo</span> <span class="kn">import</span> <span class="n">UndoCommand</span>
+<span class="kn">from</span> <span class="nn">madgui.util</span> <span class="kn">import</span> <span class="n">yaml</span>
+<span class="kn">from</span> <span class="nn">madgui.util.export</span> <span class="kn">import</span> <span class="n">read_str_file</span><span class="p">,</span> <span class="n">import_params</span>
+<span class="kn">from</span> <span class="nn">madgui.util.misc</span> <span class="kn">import</span> <span class="n">memoize</span><span class="p">,</span> <span class="n">invalidate</span>
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Contains the whole global state of a MAD-X instance and (possibly) loaded</span>
+<span class="sd">    metadata.</span>
+
+<span class="sd">    :ivar Madx madx: CPyMAD interpreter</span>
+<span class="sd">    :ivar dict Model.data: loaded model data</span>
+<span class="sd">    :ivar str path: base folder</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">updated</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">madx</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">undo_stack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">interpolate</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span> <span class="o">=</span> <span class="n">madx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">filename</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undo_stack</span> <span class="o">=</span> <span class="n">undo_stack</span>
+        <span class="k">if</span> <span class="n">undo_stack</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">undo_stack</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_segment</span><span class="p">(</span>
+            <span class="n">sequence</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;sequence&#39;</span><span class="p">],</span>
+            <span class="nb">range</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">],</span>
+            <span class="n">beam</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;beam&#39;</span><span class="p">],</span>
+            <span class="n">twiss_args</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;twiss&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interpolate</span> <span class="o">=</span> <span class="n">interpolate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Model.invalidate"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.invalidate">[docs]</a>    <span class="k">def</span> <span class="nf">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Invalidate twiss and sectormap computations. Initiate</span>
+<span class="sd">        recomputation.&quot;&quot;&quot;</span>
+        <span class="n">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;twiss&#39;</span><span class="p">)</span>
+        <span class="n">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;sector&#39;</span><span class="p">)</span>
+        <span class="n">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;survey&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Model.load_file"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.load_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">madx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                  <span class="n">undo_stack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interpolate</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">madx_kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load model from .madx or .yml file and pass additional arguments</span>
+<span class="sd">        to the Model constructor.&quot;&quot;&quot;</span>
+        <span class="n">madx</span> <span class="o">=</span> <span class="n">madx</span> <span class="ow">or</span> <span class="n">Madx</span><span class="p">(</span><span class="o">**</span><span class="n">madx_kwargs</span><span class="p">)</span>
+        <span class="n">madx</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">path</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;.yml&#39;</span><span class="p">,</span> <span class="s1">&#39;.yaml&#39;</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;path&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">))</span>
+            <span class="n">_load_params</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;beam&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="n">_load_params</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;twiss&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;init-files&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">_call</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_call</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="n">seqname</span> <span class="o">=</span> <span class="n">_guess_main_sequence</span><span class="p">(</span><span class="n">madx</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">_get_seq_model</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">seqname</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;init-files&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">filename</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">madx</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span>
+            <span class="n">undo_stack</span><span class="o">=</span><span class="n">undo_stack</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+            <span class="n">interpolate</span><span class="o">=</span><span class="n">interpolate</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Model.destroy"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.destroy">[docs]</a>    <span class="k">def</span> <span class="nf">destroy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Annihilate current model. Stop interpreter.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">_libmadx</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+            <span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">_service</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">_process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">twiss_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the dictionary of parameters for the MAD-X TWISS command.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twiss_args</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">beam</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the beam parameter dictionary.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_beam</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">globals</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return dict-like global variables.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">globals</span>
+
+<div class="viewcode-block" id="Model.get_element_by_position"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.get_element_by_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_element_by_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find optics element by longitudinal position.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">i0</span> <span class="o">=</span> <span class="n">bisect_right</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">i0</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">i0</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Model.el_pos"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.el_pos">[docs]</a>    <span class="k">def</span> <span class="nf">el_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Position for matching / output.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">el</span><span class="o">.</span><span class="n">position</span> <span class="o">+</span> <span class="n">el</span><span class="o">.</span><span class="n">length</span></div>
+
+    <span class="n">continuous_matching</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Model.adjust_match_pos"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.adjust_match_pos">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_match_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuous_matching</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">el_pos</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="n">at</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">length</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">&lt;=</span> <span class="n">at</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">at</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">&gt;=</span> <span class="n">at</span><span class="o">+</span><span class="n">l</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">at</span><span class="o">+</span><span class="n">l</span>
+        <span class="k">return</span> <span class="n">pos</span></div>
+
+<div class="viewcode-block" id="Model.get_best_match_pos"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.get_best_match_pos">[docs]</a>    <span class="k">def</span> <span class="nf">get_best_match_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find optics element by longitudinal position.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">([</span>
+            <span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjust_match_pos</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">pos</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">can_match_at</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">pos</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Model.can_match_at"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.can_match_at">[docs]</a>    <span class="k">def</span> <span class="nf">can_match_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Model.set_element_attribute"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.set_element_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">set_element_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_element</span><span class="p">({</span><span class="n">attr</span><span class="p">:</span> <span class="n">value</span><span class="p">},</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">elem</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div>
+
+    <span class="c1"># curves</span>
+
+    <span class="n">ELEM_KNOBS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;sbend&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="s1">&#39;angle&#39;</span><span class="p">,</span> <span class="s1">&#39;k0&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;quadrupole&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;k1&#39;</span><span class="p">,</span> <span class="s1">&#39;k1s&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;hkicker&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s1">&#39;kick&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;vkicker&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s1">&#39;kick&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;kicker&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="s1">&#39;hkick&#39;</span><span class="p">,</span> <span class="s1">&#39;vkick&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;solenoid&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s1">&#39;ks&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;multipole&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;knl&#39;</span><span class="p">,</span> <span class="s1">&#39;ksl&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;srotation&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;angle&#39;</span><span class="p">],</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="Model.get_elem_knobs"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.get_elem_knobs">[docs]</a>    <span class="k">def</span> <span class="nf">get_elem_knobs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">knob</span>
+            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ELEM_KNOBS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">base_name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="p">())</span>
+            <span class="k">if</span> <span class="n">_is_property_defined</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">knob</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_knobs</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="Model.get_knobs"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.get_knobs">[docs]</a>    <span class="k">def</span> <span class="nf">get_knobs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get list of knobs.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">knob</span>
+            <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span>
+            <span class="k">for</span> <span class="n">knob</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_elem_knobs</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+        <span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">libmadx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Access to the low level cpymad API.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">_libmadx</span>
+
+<div class="viewcode-block" id="Model.call"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.call">[docs]</a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">globals</span><span class="o">.</span><span class="n">defs</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">_call</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">undo_stack</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">new</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Have to clear the stack because general MAD-X commands are not</span>
+                <span class="c1"># necessarily reversible (sequence definition, makethin, loading</span>
+                <span class="c1"># tables, etc)!</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">undo_stack</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;CALL </span><span class="si">{!r}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_globals</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Model.load_strengths"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.load_strengths">[docs]</a>    <span class="k">def</span> <span class="nf">load_strengths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">import_params</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data_key</span><span class="o">=</span><span class="s1">&#39;globals&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Parser error in </span><span class="si">{!r}</span><span class="s2">:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_globals</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+    <span class="c1"># Serialization</span>
+
+    <span class="c1"># TODO: save reproducible state of workspace?</span>
+<div class="viewcode-block" id="Model.save"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save model to file.&quot;&quot;&quot;</span>
+        <span class="n">yaml</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_data</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Model.model_data"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.model_data">[docs]</a>    <span class="k">def</span> <span class="nf">model_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return model data as dictionary.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span>
+            <span class="s1">&#39;sequence&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_name</span><span class="p">,</span>
+            <span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">range</span><span class="p">),</span>
+            <span class="s1">&#39;beam&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">beam</span><span class="p">,</span>
+            <span class="s1">&#39;twiss&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">twiss_args</span><span class="p">,</span>
+        <span class="p">})</span></div>
+
+    <span class="k">def</span> <span class="nf">_init_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="n">beam</span><span class="p">,</span> <span class="n">twiss_args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param str sequence:</span>
+<span class="sd">        :param tuple range:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">sequence</span><span class="p">[</span><span class="n">sequence</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuous_matching</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_beam</span> <span class="o">=</span> <span class="n">beam</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">beam</span><span class="p">,</span> <span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seq_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_twiss_args</span> <span class="o">=</span> <span class="n">twiss_args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">beam</span><span class="p">(</span><span class="o">**</span><span class="n">beam</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="o">.</span><span class="n">use</span><span class="p">()</span>
+
+        <span class="c1"># Use `expanded_elements` rather than `elements` to have a one-to-one</span>
+        <span class="c1"># correspondence with the data points of TWISS/SURVEY:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">elems</span> <span class="o">=</span> <span class="n">ElementList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">positions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="o">.</span><span class="n">expanded_element_positions</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_range</span><span class="p">(</span><span class="nb">range</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="p">(</span><span class="n">normalize_range_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">elems</span><span class="p">),</span>
+                      <span class="n">normalize_range_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">elems</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Model.parse_range"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.parse_range">[docs]</a>    <span class="k">def</span> <span class="nf">parse_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">range</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert a range str/tuple to a tuple of :class:`Element`.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">range</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="nb">range</span> <span class="o">=</span> <span class="nb">range</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">start_name</span><span class="p">,</span> <span class="n">stop_name</span> <span class="o">=</span> <span class="nb">range</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">start_name</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">stop_name</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Model.export_globals"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.export_globals">[docs]</a>    <span class="k">def</span> <span class="nf">export_globals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_type</span><span class="o">=</span><span class="n">VAR_TYPE_DIRECT</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">globals</span><span class="o">.</span><span class="n">cmdpar</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">inform</span> <span class="ow">and</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">var_type</span> <span class="o">==</span> <span class="n">var_type</span> <span class="ow">or</span> <span class="n">var_type</span> <span class="o">==</span> <span class="nb">any</span><span class="p">)</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="Model.export_beam"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.export_beam">[docs]</a>    <span class="k">def</span> <span class="nf">export_beam</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.export_twiss"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.export_twiss">[docs]</a>    <span class="k">def</span> <span class="nf">export_twiss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">twiss_args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.fetch_beam"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.fetch_beam">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_beam</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.params</span> <span class="kn">import</span> <span class="n">ParamInfo</span>
+        <span class="n">beam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beam</span>
+        <span class="n">pars</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ParamInfo</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span> <span class="n">v</span><span class="p">,</span>
+                      <span class="n">inform</span><span class="o">=</span><span class="n">k</span> <span class="ow">in</span> <span class="n">beam</span><span class="p">,</span>
+                      <span class="n">mutable</span><span class="o">=</span><span class="n">k</span> <span class="o">!=</span> <span class="s1">&#39;sequence&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="o">.</span><span class="n">beam</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="n">ekin</span> <span class="o">=</span> <span class="p">(</span><span class="n">beam</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">beam</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">beam</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;energy&#39;</span><span class="p">)</span>
+        <span class="n">pars</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;E_kin&#39;</span><span class="p">,</span> <span class="n">ekin</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pars</span></div>
+
+<div class="viewcode-block" id="Model.fetch_twiss"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.fetch_twiss">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_twiss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.params</span> <span class="kn">import</span> <span class="n">ParamInfo</span>
+        <span class="n">blacklist</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sequence&#39;</span><span class="p">,</span> <span class="s1">&#39;line&#39;</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">,</span> <span class="s1">&#39;notable&#39;</span><span class="p">)</span>
+        <span class="n">twiss_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twiss_args</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">ParamInfo</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span> <span class="n">twiss_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span>
+                      <span class="n">inform</span><span class="o">=</span><span class="n">k</span> <span class="ow">in</span> <span class="n">twiss_args</span><span class="p">,</span>
+                      <span class="n">mutable</span><span class="o">=</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blacklist</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">twiss</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="n">write</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">items</span><span class="p">(</span><span class="n">old</span><span class="p">)}</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">items</span><span class="p">(</span><span class="n">new</span><span class="p">)}</span>
+        <span class="c1"># NOTE: This trims not only expressions (as intended) but also regular</span>
+        <span class="c1"># string arguments (which is incorrect). However, this should be a</span>
+        <span class="c1"># sufficiently rare use case, so we don&#39;t care for now…</span>
+        <span class="n">_new</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">items</span><span class="p">(</span><span class="n">new</span><span class="p">)</span> <span class="k">if</span> <span class="n">trim</span><span class="p">(</span><span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="o">!=</span> <span class="n">trim</span><span class="p">(</span><span class="n">v</span><span class="p">)}</span>
+        <span class="n">_old</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">items</span><span class="p">(</span><span class="n">old</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_new</span><span class="p">}</span>
+        <span class="n">_old</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_new</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-</span> <span class="n">_old</span><span class="o">.</span><span class="n">keys</span><span class="p">()})</span>
+        <span class="k">if</span> <span class="n">_new</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_exec</span><span class="p">(</span><span class="n">UndoCommand</span><span class="p">(</span>
+                <span class="n">new</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">write</span><span class="p">,</span> <span class="n">text</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_new</span><span class="p">))))</span>
+
+    <span class="k">def</span> <span class="nf">_exec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">undo_stack</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">undo_stack</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">redo</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">action</span>
+
+<div class="viewcode-block" id="Model.update_globals"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.update_globals">[docs]</a>    <span class="k">def</span> <span class="nf">update_globals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">globals</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Change knobs: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">globals</span><span class="o">.</span><span class="n">defs</span><span class="p">,</span> <span class="nb">globals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_globals</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.update_beam"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.update_beam">[docs]</a>    <span class="k">def</span> <span class="nf">update_beam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">beam</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Change beam: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">beam</span><span class="p">,</span> <span class="n">beam</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_beam</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.update_twiss_args"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.update_twiss_args">[docs]</a>    <span class="k">def</span> <span class="nf">update_twiss_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">twiss</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Change twiss args: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">twiss_args</span><span class="p">,</span> <span class="n">twiss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_twiss_args</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.update_element"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.update_element">[docs]</a>    <span class="k">def</span> <span class="nf">update_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">elem_index</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">elem_index</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">defs</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span>
+            <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_element</span><span class="p">,</span> <span class="n">elem_index</span><span class="o">=</span><span class="n">elem_index</span><span class="p">),</span>
+            <span class="n">text</span> <span class="ow">or</span> <span class="s2">&quot;Change element </span><span class="si">{}</span><span class="s2">: {{}}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="nf">_update_globals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">globals</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">batch</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">globals</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">elif</span> <span class="n">v</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">globals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">globals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="c1"># TODO: invalidate only elements that depend updated variables?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_update_beam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">beam</span><span class="p">):</span>
+        <span class="n">new_beam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beam</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">new_beam</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="n">k</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">beam</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">if</span> <span class="s1">&#39;e_kin&#39;</span> <span class="ow">in</span> <span class="n">beam</span><span class="p">:</span>
+            <span class="nb">eval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">eval</span>
+            <span class="n">ekin</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">new_beam</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;e_kin&#39;</span><span class="p">))</span>
+            <span class="n">mass</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">new_beam</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mass&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">new_beam</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ekin</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">mass</span>
+        <span class="n">new_beam</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;e_kin&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">new_beam</span><span class="p">[</span><span class="s1">&#39;sequence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_beam</span> <span class="o">=</span> <span class="n">new_beam</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">beam</span><span class="p">(</span><span class="o">**</span><span class="n">new_beam</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_update_twiss_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">twiss</span><span class="p">):</span>
+        <span class="n">new_twiss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twiss_args</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">new_twiss</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="n">k</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">twiss</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_twiss_args</span> <span class="o">=</span> <span class="n">new_twiss</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_update_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">elem_index</span><span class="p">):</span>
+        <span class="c1"># TODO: this crashes for many parameters</span>
+        <span class="c1"># - update only changed values</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">elem_index</span><span class="p">]</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">node_name</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+             <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">elem</span><span class="o">.</span><span class="n">cmdpar</span><span class="p">}</span>
+        <span class="k">if</span> <span class="s1">&#39;kick&#39;</span> <span class="ow">in</span> <span class="n">d</span> <span class="ow">and</span> <span class="n">elem</span><span class="o">.</span><span class="n">base_name</span> <span class="o">==</span> <span class="s1">&#39;sbend&#39;</span><span class="p">:</span>
+            <span class="c1"># FIXME: This assumes the definition `k0:=(angle+k0)/l` and</span>
+            <span class="c1"># will deliver incorrect results if this is not the case!</span>
+            <span class="n">var</span><span class="p">,</span> <span class="o">=</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_knobs</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;k0&#39;</span><span class="p">))</span> <span class="o">-</span>
+                    <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_knobs</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;angle&#39;</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">globals</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;kick&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="o">**</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Model.get_twiss"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.get_twiss">[docs]</a>    <span class="k">def</span> <span class="nf">get_twiss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return beam envelope at element.&quot;&quot;&quot;</span>
+        <span class="n">ix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+
+        <span class="n">twiss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twiss</span><span class="p">()</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">twiss</span><span class="o">.</span><span class="n">s</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">twiss</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span>
+
+        <span class="c1"># shortcut for thin elements:</span>
+        <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span><span class="o">.</span><span class="n">length</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span>
+
+        <span class="n">lo</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">start</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">x</span><span class="o">.</span><span class="n">start</span>
+        <span class="n">hi</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">stop</span><span class="o">+</span><span class="mi">1</span>
+
+        <span class="n">i0</span> <span class="o">=</span> <span class="n">bisect_right</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span>
+        <span class="n">i1</span> <span class="o">=</span> <span class="n">i0</span><span class="o">+</span><span class="mi">1</span>
+
+        <span class="c1"># never look outside the interpolation domain:</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">&lt;=</span> <span class="n">s</span><span class="p">[</span><span class="n">i0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="n">i0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">&gt;=</span> <span class="n">s</span><span class="p">[</span><span class="n">i1</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span>
+
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">-</span> <span class="n">s</span><span class="p">[</span><span class="n">i0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="n">i0</span><span class="p">]</span> <span class="o">+</span> <span class="n">dx</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">[</span><span class="n">i0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span><span class="o">-</span><span class="n">s</span><span class="p">[</span><span class="n">i0</span><span class="p">])</span></div>
+
+    <span class="n">twiss_columns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;alfx&#39;</span><span class="p">,</span> <span class="s1">&#39;alfy&#39;</span><span class="p">,</span> <span class="s1">&#39;betx&#39;</span><span class="p">,</span> <span class="s1">&#39;bety&#39;</span><span class="p">,</span> <span class="s1">&#39;gamx&#39;</span><span class="p">,</span> <span class="s1">&#39;gamy&#39;</span><span class="p">,</span> <span class="s1">&#39;ex&#39;</span><span class="p">,</span> <span class="s1">&#39;ey&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;px&#39;</span><span class="p">,</span> <span class="s1">&#39;py&#39;</span><span class="p">,</span> <span class="s1">&#39;envx&#39;</span><span class="p">,</span> <span class="s1">&#39;envy&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+<div class="viewcode-block" id="Model.get_elem_twiss"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.get_elem_twiss">[docs]</a>    <span class="k">def</span> <span class="nf">get_elem_twiss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem</span><span class="p">):</span>
+        <span class="n">tw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twiss</span><span class="p">()</span>
+        <span class="n">ix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+        <span class="n">i0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span>
+        <span class="k">return</span> <span class="n">AttrDict</span><span class="p">({</span><span class="n">col</span><span class="p">:</span> <span class="n">tw</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="n">i0</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">twiss_columns</span><span class="p">})</span></div>
+
+<div class="viewcode-block" id="Model.get_elem_sigma"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.get_elem_sigma">[docs]</a>    <span class="k">def</span> <span class="nf">get_elem_sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem</span><span class="p">):</span>
+        <span class="n">ix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+        <span class="n">i0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span>
+        <span class="n">tw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twiss</span><span class="p">()</span><span class="o">.</span><span class="n">row</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">tw</span><span class="p">[</span><span class="s1">&#39;sig</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="Model.contains"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.contains">[docs]</a>    <span class="k">def</span> <span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;=</span> <span class="n">element</span><span class="o">.</span><span class="n">index</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">element</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_twiss_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">twiss_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;sequence&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">range</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">twiss_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">twiss_args</span><span class="p">)</span>
+        <span class="n">twiss_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">twiss_args</span>
+
+<div class="viewcode-block" id="Model.sectormap"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.sectormap">[docs]</a>    <span class="k">def</span> <span class="nf">sectormap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_from</span><span class="p">,</span> <span class="n">elem_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return SECTORMAP|KICKS in the closed range [from,to] as 7x7 matrix.</span>
+
+<span class="sd">        If only one parameter is given, return its transfer map.</span>
+
+<span class="sd">        Elements can be specified by name or index.</span>
+
+<span class="sd">        For a description of the ``interval`` parameter, see</span>
+<span class="sd">        :meth:`~Model.get_transfer_maps`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">elem_to</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">elem_to</span> <span class="o">=</span> <span class="n">elem_from</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">interval</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transfer_maps</span><span class="p">([</span><span class="n">elem_from</span><span class="p">,</span> <span class="n">elem_to</span><span class="p">],</span> <span class="n">interval</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Model.get_transfer_maps"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.get_transfer_maps">[docs]</a>    <span class="k">def</span> <span class="nf">get_transfer_maps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elems</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the transfer matrices R(i,j) between the given elements.</span>
+
+<span class="sd">        The ``interval`` parameter can be used to select open/closedness of</span>
+<span class="sd">        the individual intervals between the elements by adding offsets to the</span>
+<span class="sd">        first and second element in every interval, counted from the entry</span>
+<span class="sd">        end of the element.</span>
+
+<span class="sd">        For example, by setting the ``interval`` parameter, the call</span>
+<span class="sd">        ``get_transfer_maps([e0, e1, e2], interval)`` will retrieve the</span>
+<span class="sd">        transfer maps in the following intervals:</span>
+
+<span class="sd">        - ``interval=(0, 0)``  retrieves ``[e0, e1)`` and ``[e1, e2)``</span>
+<span class="sd">        - ``interval=(0, 1)``  retrieves ``[e0, e1]`` and ``[e1, e2]``</span>
+<span class="sd">        - ``interval=(1, 0)``  retrieves ``(e0, e1)`` and ``(e1, e2)``</span>
+<span class="sd">        - ``interval=(1, 1)``  retrieves ``(e0, e1]`` and ``(e1, e2]``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sector</span><span class="p">()</span>
+        <span class="n">maps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">sectortable</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elems</span><span class="p">]</span>
+        <span class="n">x0</span><span class="p">,</span> <span class="n">x1</span> <span class="o">=</span> <span class="n">interval</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">),</span>
+                   <span class="n">maps</span><span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="n">x0</span><span class="p">):</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="n">x1</span><span class="p">)],</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">7</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="p">]</span></div>
+
+    <span class="c1"># TODO: default values for knobs/monitors</span>
+    <span class="c1"># TODO: pass entire optic (knob + delta)</span>
+<div class="viewcode-block" id="Model.get_orbit_response_matrix"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.get_orbit_response_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">get_orbit_response_matrix</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">monitors</span><span class="p">,</span> <span class="n">knobs</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="p">(),</span> <span class="n">values</span><span class="o">=</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the orbit response matrix Δx/Δφ numerically (by varying knobs)</span>
+<span class="sd">        and return as `M×2×K` matrix (monitors × x|y × knobs).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">apply_errors</span><span class="p">,</span> <span class="n">Param</span>
+        <span class="n">madx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span>
+        <span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="s1">&#39;interpolate&#39;</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># applying errors here is a temporary measure until we figure out a</span>
+        <span class="c1"># better way to take into account combined error effects (e.g.</span>
+        <span class="c1"># relative error on top of absolute error):</span>
+        <span class="k">with</span> <span class="n">apply_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+            <span class="n">tw0</span> <span class="o">=</span> <span class="n">madx</span><span class="o">.</span><span class="n">twiss</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_twiss_args</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="s1">&#39;orm_tmp&#39;</span><span class="p">))</span>
+        <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span> <span class="o">=</span> <span class="n">tw0</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">tw0</span><span class="o">.</span><span class="n">y</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">monitors</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">get_knob_response</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Return `2×M` matrix with responses for specified variable.&quot;&quot;&quot;</span>
+            <span class="k">with</span> <span class="n">apply_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">[</span><span class="n">Param</span><span class="p">(</span><span class="n">var</span><span class="p">)],</span> <span class="p">[</span><span class="n">step</span><span class="p">]):</span>
+                <span class="k">with</span> <span class="n">apply_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+                    <span class="n">tw1</span> <span class="o">=</span> <span class="n">madx</span><span class="o">.</span><span class="n">twiss</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_twiss_args</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="s1">&#39;orm_tmp&#39;</span><span class="p">))</span>
+            <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">tw1</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">tw1</span><span class="o">.</span><span class="n">y</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span>
+                <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)[</span><span class="n">idx</span><span class="p">],</span>
+                <span class="p">(</span><span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)[</span><span class="n">idx</span><span class="p">],</span>
+            <span class="p">))</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">step</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dstack</span><span class="p">([</span>
+            <span class="n">get_knob_response</span><span class="p">(</span><span class="n">knob</span><span class="p">,</span> <span class="mf">2e-4</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">knob</span> <span class="ow">in</span> <span class="n">knobs</span>
+        <span class="p">])</span></div>
+
+<div class="viewcode-block" id="Model.survey"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.survey">[docs]</a>    <span class="nd">@memoize</span>
+    <span class="k">def</span> <span class="nf">survey</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Recalculate survey coordinates.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">survey</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Model.ex"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.ex">[docs]</a>    <span class="k">def</span> <span class="nf">ex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">ex</span></div>
+
+<div class="viewcode-block" id="Model.ey"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.ey">[docs]</a>    <span class="k">def</span> <span class="nf">ey</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">ey</span></div>
+
+<div class="viewcode-block" id="Model.twiss"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.twiss">[docs]</a>    <span class="nd">@memoize</span>
+    <span class="k">def</span> <span class="nf">twiss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Recalculate TWISS parameters.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="s1">&#39;interpolate&#39;</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate</span><span class="p">:</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolate</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="s1">&#39;interpolate&#39;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">twiss</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_twiss_args</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">TwissTable</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">results</span><span class="o">.</span><span class="n">_libmadx</span><span class="p">,</span> <span class="n">_check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summary</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">summary</span>
+
+        <span class="c1"># FIXME: this will fail if subsequent element have the same name.</span>
+        <span class="c1"># Safer alternatives:</span>
+        <span class="c1"># - do another twiss call without interpolate</span>
+        <span class="c1"># - change the behaviour of MAD-X&#39; interpolate option itself to make</span>
+        <span class="c1">#   it clear in the table which rows are &#39;interpolated&#39;</span>
+        <span class="c1"># - change MAD-X interpolate option to produce 2 tables</span>
+        <span class="c1"># - extract information via cpymad (table now has &#39;node&#39; attribute)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">slice</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">groups</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)]</span>
+        <span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="Model.sector"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.sector">[docs]</a>    <span class="nd">@memoize</span>
+    <span class="k">def</span> <span class="nf">sector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute sectormaps of all elements.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Ideally, we should compute sectormaps and twiss during the</span>
+        <span class="c1"># same MAD-X TWISS command. But, since we don&#39;t need interpolated</span>
+        <span class="c1"># sectormaps, this will require patching MAD-X first…</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="s1">&#39;interpolate&#39;</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># NOTE: we have to pass a different twiss table because madgui</span>
+        <span class="c1"># currently fetches twiss columns only demand. Therefore, using the</span>
+        <span class="c1"># same twiss table for both TWISS/SECTORMAP routines would lead to</span>
+        <span class="c1"># inconsistent table lengths (interpolate vs no-interpolate!).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">sectormap</span><span class="p">((),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_twiss_args</span><span class="p">(</span>
+            <span class="n">table</span><span class="o">=</span><span class="s1">&#39;sectortwiss&#39;</span><span class="p">,</span> <span class="n">sectortable</span><span class="o">=</span><span class="s1">&#39;sectortable&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="s1">&#39;sectortable&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Model.track_one"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.track_one">[docs]</a>    <span class="k">def</span> <span class="nf">track_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">px</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">py</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s1">&#39;#s/#e&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Track a particle through the sequence. Handles backward tracking (sort</span>
+<span class="sd">        of) by specifying a negative range.</span>
+
+<span class="sd">        Currently uses TWISS for tracking internally (to allow tracking</span>
+<span class="sd">        through thick sequences). This might change.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">elems</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="nb">range</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">range</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">range</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">normalize_range_name</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="n">normalize_range_name</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;betx&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;bety&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">elems</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">elems</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">start</span><span class="p">):</span>
+            <span class="c1"># TODO: we should use a separate madx process with inplace</span>
+            <span class="c1"># reversed sequence for backtracking in the future, this will</span>
+            <span class="c1"># simplify all the complications with element names etc.</span>
+            <span class="n">flip</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;#s&#39;</span><span class="p">:</span> <span class="s1">&#39;#e&#39;</span><span class="p">,</span> <span class="s1">&#39;#e&#39;</span><span class="p">:</span> <span class="s1">&#39;#s&#39;</span><span class="p">}</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">flip</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="s1">&#39;_reversed&#39;</span><span class="p">)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">flip</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">end</span> <span class="o">+</span> <span class="s1">&#39;_reversed&#39;</span><span class="p">)</span>
+            <span class="n">tw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backtrack</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=-</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">px</span><span class="o">=</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="o">=-</span><span class="n">py</span><span class="p">,</span>
+                <span class="nb">range</span><span class="o">=</span><span class="n">start</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">end</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">AttrDict</span><span class="p">({</span>
+                <span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="n">tw</span><span class="o">.</span><span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">tw</span><span class="o">.</span><span class="n">s</span><span class="p">,</span>
+                <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="o">-</span><span class="n">tw</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;px&#39;</span><span class="p">:</span> <span class="n">tw</span><span class="o">.</span><span class="n">px</span><span class="p">,</span>
+                <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">tw</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;py&#39;</span><span class="p">:</span> <span class="o">-</span><span class="n">tw</span><span class="o">.</span><span class="n">py</span><span class="p">,</span>
+            <span class="p">})</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">twiss</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">px</span><span class="o">=</span><span class="n">px</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">py</span><span class="o">=</span><span class="n">py</span><span class="p">,</span>
+            <span class="nb">range</span><span class="o">=</span><span class="nb">range</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="n">backseq</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Model.backtrack"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.backtrack">[docs]</a>    <span class="k">def</span> <span class="nf">backtrack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">twiss_init</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Backtrack final orbit through the reversed sequence.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backseq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">batch</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">backseq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_name</span> <span class="o">+</span> <span class="s1">&#39;_backseq&#39;</span>
+                <span class="n">reverse_sequence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">backseq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="s1">&#39;interpolate&#39;</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">twiss_init</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;betx&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">twiss_init</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;bety&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">twiss_init</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;table&#39;</span><span class="p">,</span> <span class="s1">&#39;backtrack&#39;</span><span class="p">)</span>
+        <span class="n">tw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">twiss</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backseq</span><span class="p">,</span> <span class="o">**</span><span class="n">twiss_init</span><span class="p">)</span>
+        <span class="n">tw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">backtrack</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">tw</span></div>
+
+<div class="viewcode-block" id="Model.reverse"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.reverse">[docs]</a>    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reverse_sequence_inplace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">undo_stack</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">undo_stack</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_segment</span><span class="p">(</span>
+            <span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seq_name</span><span class="p">,</span>
+            <span class="nb">range</span><span class="o">=</span><span class="s1">&#39;#s/#e&#39;</span><span class="p">,</span>
+            <span class="n">beam</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">beam</span><span class="p">,</span>
+            <span class="n">twiss_args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;betx&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;bety&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.match"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.match">[docs]</a>    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vary</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">mirror_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># list intermediate positions</span>
+        <span class="c1"># NOTE: need list instead of set, because quantity is unhashable:</span>
+        <span class="n">elem_positions</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">elem</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pos</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">elem_positions</span><span class="p">[</span><span class="n">elem</span><span class="o">.</span><span class="n">node_name</span><span class="p">]:</span>
+                <span class="n">elem_positions</span><span class="p">[</span><span class="n">elem</span><span class="o">.</span><span class="n">node_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+        <span class="n">elem_positions</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+                          <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">positions</span> <span class="ow">in</span> <span class="n">elem_positions</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="c1"># activate matching at specified positions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="s1">&#39;interpolate&#39;</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">positions</span> <span class="ow">in</span> <span class="n">elem_positions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">at</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">length</span>
+            <span class="n">positions</span> <span class="o">=</span> <span class="p">[</span><span class="n">at</span><span class="o">+</span><span class="n">l</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">at</span><span class="o">+</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">((</span><span class="n">p</span><span class="o">-</span><span class="n">at</span><span class="p">)</span><span class="o">/</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+                    <span class="n">flag</span><span class="o">=</span><span class="s1">&#39;interpolate&#39;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># create constraints list to be passed to Madx.match</span>
+        <span class="n">cons</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">elem</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">node_name</span><span class="p">,</span> <span class="n">elem_positions</span><span class="p">[</span><span class="n">elem</span><span class="o">.</span><span class="n">node_name</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+            <span class="n">cons</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">{})[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="n">madx_constraints</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="nb">range</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">iindex</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="o">**</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pos</span><span class="p">),</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cons</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+        <span class="c1"># FIXME TODO: use position-dependent emittances…</span>
+        <span class="c1"># NOTE: Not sure we can measure or if there is a relevant</span>
+        <span class="c1"># emittance dilution in the HEBT</span>
+        <span class="n">ex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ex</span><span class="p">()</span>
+        <span class="n">ey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ey</span><span class="p">()</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;sig11&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="o">/</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;sig12&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="o">/</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;sig21&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="o">/</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;sig22&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="o">/</span><span class="n">ex</span><span class="p">,</span>
+            <span class="s1">&#39;sig33&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="o">/</span><span class="n">ey</span><span class="p">,</span> <span class="s1">&#39;sig34&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="o">/</span><span class="n">ey</span><span class="p">,</span> <span class="s1">&#39;sig43&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="o">/</span><span class="n">ey</span><span class="p">,</span> <span class="s1">&#39;sig44&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="o">/</span><span class="n">ey</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">weights</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;weight&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+        <span class="n">used_cols</span> <span class="o">=</span> <span class="p">{</span><span class="n">axis</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">elem</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">}</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">weights</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">used_cols</span><span class="p">}</span>
+        <span class="n">twiss_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twiss_args</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">twiss_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">old_values</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_param</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vary</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="n">vary</span><span class="o">=</span><span class="n">vary</span><span class="p">,</span>
+                        <span class="n">constraints</span><span class="o">=</span><span class="n">madx_constraints</span><span class="p">,</span>
+                        <span class="n">weight</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span>
+                        <span class="n">method</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;lmdif&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;calls&#39;</span><span class="p">:</span> <span class="mi">2000</span><span class="p">,</span> <span class="s1">&#39;tolerance&#39;</span><span class="p">:</span> <span class="mf">1e-8</span><span class="p">}),</span>
+                        <span class="o">**</span><span class="n">twiss_args</span><span class="p">)</span>
+
+        <span class="n">new_values</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_param</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vary</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">mirror_mode</span><span class="p">:</span>
+            <span class="n">fitResidual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">globals</span><span class="p">[</span><span class="s1">&#39;TAR&#39;</span><span class="p">]</span>
+            <span class="n">isGoodFit</span> <span class="o">=</span> <span class="p">(</span><span class="n">fitResidual</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">isGoodFit</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span><span class="n">old_values</span><span class="p">,</span> <span class="n">new_values</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">_update_globals</span><span class="p">,</span> <span class="s2">&quot;Match: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Fit Residual too high!!!&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span><span class="n">old_values</span><span class="p">,</span> <span class="n">new_values</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">_update_globals</span><span class="p">,</span> <span class="s2">&quot;Match: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># return corrections</span>
+        <span class="k">return</span> <span class="n">new_values</span></div>
+
+<div class="viewcode-block" id="Model.read_monitor"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.read_monitor">[docs]</a>    <span class="k">def</span> <span class="nf">read_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mitigates read access to a monitor.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: handle split h-/v-monitor</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">twiss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twiss</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;envx&#39;</span><span class="p">:</span> <span class="n">twiss</span><span class="o">.</span><span class="n">envx</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+            <span class="s1">&#39;envy&#39;</span><span class="p">:</span> <span class="n">twiss</span><span class="o">.</span><span class="n">envy</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+            <span class="s1">&#39;posx&#39;</span><span class="p">:</span> <span class="n">twiss</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+            <span class="s1">&#39;posy&#39;</span><span class="p">:</span> <span class="n">twiss</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+        <span class="p">}</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_knobs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return list of all knob names belonging to the given attribute.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_get_leaf_knobs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="p">,</span> <span class="n">elem</span><span class="o">.</span><span class="n">cmdpar</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Model.read_param"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.Model.read_param">[docs]</a>    <span class="k">def</span> <span class="nf">read_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read element attribute. Return numeric value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span></div>
+
+    <span class="n">write_params</span> <span class="o">=</span> <span class="n">update_globals</span></div>
+
+
+<span class="k">class</span> <span class="nc">ElementList</span><span class="p">(</span><span class="n">ExpandedElementList</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">madx</span><span class="p">,</span> <span class="n">seq_name</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">seq_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="n">madx</span><span class="o">.</span><span class="n">_libmadx</span><span class="o">.</span><span class="n">get_expanded_element_names</span><span class="p">(</span><span class="n">seq_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_indices</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">base_name</span> <span class="o">==</span> <span class="s1">&#39;sbend&#39;</span><span class="p">:</span>
+            <span class="c1"># MAD-X uses the condition k0=0 to check whether the attribute</span>
+            <span class="c1"># should be used (even though that means you can never have a kick</span>
+            <span class="c1"># that exactly counteracts the bending angle):</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">_attr</span><span class="p">[</span><span class="s1">&#39;kick&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">k0</span> <span class="ow">and</span> <span class="n">elem</span><span class="o">.</span><span class="n">k0</span> <span class="o">*</span> <span class="n">elem</span><span class="o">.</span><span class="n">length</span> <span class="o">-</span> <span class="n">elem</span><span class="o">.</span><span class="n">angle</span>
+        <span class="k">return</span> <span class="n">elem</span>
+
+    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">key</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="n">key</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">key</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;#s&#39;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="mi">0</span>
+                <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;#e&#39;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indices</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">key</span><span class="o">.</span><span class="n">index</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;Unknown key: </span><span class="si">{!r}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)))</span>
+
+
+<span class="c1"># stuff for online control</span>
+
+<span class="k">def</span> <span class="nf">_get_leaf_knobs</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">exprs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return knobs names for a given element attribute from MAD-X.</span>
+
+<span class="sd">    &gt;&gt;&gt; get_element_attribute(elements[&#39;r1qs1&#39;], &#39;k1&#39;)</span>
+<span class="sd">    [&#39;kL_R1QS1&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cmdpar</span> <span class="o">=</span> <span class="n">madx</span><span class="o">.</span><span class="n">globals</span><span class="o">.</span><span class="n">cmdpar</span>
+    <span class="n">exprs</span> <span class="o">=</span> <span class="n">exprs</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exprs</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">exprs</span><span class="p">]</span>
+    <span class="n">exprs</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exprs</span> <span class="k">if</span> <span class="n">e</span><span class="p">]</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="nb">vars</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="n">exprs</span><span class="p">:</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">exprs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">madx</span><span class="o">.</span><span class="n">expr_vars</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span> <span class="o">-</span> <span class="n">seen</span>
+        <span class="n">pars</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmdpar</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">new</span><span class="p">]</span>
+        <span class="nb">vars</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pars</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">var_type</span> <span class="o">==</span> <span class="n">VAR_TYPE_DIRECT</span><span class="p">])</span>
+        <span class="n">exprs</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">expr</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pars</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">var_type</span> <span class="o">==</span> <span class="n">VAR_TYPE_DEFERRED</span><span class="p">])</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">vars</span>
+
+
+<span class="k">def</span> <span class="nf">_is_property_defined</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if attribute of an element was defined.&quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="n">elem</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">elem</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cmdpar</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">cmdpar</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">cmdpar</span><span class="o">.</span><span class="n">inform</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">cmdpar</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">parent</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">_eval_expr</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper method that replaces :class:`Expression` by their values.&quot;&quot;&quot;</span>
+    <span class="c1"># NOTE: This method will become unnecessary in cpymad 1.0.</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_eval_expr</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Command</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_eval_expr</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ArrayAttribute</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="n">d</span>
+
+
+<span class="k">def</span> <span class="nf">trim</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">s</span>
+
+
+<span class="n">_INVERT_ATTRS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;sbend&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="s1">&#39;angle&#39;</span><span class="p">,</span> <span class="s1">&#39;k0&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;hkicker&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s1">&#39;kick&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;kicker&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="s1">&#39;hkick&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;translation&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s1">&#39;dy&#39;</span><span class="p">],</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="reverse_sequence"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.reverse_sequence">[docs]</a><span class="k">def</span> <span class="nf">reverse_sequence</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">elements</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a direction reversed copy of the sequence.</span>
+
+<span class="sd">    :param Madx madx:</span>
+<span class="sd">    :param str name: name of the reversed sequence</span>
+<span class="sd">    :param list elements: list of elements</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">last</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="n">last</span><span class="o">.</span><span class="n">position</span> <span class="o">+</span> <span class="n">last</span><span class="o">.</span><span class="n">length</span>
+
+    <span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">sequence</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="n">length</span><span class="p">,</span> <span class="n">refer</span><span class="o">=</span><span class="s1">&#39;exit&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">elements</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">occ_cnt</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="s1">&#39;$&#39;</span> <span class="ow">in</span> <span class="n">elem</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">position</span>
+        <span class="n">overrides</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;at&#39;</span><span class="p">:</span> <span class="n">length</span><span class="o">-</span><span class="n">pos</span><span class="p">}</span>
+        <span class="n">overrides</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="n">attr</span><span class="p">:</span> <span class="s2">&quot;-</span><span class="si">{}</span><span class="s2">-&gt;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">_INVERT_ATTRS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">base_name</span><span class="p">,</span> <span class="p">())</span>
+        <span class="p">})</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">base_name</span> <span class="o">==</span> <span class="s1">&#39;sbend&#39;</span><span class="p">:</span>
+            <span class="n">overrides</span><span class="p">[</span><span class="s1">&#39;e1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;-</span><span class="si">{}</span><span class="s1">-&gt;e2&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">overrides</span><span class="p">[</span><span class="s1">&#39;e2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;-</span><span class="si">{}</span><span class="s1">-&gt;e1&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">elem</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_reversed&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">overrides</span><span class="p">)</span>
+
+    <span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">endsequence</span><span class="p">()</span>
+
+    <span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">beam</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">madx</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="reverse_sequence_inplace"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.reverse_sequence_inplace">[docs]</a><span class="k">def</span> <span class="nf">reverse_sequence_inplace</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">seq_name</span><span class="p">):</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="n">madx</span><span class="o">.</span><span class="n">command</span>
+    <span class="n">cmd</span><span class="o">.</span><span class="n">seqedit</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="n">seq_name</span><span class="p">)</span>
+    <span class="n">cmd</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">cmd</span><span class="o">.</span><span class="n">reflect</span><span class="p">()</span>
+    <span class="n">cmd</span><span class="o">.</span><span class="n">endedit</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">madx</span><span class="o">.</span><span class="n">sequence</span><span class="p">[</span><span class="n">seq_name</span><span class="p">]</span><span class="o">.</span><span class="n">elements</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">occ_cnt</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="s1">&#39;$&#39;</span> <span class="ow">in</span> <span class="n">elem</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">overrides</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">overrides</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="n">attr</span><span class="p">:</span> <span class="n">negate_expr</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">defs</span><span class="p">[</span><span class="n">attr</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">_INVERT_ATTRS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">base_name</span><span class="p">,</span> <span class="p">())</span>
+        <span class="p">})</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">base_name</span> <span class="o">==</span> <span class="s1">&#39;sbend&#39;</span><span class="p">:</span>
+            <span class="n">overrides</span><span class="p">[</span><span class="s1">&#39;e1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">negate_expr</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">defs</span><span class="o">.</span><span class="n">e2</span><span class="p">)</span>
+            <span class="n">overrides</span><span class="p">[</span><span class="s1">&#39;e2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">negate_expr</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">defs</span><span class="o">.</span><span class="n">e1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">overrides</span><span class="p">:</span>
+            <span class="n">elem</span><span class="p">(</span><span class="o">**</span><span class="n">overrides</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">negate_expr</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;-(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="o">-</span><span class="n">value</span>
+
+
+<div class="viewcode-block" id="TwissTable"><a class="viewcode-back" href="../../../api/madgui.model.madx.html#madgui.model.madx.TwissTable">[docs]</a><span class="k">class</span> <span class="nc">TwissTable</span><span class="p">(</span><span class="n">Table</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provide the following features on top of :class:`cpymad.madx.Table`:</span>
+
+<span class="sd">    - add columns for one-sigma beam envelopes: envx, envy</span>
+<span class="sd">    - add columns for gamma optical function: gamx, gamy</span>
+<span class="sd">    - add aliases for beam position: posx, posy</span>
+<span class="sd">    - override twiss alfa/beta parameters and emittances from the sigma matrix,</span>
+<span class="sd">      i.e. in the local reference rather than normal coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_transform</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;alfx&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">sig12</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ex</span><span class="p">,</span>
+        <span class="s1">&#39;alfy&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">sig34</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ey</span><span class="p">,</span>
+        <span class="s1">&#39;betx&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">sig11</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ex</span><span class="p">,</span>
+        <span class="s1">&#39;bety&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">sig33</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ey</span><span class="p">,</span>
+        <span class="s1">&#39;gamx&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">sig22</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ex</span><span class="p">,</span>
+        <span class="s1">&#39;gamy&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">sig44</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ey</span><span class="p">,</span>
+        <span class="s1">&#39;envx&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sig11</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="s1">&#39;envy&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sig33</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="s1">&#39;posx&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+        <span class="s1">&#39;posy&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+        <span class="s1">&#39;ex&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sig11</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sig22</span> <span class="o">-</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">sig12</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sig21</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="s1">&#39;ey&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sig33</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sig44</span> <span class="o">-</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">sig34</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sig43</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the column data.&quot;&quot;&quot;</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_query</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_load_params</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load parameter dict from file if necessary.&quot;&quot;&quot;</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">vals</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]:</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_call</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load a MAD-X file into the current workspace.&quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">read_str_file</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">madx</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vals</span>
+
+
+<span class="k">def</span> <span class="nf">_guess_main_sequence</span><span class="p">(</span><span class="n">madx</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Try to guess the &#39;main&#39; sequence to be viewed.&quot;&quot;&quot;</span>
+    <span class="n">sequence</span> <span class="o">=</span> <span class="n">madx</span><span class="o">.</span><span class="n">sequence</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">sequence</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sequence</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">sequences</span> <span class="o">=</span> <span class="n">madx</span><span class="o">.</span><span class="n">sequence</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sequences</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No sequences defined!&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequences</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># TODO: ask user which one to use</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Multiple sequences defined, none active. &quot;</span>
+                         <span class="s2">&quot;Cannot uniquely determine which to use.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">sequences</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_get_seq_model</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">sequence_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a model as good as possible from the last TWISS statement used</span>
+<span class="sd">    for the given sequence, if available.</span>
+
+<span class="sd">    Note that it seems currently not possible to reliably access prior</span>
+<span class="sd">    TWISS statements and hence the information required to guess the</span>
+<span class="sd">    model is extracted from the TWISS tables associated with the</span>
+<span class="sd">    sequences. This means that</span>
+
+<span class="sd">        - twiss tables may accidentally be associated with the wrong</span>
+<span class="sd">          sequence</span>
+<span class="sd">        - there is no reliable way to tell which parameters were set in</span>
+<span class="sd">          the twiss command and hence deduce the correct (expected) model</span>
+<span class="sd">        - you have to make sure the twiss range starts with a zero-width</span>
+<span class="sd">          element (e.g. MARKER), otherwise TWISS parameters at the start</span>
+<span class="sd">          of the range can not be reliably extrapolated</span>
+
+<span class="sd">    The returned model should be seen as a first guess/approximation. Some</span>
+<span class="sd">    fields may be empty if they cannot reliably be determined.</span>
+
+<span class="sd">    :raises RuntimeError: if the sequence is undefined</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="n">madx</span><span class="o">.</span><span class="n">sequence</span><span class="p">[</span><span class="n">sequence_name</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The sequence is not defined.&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">beam</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">beam</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+        <span class="n">beam</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">range</span><span class="p">,</span> <span class="n">twiss</span> <span class="o">=</span> <span class="n">_get_twiss</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">sequence</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+        <span class="nb">range</span> <span class="o">=</span> <span class="p">(</span><span class="n">sequence_name</span><span class="o">+</span><span class="s1">&#39;$start&#39;</span><span class="p">,</span> <span class="n">sequence_name</span><span class="o">+</span><span class="s1">&#39;$end&#39;</span><span class="p">)</span>
+        <span class="n">twiss</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;sequence&#39;</span><span class="p">:</span> <span class="n">sequence_name</span><span class="p">,</span>
+        <span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="nb">range</span><span class="p">,</span>
+        <span class="s1">&#39;beam&#39;</span><span class="p">:</span> <span class="n">_eval_expr</span><span class="p">(</span><span class="n">beam</span><span class="p">),</span>
+        <span class="s1">&#39;twiss&#39;</span><span class="p">:</span> <span class="n">_eval_expr</span><span class="p">(</span><span class="n">twiss</span><span class="p">),</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_get_twiss</span><span class="p">(</span><span class="n">madx</span><span class="p">,</span> <span class="n">sequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Try to determine (range, twiss) from the MAD-X state.</span>
+
+<span class="sd">    :raises RuntimeError: if unable to make a useful guess</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">twiss_table</span>        <span class="c1"># raises RuntimeError</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">range</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;TWISS table inaccessible or nonsensical.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">first</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sequence</span><span class="o">.</span><span class="n">expanded_elements</span> <span class="ow">or</span> \
+            <span class="n">last</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sequence</span><span class="o">.</span><span class="n">expanded_elements</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;The TWISS table appears to belong to a different sequence.&quot;</span><span class="p">)</span>
+    <span class="n">mandatory</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;betx&#39;</span><span class="p">,</span> <span class="s1">&#39;bety&#39;</span><span class="p">,</span> <span class="s1">&#39;alfx&#39;</span><span class="p">,</span> <span class="s1">&#39;alfy&#39;</span><span class="p">}</span>
+    <span class="n">defaults</span> <span class="o">=</span> <span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">twiss</span>
+    <span class="c1"># TODO: periodic lines -&gt; only mux/muy/deltap</span>
+    <span class="c1"># TODO: logical parameters like CHROM</span>
+    <span class="n">twiss</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">Number</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">mandatory</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">defaults</span> <span class="ow">and</span> <span class="n">val</span> <span class="o">!=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">cmdpar</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">),</span> <span class="n">twiss</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

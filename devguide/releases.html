@@ -1,0 +1,485 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Creating a new version &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui package" href="../api/madgui.html" />
+    <link rel="prev" title="Infrastructure" href="infrastructure.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer’s guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="setup.html">Development setup for madgui</a></li>
+<li class="toctree-l2"><a class="reference internal" href="proxy.html">Proxy Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conventions.html">Coding conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Creating a new version</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#version-numbers">Version numbers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-an-offline-installer">Creating an offline installer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#if-something-goes-wrong">If something goes wrong</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Developer’s guide</a> &raquo;</li>
+        
+      <li>Creating a new version</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/devguide/releases.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="creating-a-new-version">
+<h1>Creating a new version<a class="headerlink" href="#creating-a-new-version" title="Permalink to this headline">¶</a></h1>
+<p>In order to create a new version the following should be done:</p>
+<ul>
+<li><p>update <code class="docutils literal notranslate"><span class="pre">__version__</span></code> in <code class="docutils literal notranslate"><span class="pre">src/madgui/__init__.py</span></code></p></li>
+<li><p>update <code class="docutils literal notranslate"><span class="pre">CHANGES.rst</span></code> by looking at the commit log</p></li>
+<li><p>update dependencies in <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> (if necessary)</p></li>
+<li><p>commit these changes in a single commit with the title
+<code class="docutils literal notranslate"><span class="pre">Release</span> <span class="pre">madgui</span> <span class="pre">YY.M.P</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">Release</span> <span class="pre">madgui</span> <span class="pre">19.6.0</span></code></p></li>
+<li><p>test the release by pushing to the special <code class="docutils literal notranslate"><span class="pre">test-release</span></code> branch:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">push</span> <span class="o">-</span><span class="n">f</span> <span class="n">origin</span> <span class="n">HEAD</span><span class="p">:</span><span class="n">test</span><span class="o">-</span><span class="n">release</span>
+</pre></div>
+</div>
+<p>If the build and tests are successful, the release will be uploaded to
+<a class="reference external" href="https://test.pypi.org/">test.pypi.org</a> from where the wheels can be inspected.</p>
+</li>
+<li><p>Once you are confident with the commit, you can tag it and upload:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">tag</span> <span class="n">YY</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">P</span>
+<span class="n">git</span> <span class="n">push</span>
+<span class="n">git</span> <span class="n">push</span> <span class="o">--</span><span class="n">tag</span>
+</pre></div>
+</div>
+<p>If your commit is fine, this will take care of uploading an installable
+wheel to PyPI. The tests and documentation will be build for any commit, but
+releases will only be uploaded when a tag is pushed.</p>
+</li>
+<li><p>Once the madgui release has appeared on PyPI, you can proceed to build an
+installer for offline installation using the <a class="reference external" href="https://github.com/hibtc/madgui-installer">madgui-installer</a> repository,
+see <a class="reference internal" href="#creating-an-offline-installer">Creating an offline installer</a>.</p></li>
+</ul>
+<div align="center" class="align-center"><div class="graphviz"><img src="../_images/graphviz-3a3bc309d1cc70fecfb9397d4b9e62596f73e848.png" alt="digraph {
+    newrank=true;
+
+    // fake levels for structuring:
+    subgraph {
+        node [
+            shape=none,
+            fontcolor=gray,
+            label=&quot;&quot;,
+            height=0,
+            width=0,
+            fixedsize=true
+        ];
+        edge [color=none];
+        l0 -&gt; l1 -&gt; l2 -&gt; l3 -&gt; l4 -&gt; l5 -&gt; l6 -&gt; l7 -&gt; l8 -&gt; l9 -&gt; l10;
+        label=&quot;&quot;;
+        color=none;
+    }
+
+    subgraph cluster_0 {
+        {
+            node [
+                shape=diamond,
+                width=0.7,
+                height=0.5,
+                fontsize=9,
+                fixedsize=true,
+                fillcolor=&quot;#eeeeee&quot;,
+                style=filled,
+            ];
+            tag; tag2 [label=&quot;tag&quot;];
+            push; push2 [label=&quot;push&quot;];
+            wait;
+        }
+
+        {
+            node [ shape=rectangle ];
+            madgui; installer;
+        }
+
+
+        madgui -&gt; tag -&gt; push -&gt; wait;
+        wait -&gt; installer -&gt; tag2 -&gt; push2;
+
+        label=&quot;User&quot;;
+        color=gray;
+
+        {
+            node [shape=none, label=&quot;&quot;];
+            U9;
+        }
+    }
+
+
+    subgraph cluster_1 {
+        {
+            node [
+                shape=diamond,
+                width=0.7,
+                height=0.5,
+                fontsize=9,
+                fixedsize=true,
+                fillcolor=&quot;#eeeeee&quot;,
+                style=filled,
+            ];
+            notify; notify2 [label=&quot;notify&quot;];
+        }
+
+
+        notify;
+        notify2;
+
+        {
+            node [shape=none, label=&quot;&quot;];
+            G0;
+            G9;
+        }
+
+        {
+            node [shape=point, label=&quot;&quot;, height=0, width=0];
+            G5;
+        }
+
+        label=&quot;Github&quot;;
+        color=gray;
+    };
+
+    subgraph cluster_2 {
+        {
+            node [
+                shape=diamond,
+                width=0.7,
+                height=0.5,
+                fontsize=9,
+                fixedsize=true,
+                fillcolor=&quot;#eeeeee&quot;,
+                style=filled,
+            ];
+            build; build2 [label=&quot;build&quot;];
+            upload; upload2 [label=&quot;upload&quot;];
+            test;
+        }
+
+        build -&gt; test -&gt; upload;
+        build2 -&gt; upload2;
+
+        {
+            node [shape=none, label=&quot;&quot;];
+            C0;
+        }
+
+        {
+            node [shape=point, label=&quot;&quot;, height=0, width=0];
+            C5;
+        }
+
+        label=&quot;CI&quot;;
+        color=gray;
+    }
+
+    subgraph cluster_3 {
+        {
+            node [ shape=rectangle ];
+            pypi; github;
+        }
+
+        {
+            node [shape=none, label=&quot;&quot;];
+            W0;
+        }
+
+        {
+            node [shape=point, label=&quot;&quot;, height=0, width=0];
+            W5; W8;
+        }
+
+        pypi -&gt; W5 -&gt; W8 [arrowhead=none];
+
+        label=&quot;Result&quot;;
+        color=gray;
+    }
+
+    push -&gt; notify -&gt; build [constraint=false];
+    push2 -&gt; notify2 -&gt; build2 [constraint=false];
+
+    upload -&gt; pypi [constraint=false];
+    upload2 -&gt; github [constraint=false];
+
+    W8 -&gt; build2 [constraint=false];
+
+    // For some reason, we need C5/G5 as intermediate nodes to avoid an
+    // error in graphviz (triangulation failed):
+    W5 -&gt; C5 -&gt; G5 [constraint=false, dir=none];
+    G5 -&gt; wait [constraint=false];
+
+    {rank = same; l0; madgui; G0; C0; W0;}
+    {rank = same; l1; tag;}
+    {rank = same; l2; push; notify; build;}
+    {rank = same; l3; test;}
+    {rank = same; l4; upload; pypi;}
+    {rank = same; l5; wait; G5; C5; W5;}
+
+    {rank = same; l6; installer;}
+    {rank = same; l7; tag2;}
+    {rank = same; l8; push2; notify2; build2; W8;}
+    {rank = same; l9; upload2; github; U9; G9;}
+
+}" class="graphviz" /></div>
+</div>
+<p><strong>Important:</strong> It is important to subscribe to updates on the <a class="reference external" href="https://ci.appveyor.com/project/coldfix/madgui-installer">appveyor</a> and
+<a class="reference external" href="https://travis-ci.org/hibtc/madgui">travis</a> continuous integration services (build farms) that are used to create
+and test releases, in order to be notified when and why builds or tests start
+failing. You can use the github account to login on both platforms.</p>
+<div class="section" id="version-numbers">
+<h2>Version numbers<a class="headerlink" href="#version-numbers" title="Permalink to this headline">¶</a></h2>
+<p>Note that madgui version numbers follow a calendaric version scheme (<a class="reference external" href="https://calver.org/">calver</a>)
+<code class="docutils literal notranslate"><span class="pre">YY.M.P</span></code>, i.e. two-digit year, one-digit month followed by a patch number
+starting at <code class="docutils literal notranslate"><span class="pre">0</span></code> that can be increased when releasing multiple versions in
+the same month. This is well suited for the application nature of this package
+with frequent releases.</p>
+<p>cpymad version numbers follow a semantic version scheme (<a class="reference external" href="https://semver.org/">semver</a>) where major
+version numbers indicate backwards compatibility. This is better suited for
+the library nature of this package.</p>
+</div>
+<div class="section" id="creating-an-offline-installer">
+<h2>Creating an offline installer<a class="headerlink" href="#creating-an-offline-installer" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Clone the <a class="reference external" href="https://github.com/hibtc/madgui-installer">madgui-installer</a> repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">hibtc</span><span class="o">/</span><span class="n">madgui</span><span class="o">-</span><span class="n">installer</span>
+</pre></div>
+</div>
+</li>
+<li><p>Update <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> with the new madgui version (and possibly other
+dependencies). These versions must have been uploaded to PyPI in order to be
+used by this repository.</p></li>
+<li><p>Commit the changes.</p></li>
+<li><p>Tag the commit with the madgui version: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span> <span class="pre">YY.M.P</span></code></p></li>
+<li><p>Push the commit and tag:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">push</span> <span class="o">--</span><span class="n">tag</span>
+<span class="n">git</span> <span class="n">push</span>
+</pre></div>
+</div>
+</li>
+<li><p>Wait for <a class="reference external" href="https://ci.appveyor.com/project/coldfix/madgui-installer">appveyor</a> to finish the build</p></li>
+<li><p>Download the new installer from the <a class="reference external" href="https://github.com/hibtc/madgui-installer/releases">releases page</a></p></li>
+</ul>
+</div>
+<div class="section" id="if-something-goes-wrong">
+<h2>If something goes wrong<a class="headerlink" href="#if-something-goes-wrong" title="Permalink to this headline">¶</a></h2>
+<p>If you notice a bug or an error in an already uploaded version, fix the
+problem and then issue a new release.</p>
+<p>If the travis or appveyor builds failed for an unrelated reason (e.g.
+downtime on some dependent server), go to the travis/appveyor build page and
+restart the build.</p>
+<p>If you have pushed a tag that failed to build, it is possible to remove the
+tag from github using the syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="p">:</span><span class="n">YY</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">P</span>
+</pre></div>
+</div>
+<p>(However, don’t do this if the version was already released)</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../api/madgui.html" class="btn btn-neutral float-right" title="madgui package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="infrastructure.html" class="btn btn-neutral float-left" title="Infrastructure" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,341 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.dialog module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.edit module" href="madgui.widget.edit.html" />
+    <link rel="prev" title="madgui.widget.curvemanager module" href="madgui.widget.curvemanager.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.dialog module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.dialog.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.dialog">
+<span id="madgui-widget-dialog-module"></span><h1>madgui.widget.dialog module<a class="headerlink" href="#module-madgui.widget.dialog" title="Permalink to this headline">¶</a></h1>
+<p>Utilities to create widgets</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.dialog.Dialog" title="madgui.widget.dialog.Dialog"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Dialog</span></code></a>([owner, widget, parent, tight])</p></td>
+<td><p>Utility to wrap an application widget into a window with size-grip and optional buttons, and manage their lifetime via an owner.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.dialog.Dialog">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.dialog.</code><code class="sig-name descname">Dialog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">owner</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">widget</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tight</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/dialog.html#Dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.dialog.Dialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QDialog</span></code></p>
+<p>Utility to wrap an application widget into a window with size-grip and
+optional buttons, and manage their lifetime via an owner.</p>
+<p>We distinguish between an <cite>owner</cite> and <cite>parent</cite> widget as follows:</p>
+<ul class="simple">
+<li><p>dialogs always stay on top of the parent and share their taskbar entry</p></li>
+<li><p>dialogs do not stay on top of the owner, nor share their taskbar entry,
+However: they will be kept alive as long as the owner, and when the
+owner is closed, will be closed as well.</p></li>
+</ul>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.dialog.Dialog.closeEvent" title="madgui.widget.dialog.Dialog.closeEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">closeEvent</span></code></a>(self, QCloseEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.dialog.Dialog.present" title="madgui.widget.dialog.Dialog.present"><code class="xref py py-obj docutils literal notranslate"><span class="pre">present</span></code></a>([raise_])</p></td>
+<td><p>Activate window and bring to front.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.dialog.Dialog.setExportWidget" title="madgui.widget.dialog.Dialog.setExportWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setExportWidget</span></code></a>(widget, folder)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.dialog.Dialog.setFontSize" title="madgui.widget.dialog.Dialog.setFontSize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setFontSize</span></code></a>(pointsize)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.dialog.Dialog.setSimpleExportWidget" title="madgui.widget.dialog.Dialog.setSimpleExportWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setSimpleExportWidget</span></code></a>(widget, folder)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.dialog.Dialog.setWidget" title="madgui.widget.dialog.Dialog.setWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setWidget</span></code></a>(widget, layout)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.dialog.Dialog.widget" title="madgui.widget.dialog.Dialog.widget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">widget</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p>The second option is preferrable for most non-modal windows!</p>
+<ul class="simple">
+<li><p>we want to allow the mainwindow in the foreground when focussed</p></li>
+<li><p>we want to allow choosing between all windows from the taskbar</p></li>
+</ul>
+<dl class="py method">
+<dt id="madgui.widget.dialog.Dialog.closeEvent">
+<code class="sig-name descname">closeEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QCloseEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/dialog.html#Dialog.closeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.dialog.Dialog.closeEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.dialog.Dialog.present">
+<code class="sig-name descname">present</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raise_</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.widget.dialog.Dialog.present" title="Permalink to this definition">¶</a></dt>
+<dd><p>Activate window and bring to front.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.dialog.Dialog.setExportWidget">
+<code class="sig-name descname">setExportWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">widget</span></em>, <em class="sig-param"><span class="n">folder</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/dialog.html#Dialog.setExportWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.dialog.Dialog.setExportWidget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.dialog.Dialog.setFontSize">
+<code class="sig-name descname">setFontSize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pointsize</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/dialog.html#Dialog.setFontSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.dialog.Dialog.setFontSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.dialog.Dialog.setSimpleExportWidget">
+<code class="sig-name descname">setSimpleExportWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">widget</span></em>, <em class="sig-param"><span class="n">folder</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/dialog.html#Dialog.setSimpleExportWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.dialog.Dialog.setSimpleExportWidget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.dialog.Dialog.setWidget">
+<code class="sig-name descname">setWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">widget</span></em>, <em class="sig-param"><span class="n">layout</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/dialog.html#Dialog.setWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.dialog.Dialog.setWidget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.dialog.Dialog.widget">
+<code class="sig-name descname">widget</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/dialog.html#Dialog.widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.dialog.Dialog.widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.edit.html" class="btn btn-neutral float-right" title="madgui.widget.edit module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.curvemanager.html" class="btn btn-neutral float-left" title="madgui.widget.curvemanager module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

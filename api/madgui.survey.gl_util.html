@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.survey.gl_util module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.survey.gl_widget module" href="madgui.survey.gl_widget.html" />
+    <link rel="prev" title="madgui.survey.camera module" href="madgui.survey.camera.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.survey.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.survey.html">madgui.survey package</a> &raquo;</li>
+        
+      <li>madgui.survey.gl_util module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.survey.gl_util.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.survey.gl_util">
+<span id="madgui-survey-gl-util-module"></span><h1>madgui.survey.gl_util module<a class="headerlink" href="#module-madgui.survey.gl_util" title="Permalink to this headline">¶</a></h1>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_util.Object3D" title="madgui.survey.gl_util.Object3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Object3D</span></code></a>(program, transform, color, …[, mode])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_util.compile_shader" title="madgui.survey.gl_util.compile_shader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_shader</span></code></a>(type, source)</p></td>
+<td><p>Compile a OpenGL shader, and return its id.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_util.create_shader_program" title="madgui.survey.gl_util.create_shader_program"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_shader_program</span></code></a>(shaders)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_util.load_shader" title="madgui.survey.gl_util.load_shader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_shader</span></code></a>(type, name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_util.set_uniform_matrix" title="madgui.survey.gl_util.set_uniform_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_uniform_matrix</span></code></a>(program, name, matrix)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_util.set_uniform_vector" title="madgui.survey.gl_util.set_uniform_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_uniform_vector</span></code></a>(program, name, vector)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_util.setup_element_buffer" title="madgui.survey.gl_util.setup_element_buffer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_element_buffer</span></code></a>(indices)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_util.setup_vertex_buffer" title="madgui.survey.gl_util.setup_vertex_buffer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_vertex_buffer</span></code></a>(loc, data)</p></td>
+<td><p>Set program attribute from vertex buffer.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.survey.gl_util.Object3D">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.survey.gl_util.</code><code class="sig-name descname">Object3D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">program</span></em>, <em class="sig-param"><span class="n">transform</span></em>, <em class="sig-param"><span class="n">color</span></em>, <em class="sig-param"><span class="n">vertices</span></em>, <em class="sig-param"><span class="n">normals</span></em>, <em class="sig-param"><span class="n">triangles</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">GL_TRIANGLES</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#Object3D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.Object3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_util.Object3D.delete" title="madgui.survey.gl_util.Object3D.delete"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delete</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_util.Object3D.draw" title="madgui.survey.gl_util.Object3D.draw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">draw</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_util.Object3D.opaque" title="madgui.survey.gl_util.Object3D.opaque"><code class="xref py py-obj docutils literal notranslate"><span class="pre">opaque</span></code></a>()</p></td>
+<td><p>Return true if the object is opaque.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_util.Object3D.position" title="madgui.survey.gl_util.Object3D.position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">position</span></code></a>()</p></td>
+<td><p>Return the local coordinate system’s origin point in world coordinates.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.survey.gl_util.Object3D.delete">
+<code class="sig-name descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#Object3D.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.Object3D.delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_util.Object3D.draw">
+<code class="sig-name descname">draw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#Object3D.draw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.Object3D.draw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_util.Object3D.opaque">
+<code class="sig-name descname">opaque</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#Object3D.opaque"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.Object3D.opaque" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return true if the object is opaque.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_util.Object3D.position">
+<code class="sig-name descname">position</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#Object3D.position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.Object3D.position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the local coordinate system’s origin point in world
+coordinates. The meaning of this coordinate depends on the shape and
+transform used, but is usually at the center/start of the object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.survey.gl_util.compile_shader">
+<code class="sig-prename descclassname">madgui.survey.gl_util.</code><code class="sig-name descname">compile_shader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">type</span></em>, <em class="sig-param"><span class="n">source</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#compile_shader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.compile_shader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compile a OpenGL shader, and return its id.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.survey.gl_util.create_shader_program">
+<code class="sig-prename descclassname">madgui.survey.gl_util.</code><code class="sig-name descname">create_shader_program</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shaders</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#create_shader_program"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.create_shader_program" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.survey.gl_util.load_shader">
+<code class="sig-prename descclassname">madgui.survey.gl_util.</code><code class="sig-name descname">load_shader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">type</span></em>, <em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#load_shader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.load_shader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.survey.gl_util.set_uniform_matrix">
+<code class="sig-prename descclassname">madgui.survey.gl_util.</code><code class="sig-name descname">set_uniform_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">program</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">matrix</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#set_uniform_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.set_uniform_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.survey.gl_util.set_uniform_vector">
+<code class="sig-prename descclassname">madgui.survey.gl_util.</code><code class="sig-name descname">set_uniform_vector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">program</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">vector</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#set_uniform_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.set_uniform_vector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.survey.gl_util.setup_element_buffer">
+<code class="sig-prename descclassname">madgui.survey.gl_util.</code><code class="sig-name descname">setup_element_buffer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indices</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#setup_element_buffer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.setup_element_buffer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.survey.gl_util.setup_vertex_buffer">
+<code class="sig-prename descclassname">madgui.survey.gl_util.</code><code class="sig-name descname">setup_vertex_buffer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loc</span></em>, <em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_util.html#setup_vertex_buffer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_util.setup_vertex_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set program attribute from vertex buffer.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.survey.gl_widget.html" class="btn btn-neutral float-right" title="madgui.survey.gl_widget module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.survey.camera.html" class="btn btn-neutral float-left" title="madgui.survey.camera module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

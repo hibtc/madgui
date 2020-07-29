@@ -1,0 +1,447 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.survey.widget &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.survey.widget</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.survey.widget</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Components to draw a 3D floor plan of a given MAD-X lattice.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># TODO: entry/exit pole faces</span>
+<span class="c1"># TODO: load styles from config + UI</span>
+<span class="c1"># TODO: add exporters for common 3D data formats (obj+mtl/collada/ply?)</span>
+<span class="c1"># TODO: customize settings via UI (wireframe etc)</span>
+<span class="c1"># TODO: highlight selected elements</span>
+<span class="c1"># TODO: front-to-back highlighting animation (indicating direction)</span>
+<span class="c1"># TODO: draw axis cross + arrows</span>
+<span class="c1"># TODO: element-dependent shapes, e.g. SEXTUPOLES, QUADRUPOLES, DIPOLES should</span>
+<span class="c1">#       look these, and color-mapped according to polarization, KICKERS maybe</span>
+<span class="c1">#       as rectangles</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;FloorPlanWidget&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="kn">import</span> <span class="n">QColor</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QWidget</span><span class="p">,</span> <span class="n">QPushButton</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.layout</span> <span class="kn">import</span> <span class="n">VBoxLayout</span>
+
+<span class="kn">from</span> <span class="nn">.transform</span> <span class="kn">import</span> <span class="n">gl_array</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">translate</span>
+<span class="kn">from</span> <span class="nn">.shapes</span> <span class="kn">import</span> <span class="n">cylinder</span><span class="p">,</span> <span class="n">torus_arc</span><span class="p">,</span> <span class="n">disc</span>
+<span class="kn">from</span> <span class="nn">.gl_util</span> <span class="kn">import</span> <span class="n">Object3D</span>
+<span class="kn">from</span> <span class="nn">.gl_widget</span> <span class="kn">import</span> <span class="n">GLWidget</span>
+
+
+<span class="n">FloorCoords</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;FloorCoords&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;phi&#39;</span><span class="p">,</span> <span class="s1">&#39;psi&#39;</span><span class="p">])</span>
+<span class="n">ObjectStyle</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ObjectStyle&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">])</span>
+
+<span class="n">DEFAULT_STYLE</span> <span class="o">=</span> <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+<span class="n">ELEMENT_STYLE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;KICKER&#39;</span><span class="p">:</span>      <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="s1">&#39;purple&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;HKICKER&#39;</span><span class="p">:</span>     <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="s1">&#39;purple&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;VKICKER&#39;</span><span class="p">:</span>     <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="s1">&#39;purple&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;SBEND&#39;</span><span class="p">:</span>       <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span>    <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;QUADRUPOLE&#39;</span><span class="p">:</span>  <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span>   <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;SEXTUPOLE&#39;</span><span class="p">:</span>   <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;DRIFT&#39;</span><span class="p">:</span>       <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>  <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;MARKER&#39;</span><span class="p">:</span>      <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>  <span class="mf">0.8</span><span class="p">),</span>
+    <span class="s1">&#39;RFCAVITY&#39;</span><span class="p">:</span>    <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;MONITOR&#39;</span><span class="p">:</span>     <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span>  <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;INSTRUMENT&#39;</span><span class="p">:</span>  <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span>  <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;COLLIMATOR&#39;</span><span class="p">:</span>  <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;RCOLLIMATOR&#39;</span><span class="p">:</span> <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;MULTIPOLE&#39;</span><span class="p">:</span>   <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;SOLENOID&#39;</span><span class="p">:</span>    <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;SROTATION&#39;</span><span class="p">:</span>   <span class="n">ObjectStyle</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="s1">&#39;pink&#39;</span><span class="p">,</span>   <span class="mf">0.1</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="FloorPlanWidget"><a class="viewcode-back" href="../../../api/madgui.survey.widget.html#madgui.survey.widget.FloorPlanWidget">[docs]</a><span class="k">class</span> <span class="nc">FloorPlanWidget</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;A widget that shows a 3D scene of the accelerator.&quot;&quot;&quot;</span>
+
+    <span class="n">thin_element_length</span> <span class="o">=</span> <span class="mf">0.005</span>     <span class="c1"># draw thin elements as 5mm long</span>
+    <span class="n">circle_points_per_m</span> <span class="o">=</span> <span class="mf">200.0</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;3D floor plan&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span> <span class="o">=</span> <span class="n">GLWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">create_items</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span><span class="o">.</span><span class="n">camera_speed</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span><span class="o">.</span><span class="n">update_interval</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">VBoxLayout</span><span class="p">([</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span><span class="p">,</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_button</span><span class="p">(</span><span class="s2">&quot;Z|X&quot;</span><span class="p">,</span> <span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_button</span><span class="p">(</span><span class="s2">&quot;X|Y&quot;</span><span class="p">,</span>     <span class="mi">0</span><span class="p">,</span>     <span class="mi">0</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_button</span><span class="p">(</span><span class="s2">&quot;Z|Y&quot;</span><span class="p">,</span> <span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>     <span class="mi">0</span><span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">]))</span>
+        <span class="c1"># Keep focus on the GL widget, prevent buttons from stealing focus:</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">findChildren</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+            <span class="n">child</span><span class="o">.</span><span class="n">setFocusPolicy</span><span class="p">(</span>
+                <span class="n">Qt</span><span class="o">.</span><span class="n">ClickFocus</span> <span class="k">if</span> <span class="n">child</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span> <span class="k">else</span> <span class="n">Qt</span><span class="o">.</span><span class="n">NoFocus</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_session</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">look_from</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">button</span>
+
+<div class="viewcode-block" id="FloorPlanWidget.session_data"><a class="viewcode-back" href="../../../api/madgui.survey.widget.html#madgui.survey.widget.FloorPlanWidget.session_data">[docs]</a>    <span class="k">def</span> <span class="nf">session_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="FloorPlanWidget.closeEvent"><a class="viewcode-back" href="../../../api/madgui.survey.widget.html#madgui.survey.widget.FloorPlanWidget.closeEvent">[docs]</a>    <span class="k">def</span> <span class="nf">closeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span><span class="o">.</span><span class="n">free</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">closeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FloorPlanWidget.set_session"><a class="viewcode-back" href="../../../api/madgui.survey.widget.html#madgui.survey.widget.FloorPlanWidget.set_session">[docs]</a>    <span class="k">def</span> <span class="nf">set_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set session.&quot;&quot;&quot;</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">user_ns</span><span class="o">.</span><span class="n">gl_widget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_model</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">model</span><span class="p">())</span></div>
+
+    <span class="k">def</span> <span class="nf">_set_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Recreates scene after model has changed.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateSurvey</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="k">if</span> <span class="n">model</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateSurvey</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateSurvey</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_updateSurvey</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Recreate and update the scene.&quot;&quot;&quot;</span>
+        <span class="n">survey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">survey</span><span class="p">()</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">survey</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">FloorCoords</span><span class="o">.</span><span class="n">_fields</span><span class="p">])</span>
+        <span class="n">floor</span> <span class="o">=</span> <span class="p">[</span><span class="n">FloorCoords</span><span class="p">(</span><span class="o">*</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">array</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setElements</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">,</span> <span class="n">floor</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FloorPlanWidget.setElements"><a class="viewcode-back" href="../../../api/madgui.survey.widget.html#madgui.survey.widget.FloorPlanWidget.setElements">[docs]</a>    <span class="k">def</span> <span class="nf">setElements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span> <span class="n">survey</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set scene using given elements and floor coordinates.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">elements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">survey</span> <span class="o">=</span> <span class="n">survey</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span><span class="o">.</span><span class="n">create_scene</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FloorPlanWidget.create_items"><a class="viewcode-back" href="../../../api/madgui.survey.widget.html#madgui.survey.widget.FloorPlanWidget.create_items">[docs]</a>    <span class="k">def</span> <span class="nf">create_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">camera</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Turn the MAD-X sequence of elements into a list of ``Object3D``</span>
+<span class="sd">        constituting the scene to be drawn.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">elements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span>
+        <span class="n">survey</span> <span class="o">=</span> <span class="p">[</span><span class="n">FloorCoords</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">survey</span>
+
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">f</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">z</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">survey</span><span class="p">])</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)])</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">camera</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">center</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">points</span> <span class="o">-</span> <span class="n">center</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">look_from</span><span class="p">(</span><span class="n">camera</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">camera</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="n">camera</span><span class="o">.</span><span class="n">psi</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">item</span>
+            <span class="k">for</span> <span class="n">element</span><span class="p">,</span> <span class="n">coords</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">survey</span><span class="p">,</span> <span class="n">survey</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_element_items</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="FloorPlanWidget.create_element_items"><a class="viewcode-back" href="../../../api/madgui.survey.widget.html#madgui.survey.widget.FloorPlanWidget.create_element_items">[docs]</a>    <span class="k">def</span> <span class="nf">create_element_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an ``Object3D`` for a single beam line element. Use the</span>
+<span class="sd">        supplied color and tube diameter.&quot;&quot;&quot;</span>
+        <span class="n">thick</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">l</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">thick</span><span class="p">:</span>
+            <span class="c1"># Show continuous drift tubes through all elements:</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_object</span><span class="p">(</span>
+                <span class="n">element</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="o">*</span><span class="n">getElementStyle</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s1">&#39;DRIFT&#39;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">base_name</span> <span class="o">!=</span> <span class="s1">&#39;drift&#39;</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_object</span><span class="p">(</span>
+                <span class="n">element</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="o">*</span><span class="n">getElementStyle</span><span class="p">(</span><span class="n">element</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="FloorPlanWidget.create_object"><a class="viewcode-back" href="../../../api/madgui.survey.widget.html#madgui.survey.widget.FloorPlanWidget.create_object">[docs]</a>    <span class="k">def</span> <span class="nf">create_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="n">color</span> <span class="o">=</span> <span class="n">gl_array</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">getRgbF</span><span class="p">())</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">width</span><span class="o">/</span><span class="mi">2</span>
+
+        <span class="c1"># TODO: sanitize rotation...</span>
+        <span class="n">rot</span> <span class="o">=</span> <span class="n">rotate</span><span class="p">(</span><span class="o">-</span><span class="n">start</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="o">-</span><span class="n">start</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="o">-</span><span class="n">start</span><span class="o">.</span><span class="n">psi</span><span class="p">)</span>
+        <span class="n">tra</span> <span class="o">=</span> <span class="n">translate</span><span class="p">(</span><span class="n">start</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">start</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">start</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">tra</span> <span class="o">@</span> <span class="n">rot</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="n">angle</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angle&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">l</span>
+
+        <span class="n">n1</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">radius</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">circle_points_per_m</span><span class="p">),</span> <span class="mi">20</span><span class="p">)</span>
+
+        <span class="n">shader_program</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gl_widget</span><span class="o">.</span><span class="n">shader_program</span>
+        <span class="k">if</span> <span class="n">l</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Thin elements should appear as transparent discs. Internally, we</span>
+            <span class="c1"># draw very short tubes to improve the visual appearance:</span>
+            <span class="c1"># - need two opposite facing discs in order to have view-angle</span>
+            <span class="c1">#   independent overlapping</span>
+            <span class="c1"># - need tube to display an outline. GL_LINES does not work well!</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thin_element_length</span>
+
+            <span class="n">inner_radius</span> <span class="o">=</span> <span class="n">ELEMENT_STYLE</span><span class="p">[</span><span class="s1">&#39;DRIFT&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="mf">1.001</span>
+            <span class="n">inner_points</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">inner_radius</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">circle_points_per_m</span><span class="p">),</span> <span class="mi">20</span><span class="p">)</span>
+            <span class="n">circle_color</span> <span class="o">=</span> <span class="n">gl_array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">forth</span> <span class="o">=</span> <span class="n">translate</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">l</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">back</span> <span class="o">=</span> <span class="n">translate</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">l</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+
+            <span class="c1"># outlines:</span>
+            <span class="k">yield</span> <span class="n">Object3D</span><span class="p">(</span>
+                <span class="n">shader_program</span><span class="p">,</span> <span class="n">transform</span> <span class="o">@</span> <span class="n">back</span><span class="p">,</span> <span class="n">circle_color</span><span class="p">,</span>
+                <span class="o">*</span><span class="n">cylinder</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">inner_radius</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="n">inner_points</span><span class="p">))</span>
+            <span class="k">yield</span> <span class="n">Object3D</span><span class="p">(</span>
+                <span class="n">shader_program</span><span class="p">,</span> <span class="n">transform</span> <span class="o">@</span> <span class="n">back</span><span class="p">,</span> <span class="n">circle_color</span><span class="p">,</span>
+                <span class="o">*</span><span class="n">cylinder</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="n">n1</span><span class="p">))</span>
+            <span class="c1"># caps on each end:</span>
+            <span class="k">yield</span> <span class="n">Object3D</span><span class="p">(</span>
+                <span class="n">shader_program</span><span class="p">,</span> <span class="n">transform</span> <span class="o">@</span> <span class="n">forth</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span>
+                <span class="o">*</span><span class="n">disc</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="n">n1</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=+</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">yield</span> <span class="n">Object3D</span><span class="p">(</span>
+                <span class="n">shader_program</span><span class="p">,</span> <span class="n">transform</span> <span class="o">@</span> <span class="n">back</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span>
+                <span class="o">*</span><span class="n">disc</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="n">n1</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="n">angle</span><span class="p">:</span>
+            <span class="c1"># this works the same for negative angle!</span>
+            <span class="n">r0</span> <span class="o">=</span> <span class="n">l</span> <span class="o">/</span> <span class="n">angle</span>
+            <span class="n">n0</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">l</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">local_transform</span> <span class="o">=</span> <span class="n">rotate</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">@</span> <span class="n">translate</span><span class="p">(</span><span class="o">-</span><span class="n">r0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">Object3D</span><span class="p">(</span>
+                <span class="n">shader_program</span><span class="p">,</span> <span class="n">transform</span> <span class="o">@</span> <span class="n">local_transform</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span>
+                <span class="o">*</span><span class="n">torus_arc</span><span class="p">(</span><span class="n">r0</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">angle</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">Object3D</span><span class="p">(</span>
+                <span class="n">shader_program</span><span class="p">,</span> <span class="n">transform</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span>
+                <span class="o">*</span><span class="n">cylinder</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="n">n1</span><span class="p">))</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">getElementStyle</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">base_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Lookup element color.&quot;&quot;&quot;</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">ELEMENT_STYLE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">base_name</span> <span class="ow">or</span> <span class="n">element</span><span class="o">.</span><span class="n">base_name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">DEFAULT_STYLE</span><span class="p">)</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="n">QColor</span><span class="p">(</span><span class="n">style</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">l</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">color</span><span class="o">.</span><span class="n">setAlphaF</span><span class="p">(</span><span class="n">style</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">color</span><span class="p">,</span> <span class="n">style</span><span class="o">.</span><span class="n">width</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">madgui.core.app</span> <span class="kn">import</span> <span class="n">main</span>
+    <span class="n">main</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">FloorPlanWidget</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

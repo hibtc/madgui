@@ -1,0 +1,460 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.spinbox module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.tableview module" href="madgui.widget.tableview.html" />
+    <link rel="prev" title="madgui.widget.quantity module" href="madgui.widget.quantity.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.spinbox module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.spinbox.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.spinbox">
+<span id="madgui-widget-spinbox-module"></span><h1>madgui.widget.spinbox module<a class="headerlink" href="#module-madgui.widget.spinbox" title="Permalink to this headline">¶</a></h1>
+<p>Custom spin box widgets.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.AbstractSpinBox" title="madgui.widget.spinbox.AbstractSpinBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AbstractSpinBox</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Base class for custom spinbox controls.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.spinbox.QuantitySpinBox" title="madgui.widget.spinbox.QuantitySpinBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuantitySpinBox</span></code></a>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.ExpressionSpinBox" title="madgui.widget.spinbox.ExpressionSpinBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExpressionSpinBox</span></code></a>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.spinbox.AbstractSpinBox">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.spinbox.</code><code class="sig-name descname">AbstractSpinBox</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#AbstractSpinBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.AbstractSpinBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="madgui.widget.quantity.html#madgui.widget.quantity.ValueControlBase" title="madgui.widget.quantity.ValueControlBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.quantity.ValueControlBase</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QAbstractSpinBox</span></code></p>
+<p>Base class for custom spinbox controls.</p>
+<p>Subclassing <code class="xref py py-class docutils literal notranslate"><span class="pre">QAbstractSpinBox</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">QDoubleSpinBox</span></code> directly
+with PyQt is hard, because they do not expose access to several crucial
+APIs:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">prefix</span></code> and <code class="docutils literal notranslate"><span class="pre">suffix</span></code> (QAbstractSpinBox)</p></li>
+<li><p>no null values,</p></li>
+<li><p>can’t control <cite>round()</cite></p></li>
+<li><p>NaN is reset to maximum in <cite>bound()</cite></p></li>
+<li><p>no unit editing</p></li>
+<li><p>rounding is ‘f’-based</p></li>
+</ul>
+</div></blockquote>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.AbstractSpinBox.clear" title="madgui.widget.spinbox.AbstractSpinBox.clear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code></a>(self)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.spinbox.AbstractSpinBox.fixup" title="madgui.widget.spinbox.AbstractSpinBox.fixup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fixup</span></code></a>(self, str)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.AbstractSpinBox.keyPressEvent" title="madgui.widget.spinbox.AbstractSpinBox.keyPressEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keyPressEvent</span></code></a>(self, QKeyEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.spinbox.AbstractSpinBox.sizeHint" title="madgui.widget.spinbox.AbstractSpinBox.sizeHint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sizeHint</span></code></a>(self)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.AbstractSpinBox.stepBy" title="madgui.widget.spinbox.AbstractSpinBox.stepBy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stepBy</span></code></a>(self, int)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.spinbox.AbstractSpinBox.stepEnabled" title="madgui.widget.spinbox.AbstractSpinBox.stepEnabled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stepEnabled</span></code></a>(self)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.spinbox.AbstractSpinBox.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#AbstractSpinBox.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.AbstractSpinBox.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.spinbox.AbstractSpinBox.fixup">
+<code class="sig-name descname">fixup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#AbstractSpinBox.fixup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.AbstractSpinBox.fixup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.spinbox.AbstractSpinBox.keyPressEvent">
+<code class="sig-name descname">keyPressEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QKeyEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#AbstractSpinBox.keyPressEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.AbstractSpinBox.keyPressEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.spinbox.AbstractSpinBox.sizeHint">
+<code class="sig-name descname">sizeHint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; QSize<a class="reference internal" href="../_modules/madgui/widget/spinbox.html#AbstractSpinBox.sizeHint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.AbstractSpinBox.sizeHint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.spinbox.AbstractSpinBox.step">
+<code class="sig-name descname">step</code><em class="property"> = None</em><a class="headerlink" href="#madgui.widget.spinbox.AbstractSpinBox.step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.spinbox.AbstractSpinBox.stepBy">
+<code class="sig-name descname">stepBy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#AbstractSpinBox.stepBy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.AbstractSpinBox.stepBy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.spinbox.AbstractSpinBox.stepEnabled">
+<code class="sig-name descname">stepEnabled</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; QAbstractSpinBox.StepEnabled<a class="reference internal" href="../_modules/madgui/widget/spinbox.html#AbstractSpinBox.stepEnabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.AbstractSpinBox.stepEnabled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.spinbox.AbstractSpinBox.typical">
+<code class="sig-name descname">typical</code><em class="property"> = None</em><a class="headerlink" href="#madgui.widget.spinbox.AbstractSpinBox.typical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.spinbox.ExpressionSpinBox">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.spinbox.</code><code class="sig-name descname">ExpressionSpinBox</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#ExpressionSpinBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.ExpressionSpinBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.spinbox.QuantitySpinBox" title="madgui.widget.spinbox.QuantitySpinBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.spinbox.QuantitySpinBox</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.ExpressionSpinBox.format" title="madgui.widget.spinbox.ExpressionSpinBox.format"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.spinbox.ExpressionSpinBox.parse" title="madgui.widget.spinbox.ExpressionSpinBox.parse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse</span></code></a>(text)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.ExpressionSpinBox.stepEnabled" title="madgui.widget.spinbox.ExpressionSpinBox.stepEnabled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stepEnabled</span></code></a>(self)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.spinbox.ExpressionSpinBox.format">
+<code class="sig-name descname">format</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#ExpressionSpinBox.format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.ExpressionSpinBox.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.spinbox.ExpressionSpinBox.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#ExpressionSpinBox.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.ExpressionSpinBox.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.spinbox.ExpressionSpinBox.stepEnabled">
+<code class="sig-name descname">stepEnabled</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; QAbstractSpinBox.StepEnabled<a class="reference internal" href="../_modules/madgui/widget/spinbox.html#ExpressionSpinBox.stepEnabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.ExpressionSpinBox.stepEnabled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.spinbox.QuantitySpinBox">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.spinbox.</code><code class="sig-name descname">QuantitySpinBox</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#QuantitySpinBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.QuantitySpinBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="madgui.widget.quantity.html#madgui.widget.quantity.QuantityControlBase" title="madgui.widget.quantity.QuantityControlBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.quantity.QuantityControlBase</span></code></a>, <a class="reference internal" href="#madgui.widget.spinbox.AbstractSpinBox" title="madgui.widget.spinbox.AbstractSpinBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.spinbox.AbstractSpinBox</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.QuantitySpinBox.line_edit" title="madgui.widget.spinbox.QuantitySpinBox.line_edit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_edit</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.spinbox.QuantitySpinBox.updateEdit" title="madgui.widget.spinbox.QuantitySpinBox.updateEdit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">updateEdit</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.QuantitySpinBox.update_step" title="madgui.widget.spinbox.QuantitySpinBox.update_step"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_step</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.QuantitySpinBox.step" title="madgui.widget.spinbox.QuantitySpinBox.step"><code class="xref py py-obj docutils literal notranslate"><span class="pre">step</span></code></a></p></td>
+<td><p>float(x) -&gt; floating point number</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.spinbox.QuantitySpinBox.typical" title="madgui.widget.spinbox.QuantitySpinBox.typical"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typical</span></code></a></p></td>
+<td><p>float(x) -&gt; floating point number</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.spinbox.QuantitySpinBox.valueChanged" title="madgui.widget.spinbox.QuantitySpinBox.valueChanged"><code class="xref py py-obj docutils literal notranslate"><span class="pre">valueChanged</span></code></a></p></td>
+<td><p>Signal&lt;&lt;class ‘object’&gt;&gt;</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.spinbox.QuantitySpinBox.line_edit">
+<code class="sig-name descname">line_edit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#QuantitySpinBox.line_edit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.QuantitySpinBox.line_edit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.spinbox.QuantitySpinBox.step">
+<code class="sig-name descname">step</code><em class="property"> = 1.0</em><a class="headerlink" href="#madgui.widget.spinbox.QuantitySpinBox.step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.spinbox.QuantitySpinBox.typical">
+<code class="sig-name descname">typical</code><em class="property"> = 3.3333333333333335e-17</em><a class="headerlink" href="#madgui.widget.spinbox.QuantitySpinBox.typical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.spinbox.QuantitySpinBox.updateEdit">
+<code class="sig-name descname">updateEdit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#QuantitySpinBox.updateEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.QuantitySpinBox.updateEdit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.spinbox.QuantitySpinBox.update_step">
+<code class="sig-name descname">update_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/spinbox.html#QuantitySpinBox.update_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.spinbox.QuantitySpinBox.update_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.spinbox.QuantitySpinBox.valueChanged">
+<code class="sig-name descname">valueChanged</code><a class="headerlink" href="#madgui.widget.spinbox.QuantitySpinBox.valueChanged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&lt;class ‘object’&gt;&gt;</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.tableview.html" class="btn btn-neutral float-right" title="madgui.widget.tableview module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.quantity.html" class="btn btn-neutral float-left" title="madgui.widget.quantity module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

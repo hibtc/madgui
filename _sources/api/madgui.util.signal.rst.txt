@@ -1,0 +1,7 @@
+madgui.util.signal module
+=========================
+
+.. automodule:: madgui.util.signal
+   :members:
+   :undoc-members:
+   :show-inheritance:

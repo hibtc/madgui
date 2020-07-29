@@ -1,0 +1,7 @@
+madgui.widget.correct.multi\_grid module
+========================================
+
+.. automodule:: madgui.widget.correct.multi_grid
+   :members:
+   :undoc-members:
+   :show-inheritance:

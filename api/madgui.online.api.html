@@ -1,0 +1,445 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.api module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.online.control module" href="madgui.online.control.html" />
+    <link rel="prev" title="madgui.online package" href="madgui.online.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.online.html">madgui.online package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.online.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.online.html">madgui.online package</a> &raquo;</li>
+        
+      <li>madgui.online.api module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.online.api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.online.api">
+<span id="madgui-online-api-module"></span><h1>madgui.online.api module<a class="headerlink" href="#module-madgui.online.api" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the API of any online control plugin. Note that the API
+is subject to change (as is most parts of madgui…).</p>
+<p>The user must add their derived <a class="reference internal" href="#madgui.online.api.Backend" title="madgui.online.api.Backend"><code class="xref py py-class docutils literal notranslate"><span class="pre">Backend</span></code></a> to the madgui config as:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">online_control</span><span class="p">:</span>
+  <span class="nt">backend</span><span class="p">:</span> <span class="s">&#39;hit_acs.plugin:HitACS&#39;</span>
+</pre></div>
+</div>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.api.Backend" title="madgui.online.api.Backend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Backend</span></code></a>(session, settings)</p></td>
+<td><p>Interface for a online control plugin.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.api.ParamInfo" title="madgui.online.api.ParamInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParamInfo</span></code></a>(name, ui_name, ui_hint, ui_prec, …)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.online.api.Backend">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.api.</code><code class="sig-name descname">Backend</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em>, <em class="sig-param"><span class="n">settings</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/api.html#Backend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.api.Backend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Interface for a online control plugin.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.api.Backend.connect" title="madgui.online.api.Backend.connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connect</span></code></a>()</p></td>
+<td><p>Connect the online plugin to the control system.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.api.Backend.disconnect" title="madgui.online.api.Backend.disconnect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disconnect</span></code></a>()</p></td>
+<td><p>Unload the online plugin, free resources.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.api.Backend.execute" title="madgui.online.api.Backend.execute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">execute</span></code></a>()</p></td>
+<td><p>Commit transaction.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.api.Backend.get_beam" title="madgui.online.api.Backend.get_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_beam</span></code></a>()</p></td>
+<td><p>Return a dict <code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">value}</span></code> for all beam properties, in MAD-X units.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.api.Backend.param_info" title="madgui.online.api.Backend.param_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">param_info</span></code></a>(knob)</p></td>
+<td><p>Get parameter info for backend key.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.api.Backend.read_monitor" title="madgui.online.api.Backend.read_monitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_monitor</span></code></a>(name)</p></td>
+<td><p>Read out one monitor, return values as dict with keys:</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.api.Backend.read_param" title="madgui.online.api.Backend.read_param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_param</span></code></a>(param)</p></td>
+<td><p>Read parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.api.Backend.read_params" title="madgui.online.api.Backend.read_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_params</span></code></a>([param_names])</p></td>
+<td><p>Read all specified params (by default all).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.api.Backend.write_param" title="madgui.online.api.Backend.write_param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_param</span></code></a>(param, value)</p></td>
+<td><p>Update parameter into control system.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.api.Backend.connect">
+<em class="property">abstract </em><code class="sig-name descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/api.html#Backend.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.api.Backend.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect the online plugin to the control system.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.Backend.disconnect">
+<em class="property">abstract </em><code class="sig-name descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/api.html#Backend.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.api.Backend.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unload the online plugin, free resources.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.Backend.execute">
+<em class="property">abstract </em><code class="sig-name descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/api.html#Backend.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.api.Backend.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit transaction.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.Backend.get_beam">
+<em class="property">abstract </em><code class="sig-name descname">get_beam</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/api.html#Backend.get_beam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.api.Backend.get_beam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dict <code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">value}</span></code> for all beam properties, in MAD-X
+units. At least: particle, mass, charge, energy</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.Backend.param_info">
+<em class="property">abstract </em><code class="sig-name descname">param_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">knob</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/api.html#Backend.param_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.api.Backend.param_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get parameter info for backend key.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.Backend.read_monitor">
+<em class="property">abstract </em><code class="sig-name descname">read_monitor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/api.html#Backend.read_monitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.api.Backend.read_monitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read out one monitor, return values as dict with keys:</p>
+<blockquote>
+<div><p>widthx:     Beam x width
+widthy:     Beam y width
+posx:       Beam x position
+posy:       Beam y position</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.Backend.read_param">
+<em class="property">abstract </em><code class="sig-name descname">read_param</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">param</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/api.html#Backend.read_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.api.Backend.read_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read parameter. Return numeric value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.Backend.read_params">
+<em class="property">abstract </em><code class="sig-name descname">read_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">param_names</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/api.html#Backend.read_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.api.Backend.read_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read all specified params (by default all). Return dict.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.Backend.write_param">
+<em class="property">abstract </em><code class="sig-name descname">write_param</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">param</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/api.html#Backend.write_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.api.Backend.write_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update parameter into control system.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.api.ParamInfo">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.api.</code><code class="sig-name descname">ParamInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">ui_name</span></em>, <em class="sig-param"><span class="n">ui_hint</span></em>, <em class="sig-param"><span class="n">ui_prec</span></em>, <em class="sig-param"><span class="n">unit</span></em>, <em class="sig-param"><span class="n">ui_unit</span></em>, <em class="sig-param"><span class="n">ui_conv</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.online.api.ParamInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.api.ParamInfo.name" title="madgui.online.api.ParamInfo.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
+<td><p>Alias for field number 0</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.api.ParamInfo.ui_conv" title="madgui.online.api.ParamInfo.ui_conv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_conv</span></code></a></p></td>
+<td><p>Alias for field number 6</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.api.ParamInfo.ui_hint" title="madgui.online.api.ParamInfo.ui_hint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_hint</span></code></a></p></td>
+<td><p>Alias for field number 2</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.api.ParamInfo.ui_name" title="madgui.online.api.ParamInfo.ui_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_name</span></code></a></p></td>
+<td><p>Alias for field number 1</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.api.ParamInfo.ui_prec" title="madgui.online.api.ParamInfo.ui_prec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_prec</span></code></a></p></td>
+<td><p>Alias for field number 3</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.api.ParamInfo.ui_unit" title="madgui.online.api.ParamInfo.ui_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_unit</span></code></a></p></td>
+<td><p>Alias for field number 5</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.api.ParamInfo.unit" title="madgui.online.api.ParamInfo.unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit</span></code></a></p></td>
+<td><p>Alias for field number 4</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.api.ParamInfo.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#madgui.online.api.ParamInfo.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.ParamInfo.ui_conv">
+<em class="property">property </em><code class="sig-name descname">ui_conv</code><a class="headerlink" href="#madgui.online.api.ParamInfo.ui_conv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.ParamInfo.ui_hint">
+<em class="property">property </em><code class="sig-name descname">ui_hint</code><a class="headerlink" href="#madgui.online.api.ParamInfo.ui_hint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.ParamInfo.ui_name">
+<em class="property">property </em><code class="sig-name descname">ui_name</code><a class="headerlink" href="#madgui.online.api.ParamInfo.ui_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.ParamInfo.ui_prec">
+<em class="property">property </em><code class="sig-name descname">ui_prec</code><a class="headerlink" href="#madgui.online.api.ParamInfo.ui_prec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.ParamInfo.ui_unit">
+<em class="property">property </em><code class="sig-name descname">ui_unit</code><a class="headerlink" href="#madgui.online.api.ParamInfo.ui_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.api.ParamInfo.unit">
+<em class="property">property </em><code class="sig-name descname">unit</code><a class="headerlink" href="#madgui.online.api.ParamInfo.unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.online.control.html" class="btn btn-neutral float-right" title="madgui.online.control module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.online.html" class="btn btn-neutral float-left" title="madgui.online package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

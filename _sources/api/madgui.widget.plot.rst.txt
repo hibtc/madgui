@@ -1,0 +1,7 @@
+madgui.widget.plot module
+=========================
+
+.. automodule:: madgui.widget.plot
+   :members:
+   :undoc-members:
+   :show-inheritance:

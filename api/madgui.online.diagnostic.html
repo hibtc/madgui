@@ -1,0 +1,723 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.diagnostic module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.online.dialogs module" href="madgui.online.dialogs.html" />
+    <link rel="prev" title="madgui.online.control module" href="madgui.online.control.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.online.html">madgui.online package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.online.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.online.html">madgui.online package</a> &raquo;</li>
+        
+      <li>madgui.online.diagnostic module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.online.diagnostic.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.online.diagnostic">
+<span id="madgui-online-diagnostic-module"></span><h1>madgui.online.diagnostic module<a class="headerlink" href="#module-madgui.online.diagnostic" title="Permalink to this headline">¶</a></h1>
+<p>Widgets for online beam diagnostic tasks, such as emittance estimation,
+adding monitor readouts to plot.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidget" title="madgui.online.diagnostic.MonitorWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MonitorWidget</span></code></a>(session)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase" title="madgui.online.diagnostic.MonitorWidgetBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MonitorWidgetBase</span></code></a>(session)</p></td>
+<td><p>Dialog for selecting SD monitor values to be imported.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.PlotMonitorWidget" title="madgui.online.diagnostic.PlotMonitorWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PlotMonitorWidget</span></code></a>(session)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OffsetsWidget" title="madgui.online.diagnostic.OffsetsWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OffsetsWidget</span></code></a>(*args)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OrbitWidget" title="madgui.online.diagnostic.OrbitWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OrbitWidget</span></code></a>(session)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.EmittanceDialog" title="madgui.online.diagnostic.EmittanceDialog"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EmittanceDialog</span></code></a>(session)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.solve_emit_sys" title="madgui.online.diagnostic.solve_emit_sys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_emit_sys</span></code></a>(Ms, XCs)</p></td>
+<td><p>Solve for S the linear system of equations:</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.twiss_from_sigma" title="madgui.online.diagnostic.twiss_from_sigma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">twiss_from_sigma</span></code></a>(sigma)</p></td>
+<td><p>Compute 1D twiss parameters from 2x2 sigma matrix.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.online.diagnostic.EmittanceDialog">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.diagnostic.</code><code class="sig-name descname">EmittanceDialog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#EmittanceDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.EmittanceDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.online.diagnostic._FitWidget</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.EmittanceDialog.apply" title="madgui.online.diagnostic.EmittanceDialog.apply"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.EmittanceDialog.export_to" title="madgui.online.diagnostic.EmittanceDialog.export_to"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_to</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.EmittanceDialog.match_values" title="madgui.online.diagnostic.EmittanceDialog.match_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match_values</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.EmittanceDialog.on_update" title="madgui.online.diagnostic.EmittanceDialog.on_update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_update</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.EmittanceDialog.showEvent" title="madgui.online.diagnostic.EmittanceDialog.showEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">showEvent</span></code></a>(self, QShowEvent)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.diagnostic.EmittanceDialog.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#EmittanceDialog.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.EmittanceDialog.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.EmittanceDialog.export_to">
+<code class="sig-name descname">export_to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#EmittanceDialog.export_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.EmittanceDialog.export_to" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.EmittanceDialog.match_values">
+<code class="sig-name descname">match_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#EmittanceDialog.match_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.EmittanceDialog.match_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.EmittanceDialog.on_update">
+<code class="sig-name descname">on_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#EmittanceDialog.on_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.EmittanceDialog.on_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.EmittanceDialog.showEvent">
+<code class="sig-name descname">showEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QShowEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#EmittanceDialog.showEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.EmittanceDialog.showEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.diagnostic.MonitorWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.diagnostic.</code><code class="sig-name descname">MonitorWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QDialog</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.diagnostic.</code><code class="sig-name descname">MonitorWidgetBase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>Dialog for selecting SD monitor values to be imported.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.accept" title="madgui.online.diagnostic.MonitorWidgetBase.accept"><code class="xref py py-obj docutils literal notranslate"><span class="pre">accept</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.deselect" title="madgui.online.diagnostic.MonitorWidgetBase.deselect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">deselect</span></code></a>(index)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.draw" title="madgui.online.diagnostic.MonitorWidgetBase.draw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">draw</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.export" title="madgui.online.diagnostic.MonitorWidgetBase.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.get_monitor_row" title="madgui.online.diagnostic.MonitorWidgetBase.get_monitor_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_monitor_row</span></code></a>(i, m)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.num_selected" title="madgui.online.diagnostic.MonitorWidgetBase.num_selected"><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_selected</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.remove" title="madgui.online.diagnostic.MonitorWidgetBase.remove"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.select" title="madgui.online.diagnostic.MonitorWidgetBase.select"><code class="xref py py-obj docutils literal notranslate"><span class="pre">select</span></code></a>(index)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.selected" title="madgui.online.diagnostic.MonitorWidgetBase.selected"><code class="xref py py-obj docutils literal notranslate"><span class="pre">selected</span></code></a>(monitor)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.set_monitor_show" title="madgui.online.diagnostic.MonitorWidgetBase.set_monitor_show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_monitor_show</span></code></a>(i, mon, show)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.update" title="madgui.online.diagnostic.MonitorWidgetBase.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(self)</p></td>
+<td><p>update(self, QRect)</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.exportFilters" title="madgui.online.diagnostic.MonitorWidgetBase.exportFilters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportFilters</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.headline" title="madgui.online.diagnostic.MonitorWidgetBase.headline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">headline</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase.title" title="madgui.online.diagnostic.MonitorWidgetBase.title"><code class="xref py py-obj docutils literal notranslate"><span class="pre">title</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.accept"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.accept" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.deselect">
+<code class="sig-name descname">deselect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.deselect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.deselect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.draw">
+<code class="sig-name descname">draw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.draw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.draw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.export">
+<code class="sig-name descname">export</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.export" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.exportFilters">
+<code class="sig-name descname">exportFilters</code><em class="property"> = [('YAML file', '*.yml')]</em><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.exportFilters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.folder">
+<code class="sig-name descname">folder</code><em class="property"> = None</em><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.get_monitor_row">
+<code class="sig-name descname">get_monitor_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">m</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.get_monitor_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.get_monitor_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.headline">
+<code class="sig-name descname">headline</code><em class="property"> = 'Select for which monitors to plot measurements:'</em><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.headline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.num_selected">
+<code class="sig-name descname">num_selected</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.num_selected"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.num_selected" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.remove" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.select">
+<code class="sig-name descname">select</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.select" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.selected">
+<code class="sig-name descname">selected</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.selected"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.selected" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.set_monitor_show">
+<code class="sig-name descname">set_monitor_show</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">mon</span></em>, <em class="sig-param"><span class="n">show</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.set_monitor_show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.set_monitor_show" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.title">
+<code class="sig-name descname">title</code><em class="property"> = 'Set values in ACS from current sequence'</em><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.MonitorWidgetBase.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#MonitorWidgetBase.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.MonitorWidgetBase.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>update(self, QRect)
+update(self, QRegion)
+update(self, int, int, int, int)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.diagnostic.OffsetsWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.diagnostic.</code><code class="sig-name descname">OffsetsWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OffsetsWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OffsetsWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase" title="madgui.online.diagnostic.MonitorWidgetBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.online.diagnostic.MonitorWidgetBase</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OffsetsWidget.calibrate_offsets" title="madgui.online.diagnostic.OffsetsWidget.calibrate_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calibrate_offsets</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OffsetsWidget.discard" title="madgui.online.diagnostic.OffsetsWidget.discard"><code class="xref py py-obj docutils literal notranslate"><span class="pre">discard</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OffsetsWidget.export_to" title="madgui.online.diagnostic.OffsetsWidget.export_to"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_to</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OffsetsWidget.get_monitor_row" title="madgui.online.diagnostic.OffsetsWidget.get_monitor_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_monitor_row</span></code></a>(i, m)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OffsetsWidget.load" title="madgui.online.diagnostic.OffsetsWidget.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OffsetsWidget.load_from" title="madgui.online.diagnostic.OffsetsWidget.load_from"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_from</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OffsetsWidget.save_offsets" title="madgui.online.diagnostic.OffsetsWidget.save_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_offsets</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OffsetsWidget.showEvent" title="madgui.online.diagnostic.OffsetsWidget.showEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">showEvent</span></code></a>(self, QShowEvent)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OffsetsWidget.ui_file" title="madgui.online.diagnostic.OffsetsWidget.ui_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_file</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OffsetsWidget.calibrate_offsets">
+<code class="sig-name descname">calibrate_offsets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OffsetsWidget.calibrate_offsets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OffsetsWidget.calibrate_offsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OffsetsWidget.discard">
+<code class="sig-name descname">discard</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OffsetsWidget.discard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OffsetsWidget.discard" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OffsetsWidget.export_to">
+<code class="sig-name descname">export_to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OffsetsWidget.export_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OffsetsWidget.export_to" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OffsetsWidget.get_monitor_row">
+<code class="sig-name descname">get_monitor_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">m</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OffsetsWidget.get_monitor_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OffsetsWidget.get_monitor_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OffsetsWidget.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OffsetsWidget.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OffsetsWidget.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OffsetsWidget.load_from">
+<code class="sig-name descname">load_from</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OffsetsWidget.load_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OffsetsWidget.load_from" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OffsetsWidget.save_offsets">
+<code class="sig-name descname">save_offsets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OffsetsWidget.save_offsets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OffsetsWidget.save_offsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OffsetsWidget.showEvent">
+<code class="sig-name descname">showEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QShowEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OffsetsWidget.showEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OffsetsWidget.showEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.diagnostic.OffsetsWidget.ui_file">
+<code class="sig-name descname">ui_file</code><em class="property"> = 'offsetswidget.ui'</em><a class="headerlink" href="#madgui.online.diagnostic.OffsetsWidget.ui_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.diagnostic.OrbitWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.diagnostic.</code><code class="sig-name descname">OrbitWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OrbitWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OrbitWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.online.diagnostic._FitWidget</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OrbitWidget.apply" title="madgui.online.diagnostic.OrbitWidget.apply"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OrbitWidget.export_to" title="madgui.online.diagnostic.OrbitWidget.export_to"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_to</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OrbitWidget.fit_particle_orbit" title="madgui.online.diagnostic.OrbitWidget.fit_particle_orbit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_particle_orbit</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OrbitWidget.on_update" title="madgui.online.diagnostic.OrbitWidget.on_update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_update</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.OrbitWidget.showEvent" title="madgui.online.diagnostic.OrbitWidget.showEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">showEvent</span></code></a>(self, QShowEvent)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OrbitWidget.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OrbitWidget.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OrbitWidget.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OrbitWidget.export_to">
+<code class="sig-name descname">export_to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OrbitWidget.export_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OrbitWidget.export_to" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OrbitWidget.fit_particle_orbit">
+<code class="sig-name descname">fit_particle_orbit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OrbitWidget.fit_particle_orbit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OrbitWidget.fit_particle_orbit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OrbitWidget.on_update">
+<code class="sig-name descname">on_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OrbitWidget.on_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OrbitWidget.on_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.OrbitWidget.showEvent">
+<code class="sig-name descname">showEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QShowEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#OrbitWidget.showEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.OrbitWidget.showEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.diagnostic.PlotMonitorWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.diagnostic.</code><code class="sig-name descname">PlotMonitorWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#PlotMonitorWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.PlotMonitorWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.online.diagnostic.MonitorWidgetBase" title="madgui.online.diagnostic.MonitorWidgetBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.online.diagnostic.MonitorWidgetBase</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.PlotMonitorWidget.exportFilters" title="madgui.online.diagnostic.PlotMonitorWidget.exportFilters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportFilters</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.PlotMonitorWidget.ui_file" title="madgui.online.diagnostic.PlotMonitorWidget.ui_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_file</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.diagnostic.PlotMonitorWidget.export_to" title="madgui.online.diagnostic.PlotMonitorWidget.export_to"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_to</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.diagnostic.PlotMonitorWidget.showEvent" title="madgui.online.diagnostic.PlotMonitorWidget.showEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">showEvent</span></code></a>(self, QShowEvent)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.online.diagnostic.PlotMonitorWidget.exportFilters">
+<code class="sig-name descname">exportFilters</code><em class="property"> = [('YAML file', '*.yml'), ('TEXT file (numpy compatible)', '*.txt')]</em><a class="headerlink" href="#madgui.online.diagnostic.PlotMonitorWidget.exportFilters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.PlotMonitorWidget.export_to">
+<code class="sig-name descname">export_to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#PlotMonitorWidget.export_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.PlotMonitorWidget.export_to" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.diagnostic.PlotMonitorWidget.showEvent">
+<code class="sig-name descname">showEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QShowEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#PlotMonitorWidget.showEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.PlotMonitorWidget.showEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.diagnostic.PlotMonitorWidget.ui_file">
+<code class="sig-name descname">ui_file</code><em class="property"> = 'monitorwidget.ui'</em><a class="headerlink" href="#madgui.online.diagnostic.PlotMonitorWidget.ui_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.online.diagnostic.solve_emit_sys">
+<code class="sig-prename descclassname">madgui.online.diagnostic.</code><code class="sig-name descname">solve_emit_sys</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ms</span></em>, <em class="sig-param"><span class="n">XCs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#solve_emit_sys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.solve_emit_sys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve for S the linear system of equations:</p>
+<blockquote>
+<div><p>(M S Mᵀ)ₓₓ = C</p>
+</div></blockquote>
+<p>For some M, x and C.</p>
+<p>M can be coupled, but S is assumed to be block diagonal, i.e. decoupled:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>S = (X 0 0</dt><dd><p>0 Y 0
+0 0 T)</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Returns S as numpy array.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.online.diagnostic.twiss_from_sigma">
+<code class="sig-prename descclassname">madgui.online.diagnostic.</code><code class="sig-name descname">twiss_from_sigma</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sigma</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/diagnostic.html#twiss_from_sigma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.diagnostic.twiss_from_sigma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute 1D twiss parameters from 2x2 sigma matrix.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.online.dialogs.html" class="btn btn-neutral float-right" title="madgui.online.dialogs module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.online.control.html" class="btn btn-neutral float-left" title="madgui.online.control module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

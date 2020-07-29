@@ -1,0 +1,646 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.params module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.plot module" href="madgui.widget.plot.html" />
+    <link rel="prev" title="madgui.widget.match module" href="madgui.widget.match.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.params module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.params.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.params">
+<span id="madgui-widget-params-module"></span><h1>madgui.widget.params module<a class="headerlink" href="#module-madgui.widget.params" title="Permalink to this headline">¶</a></h1>
+<p>Parameter input dialog.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.ParamInfo" title="madgui.widget.params.ParamInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParamInfo</span></code></a>(name, value[, expr, inform, …])</p></td>
+<td><p>Row info for the TableView [internal].</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable" title="madgui.widget.params.ParamTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParamTable</span></code></a>(fetch[, store, units, model, …])</p></td>
+<td><p>Input controls to show and edit key-value pairs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.CommandEdit" title="madgui.widget.params.CommandEdit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommandEdit</span></code></a>(fetch[, store, units, model, …])</p></td>
+<td><p>TableView based editor window for MAD-X commands.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.GlobalsEdit" title="madgui.widget.params.GlobalsEdit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GlobalsEdit</span></code></a>(model, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.MatrixTable" title="madgui.widget.params.MatrixTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatrixTable</span></code></a>(fetch, shape, get_name, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.TabParamTables" title="madgui.widget.params.TabParamTables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TabParamTables</span></code></a>([tabs])</p></td>
+<td><p>TabWidget that manages multiple ParamTables inside.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.model_params_dialog" title="madgui.widget.params.model_params_dialog"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model_params_dialog</span></code></a>(model[, parent, folder])</p></td>
+<td><p>Create a dialog to edit parameters of a given Model.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.params.CommandEdit">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.params.</code><code class="sig-name descname">CommandEdit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fetch</span></em>, <em class="sig-param"><span class="n">store</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">units</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">model</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">data_key</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#CommandEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.CommandEdit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.params.ParamTable" title="madgui.widget.params.ParamTable"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.params.ParamTable</span></code></a></p>
+<p>TableView based editor window for MAD-X commands. Used for
+viewing/editing elements.</p>
+<p>In addition to the ParamTables features, this class is capable of
+indicating which parameters were explicitly specified by the user and
+showing the expression!</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.CommandEdit.get_comp_unit" title="madgui.widget.params.CommandEdit.get_comp_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_comp_unit</span></code></a>(par, i)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.CommandEdit.get_knob_row" title="madgui.widget.params.CommandEdit.get_knob_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_knob_row</span></code></a>(i, p)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.CommandEdit.get_param_row" title="madgui.widget.params.CommandEdit.get_param_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_param_row</span></code></a>(i, p)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.CommandEdit.get_vector_row" title="madgui.widget.params.CommandEdit.get_vector_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_vector_row</span></code></a>(parent, i, p)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.CommandEdit.set_comp_value" title="madgui.widget.params.CommandEdit.set_comp_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_comp_value</span></code></a>(par, i, _, value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.CommandEdit.set_par_value" title="madgui.widget.params.CommandEdit.set_par_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_par_value</span></code></a>(i, par, value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.CommandEdit.vec_rows" title="madgui.widget.params.CommandEdit.vec_rows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vec_rows</span></code></a>(par)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.params.CommandEdit.get_comp_unit">
+<code class="sig-name descname">get_comp_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">par</span></em>, <em class="sig-param"><span class="n">i</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#CommandEdit.get_comp_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.CommandEdit.get_comp_unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.CommandEdit.get_knob_row">
+<code class="sig-name descname">get_knob_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">p</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#CommandEdit.get_knob_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.CommandEdit.get_knob_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.CommandEdit.get_param_row">
+<code class="sig-name descname">get_param_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">p</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#CommandEdit.get_param_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.CommandEdit.get_param_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.CommandEdit.get_vector_row">
+<code class="sig-name descname">get_vector_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em>, <em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">p</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#CommandEdit.get_vector_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.CommandEdit.get_vector_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.CommandEdit.set_comp_value">
+<code class="sig-name descname">set_comp_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">par</span></em>, <em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">_</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#CommandEdit.set_comp_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.CommandEdit.set_comp_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.CommandEdit.set_par_value">
+<code class="sig-name descname">set_par_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">par</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#CommandEdit.set_par_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.CommandEdit.set_par_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.CommandEdit.vec_rows">
+<code class="sig-name descname">vec_rows</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">par</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#CommandEdit.vec_rows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.CommandEdit.vec_rows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.params.GlobalsEdit">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.params.</code><code class="sig-name descname">GlobalsEdit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#GlobalsEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.GlobalsEdit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.params.ParamTable" title="madgui.widget.params.ParamTable"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.params.ParamTable</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.GlobalsEdit.exportFilters" title="madgui.widget.params.GlobalsEdit.exportFilters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportFilters</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.GlobalsEdit.get_param_row" title="madgui.widget.params.GlobalsEdit.get_param_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_param_row</span></code></a>(i, p)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.widget.params.GlobalsEdit.exportFilters">
+<code class="sig-name descname">exportFilters</code><em class="property"> = [('Strength file', '*.str'), ('YAML file', '*.yml', '*.yaml')]</em><a class="headerlink" href="#madgui.widget.params.GlobalsEdit.exportFilters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.GlobalsEdit.get_param_row">
+<code class="sig-name descname">get_param_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">p</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#GlobalsEdit.get_param_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.GlobalsEdit.get_param_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.params.MatrixTable">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.params.</code><code class="sig-name descname">MatrixTable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fetch</span></em>, <em class="sig-param"><span class="n">shape</span></em>, <em class="sig-param"><span class="n">get_name</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#MatrixTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.MatrixTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.params.ParamTable" title="madgui.widget.params.ParamTable"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.params.ParamTable</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.MatrixTable.fetch_params" title="madgui.widget.params.MatrixTable.fetch_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch_params</span></code></a>(**fetch_args)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.MatrixTable.get_param_row" title="madgui.widget.params.MatrixTable.get_param_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_param_row</span></code></a>(i, row)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.MatrixTable.sections" title="madgui.widget.params.MatrixTable.sections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sections</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.params.MatrixTable.fetch_params">
+<code class="sig-name descname">fetch_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">fetch_args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#MatrixTable.fetch_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.MatrixTable.fetch_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.MatrixTable.get_param_row">
+<code class="sig-name descname">get_param_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">row</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#MatrixTable.get_param_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.MatrixTable.get_param_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.MatrixTable.sections">
+<em class="property">property </em><code class="sig-name descname">sections</code><a class="headerlink" href="#madgui.widget.params.MatrixTable.sections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.params.ParamInfo">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.params.</code><code class="sig-name descname">ParamInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">expr</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">inform</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">mutable</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_type</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Row info for the TableView [internal].</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.params.ParamTable">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.params.</code><code class="sig-name descname">ParamTable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fetch</span></em>, <em class="sig-param"><span class="n">store</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">units</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">model</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">data_key</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="madgui.widget.tableview.html#madgui.widget.tableview.TreeView" title="madgui.widget.tableview.TreeView"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.tableview.TreeView</span></code></a></p>
+<p>Input controls to show and edit key-value pairs.</p>
+<p>The parameters are displayed in 3 columns: name / value / unit.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.curRow" title="madgui.widget.params.ParamTable.curRow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">curRow</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.exportTo" title="madgui.widget.params.ParamTable.exportTo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportTo</span></code></a>(filename)</p></td>
+<td><p>Export parameters to YAML file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.fetch_params" title="madgui.widget.params.ParamTable.fetch_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch_params</span></code></a>(**fetch_args)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.get_param_row" title="madgui.widget.params.ParamTable.get_param_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_param_row</span></code></a>(i, p)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.importFrom" title="madgui.widget.params.ParamTable.importFrom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">importFrom</span></code></a>(filename)</p></td>
+<td><p>Import data from JSON/YAML file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.keyPressEvent" title="madgui.widget.params.ParamTable.keyPressEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keyPressEvent</span></code></a>(event)</p></td>
+<td><p>&lt;Enter&gt;: open editor; &lt;Delete&gt;/&lt;Backspace&gt;: remove value.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.par_rows" title="madgui.widget.params.ParamTable.par_rows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">par_rows</span></code></a>(par)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.setRowValue" title="madgui.widget.params.ParamTable.setRowValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setRowValue</span></code></a>(row, value)</p></td>
+<td><p>Set the value of the parameter in the specified row.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.set_value" title="madgui.widget.params.ParamTable.set_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_value</span></code></a>(i, par, value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.update" title="madgui.widget.params.ParamTable.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(**kw)</p></td>
+<td><p>Update dialog from the datastore.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.exportFilters" title="madgui.widget.params.ParamTable.exportFilters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportFilters</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.exporter" title="madgui.widget.params.ParamTable.exporter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exporter</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.importFilters" title="madgui.widget.params.ParamTable.importFilters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">importFilters</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.params.ParamTable.sections" title="madgui.widget.params.ParamTable.sections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sections</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.curRow">
+<code class="sig-name descname">curRow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable.curRow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable.curRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.params.ParamTable.exportFilters">
+<code class="sig-name descname">exportFilters</code><em class="property"> = [('YAML file', '*.yml', '*.yaml')]</em><a class="headerlink" href="#madgui.widget.params.ParamTable.exportFilters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.exportTo">
+<code class="sig-name descname">exportTo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable.exportTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable.exportTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export parameters to YAML file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.exporter">
+<em class="property">property </em><code class="sig-name descname">exporter</code><a class="headerlink" href="#madgui.widget.params.ParamTable.exporter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.fetch_params">
+<code class="sig-name descname">fetch_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">fetch_args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable.fetch_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable.fetch_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.get_param_row">
+<code class="sig-name descname">get_param_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">p</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable.get_param_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable.get_param_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.params.ParamTable.importFilters">
+<code class="sig-name descname">importFilters</code><em class="property"> = [('YAML file', '*.yml', '*.yaml'), ('JSON file', '*.json')]</em><a class="headerlink" href="#madgui.widget.params.ParamTable.importFilters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.importFrom">
+<code class="sig-name descname">importFrom</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable.importFrom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable.importFrom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import data from JSON/YAML file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.keyPressEvent">
+<code class="sig-name descname">keyPressEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable.keyPressEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable.keyPressEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>&lt;Enter&gt;: open editor; &lt;Delete&gt;/&lt;Backspace&gt;: remove value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.par_rows">
+<code class="sig-name descname">par_rows</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">par</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable.par_rows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable.par_rows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.sections">
+<em class="property">property </em><code class="sig-name descname">sections</code><a class="headerlink" href="#madgui.widget.params.ParamTable.sections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.setRowValue">
+<code class="sig-name descname">setRowValue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">row</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable.setRowValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable.setRowValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of the parameter in the specified row.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.set_value">
+<code class="sig-name descname">set_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">par</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable.set_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable.set_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.ParamTable.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kw</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#ParamTable.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.ParamTable.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update dialog from the datastore.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.params.TabParamTables">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.params.</code><code class="sig-name descname">TabParamTables</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tabs</span><span class="o">=</span><span class="default_value">()</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#TabParamTables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.TabParamTables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QTabWidget</span></code></p>
+<p>TabWidget that manages multiple ParamTables inside.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.TabParamTables.exporter" title="madgui.widget.params.TabParamTables.exporter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exporter</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.params.TabParamTables.update" title="madgui.widget.params.TabParamTables.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(self)</p></td>
+<td><p>update(self, QRect)</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.params.TabParamTables.exporter">
+<em class="property">property </em><code class="sig-name descname">exporter</code><a class="headerlink" href="#madgui.widget.params.TabParamTables.exporter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.params.TabParamTables.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#TabParamTables.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.TabParamTables.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>update(self, QRect)
+update(self, QRegion)
+update(self, int, int, int, int)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.widget.params.model_params_dialog">
+<code class="sig-prename descclassname">madgui.widget.params.</code><code class="sig-name descname">model_params_dialog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">folder</span><span class="o">=</span><span class="default_value">'.'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/params.html#model_params_dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.params.model_params_dialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a dialog to edit parameters of a given Model.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.plot.html" class="btn btn-neutral float-right" title="madgui.widget.plot module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.match.html" class="btn btn-neutral float-left" title="madgui.widget.match module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

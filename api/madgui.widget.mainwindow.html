@@ -1,0 +1,615 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.mainwindow module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.match module" href="madgui.widget.match.html" />
+    <link rel="prev" title="madgui.widget.log module" href="madgui.widget.log.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.mainwindow module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.mainwindow.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.mainwindow">
+<span id="madgui-widget-mainwindow-module"></span><h1>madgui.widget.mainwindow module<a class="headerlink" href="#module-madgui.widget.mainwindow" title="Permalink to this headline">¶</a></h1>
+<p>Main window component for madgui.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow" title="madgui.widget.mainwindow.MainWindow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MainWindow</span></code></a>(session, *args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.mainwindow.MainWindow">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.mainwindow.</code><code class="sig-name descname">MainWindow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QMainWindow</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.createControls" title="madgui.widget.mainwindow.MainWindow.createControls"><code class="xref py py-obj docutils literal notranslate"><span class="pre">createControls</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.createMenu" title="madgui.widget.mainwindow.MainWindow.createMenu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">createMenu</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.decreaseFontSize" title="madgui.widget.mainwindow.MainWindow.decreaseFontSize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decreaseFontSize</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.execFile" title="madgui.widget.mainwindow.MainWindow.execFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">execFile</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.fileOpen" title="madgui.widget.mainwindow.MainWindow.fileOpen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fileOpen</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.graphs" title="madgui.widget.mainwindow.MainWindow.graphs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">graphs</span></code></a>(name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.helpAboutQt" title="madgui.widget.mainwindow.MainWindow.helpAboutQt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">helpAboutQt</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.increaseFontSize" title="madgui.widget.mainwindow.MainWindow.increaseFontSize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">increaseFontSize</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.initUI" title="madgui.widget.mainwindow.MainWindow.initUI"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initUI</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.loadBeam" title="madgui.widget.mainwindow.MainWindow.loadBeam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadBeam</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.loadStrengths" title="madgui.widget.mainwindow.MainWindow.loadStrengths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadStrengths</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.loadTwiss" title="madgui.widget.mainwindow.MainWindow.loadTwiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadTwiss</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.log_command" title="madgui.widget.mainwindow.MainWindow.log_command"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_command</span></code></a>(text)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.model_args" title="madgui.widget.mainwindow.MainWindow.model_args"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model_args</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.open_graph" title="madgui.widget.mainwindow.MainWindow.open_graph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open_graph</span></code></a>(name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.refreshTwiss" title="madgui.widget.mainwindow.MainWindow.refreshTwiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">refreshTwiss</span></code></a>()</p></td>
+<td><p>Redo twiss and redraw plot.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.reverseSequence" title="madgui.widget.mainwindow.MainWindow.reverseSequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reverseSequence</span></code></a>()</p></td>
+<td><p>Reverse sequence from back to front.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.saveBeam" title="madgui.widget.mainwindow.MainWindow.saveBeam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">saveBeam</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.saveCommands" title="madgui.widget.mainwindow.MainWindow.saveCommands"><code class="xref py py-obj docutils literal notranslate"><span class="pre">saveCommands</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.saveStrengths" title="madgui.widget.mainwindow.MainWindow.saveStrengths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">saveStrengths</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.saveTwiss" title="madgui.widget.mainwindow.MainWindow.saveTwiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">saveTwiss</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.session_data" title="madgui.widget.mainwindow.MainWindow.session_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">session_data</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.setFontSize" title="madgui.widget.mainwindow.MainWindow.setFontSize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setFontSize</span></code></a>(size)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.setInterpolate" title="madgui.widget.mainwindow.MainWindow.setInterpolate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setInterpolate</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.setLogSize" title="madgui.widget.mainwindow.MainWindow.setLogSize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setLogSize</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.setNumberFormat" title="madgui.widget.mainwindow.MainWindow.setNumberFormat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setNumberFormat</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.showTwiss" title="madgui.widget.mainwindow.MainWindow.showTwiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">showTwiss</span></code></a>([name])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.toggleSpinBox" title="madgui.widget.mainwindow.MainWindow.toggleSpinBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">toggleSpinBox</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.update_twiss" title="madgui.widget.mainwindow.MainWindow.update_twiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_twiss</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.viewFloorPlan" title="madgui.widget.mainwindow.MainWindow.viewFloorPlan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewFloorPlan</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.viewLayout3d" title="madgui.widget.mainwindow.MainWindow.viewLayout3d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewLayout3d</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.viewShell" title="madgui.widget.mainwindow.MainWindow.viewShell"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewShell</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.dataReceived" title="madgui.widget.mainwindow.MainWindow.dataReceived"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataReceived</span></code></a></p></td>
+<td><p>Signal&lt;&lt;class ‘object’&gt;&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.editInitialConditions" title="madgui.widget.mainwindow.MainWindow.editInitialConditions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">editInitialConditions</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.folder" title="madgui.widget.mainwindow.MainWindow.folder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">folder</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.helpAboutCPyMAD" title="madgui.widget.mainwindow.MainWindow.helpAboutCPyMAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">helpAboutCPyMAD</span></code></a></p></td>
+<td><p>Show about dialog.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.helpAboutMadGUI" title="madgui.widget.mainwindow.MainWindow.helpAboutMadGUI"><code class="xref py py-obj docutils literal notranslate"><span class="pre">helpAboutMadGUI</span></code></a></p></td>
+<td><p>Show about dialog.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.helpAboutMadX" title="madgui.widget.mainwindow.MainWindow.helpAboutMadX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">helpAboutMadX</span></code></a></p></td>
+<td><p>Show about dialog.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.helpAboutPython" title="madgui.widget.mainwindow.MainWindow.helpAboutPython"><code class="xref py py-obj docutils literal notranslate"><span class="pre">helpAboutPython</span></code></a></p></td>
+<td><p>Show about dialog.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.ui_file" title="madgui.widget.mainwindow.MainWindow.ui_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_file</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.mainwindow.MainWindow.viewMatchDialog" title="madgui.widget.mainwindow.MainWindow.viewMatchDialog"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewMatchDialog</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.createControls">
+<code class="sig-name descname">createControls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.createControls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.createControls" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.createMenu">
+<code class="sig-name descname">createMenu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.createMenu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.createMenu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.mainwindow.MainWindow.dataReceived">
+<code class="sig-name descname">dataReceived</code><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.dataReceived" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&lt;class ‘object’&gt;&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.decreaseFontSize">
+<code class="sig-name descname">decreaseFontSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.decreaseFontSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.decreaseFontSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.editInitialConditions">
+<em class="property">property </em><code class="sig-name descname">editInitialConditions</code><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.editInitialConditions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.execFile">
+<code class="sig-name descname">execFile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.execFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.execFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.fileOpen">
+<code class="sig-name descname">fileOpen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.fileOpen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.fileOpen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.folder">
+<em class="property">property </em><code class="sig-name descname">folder</code><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.graphs">
+<code class="sig-name descname">graphs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.graphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.graphs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.helpAboutCPyMAD">
+<em class="property">property </em><code class="sig-name descname">helpAboutCPyMAD</code><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.helpAboutCPyMAD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show about dialog.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.helpAboutMadGUI">
+<em class="property">property </em><code class="sig-name descname">helpAboutMadGUI</code><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.helpAboutMadGUI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show about dialog.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.helpAboutMadX">
+<em class="property">property </em><code class="sig-name descname">helpAboutMadX</code><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.helpAboutMadX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show about dialog.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.helpAboutPython">
+<em class="property">property </em><code class="sig-name descname">helpAboutPython</code><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.helpAboutPython" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show about dialog.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.helpAboutQt">
+<code class="sig-name descname">helpAboutQt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.helpAboutQt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.helpAboutQt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.increaseFontSize">
+<code class="sig-name descname">increaseFontSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.increaseFontSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.increaseFontSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.initUI">
+<code class="sig-name descname">initUI</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.initUI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.initUI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.loadBeam">
+<code class="sig-name descname">loadBeam</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.loadBeam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.loadBeam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.loadStrengths">
+<code class="sig-name descname">loadStrengths</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.loadStrengths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.loadStrengths" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.loadTwiss">
+<code class="sig-name descname">loadTwiss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.loadTwiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.loadTwiss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.log_command">
+<code class="sig-name descname">log_command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.log_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.log_command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.model_args">
+<code class="sig-name descname">model_args</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.model_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.model_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.open_graph">
+<code class="sig-name descname">open_graph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.open_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.open_graph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.refreshTwiss">
+<code class="sig-name descname">refreshTwiss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.refreshTwiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.refreshTwiss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redo twiss and redraw plot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.reverseSequence">
+<code class="sig-name descname">reverseSequence</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.reverseSequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.reverseSequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverse sequence from back to front. Experimental feature. Not
+implemented for all element types.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.saveBeam">
+<code class="sig-name descname">saveBeam</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.saveBeam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.saveBeam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.saveCommands">
+<code class="sig-name descname">saveCommands</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.saveCommands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.saveCommands" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.saveStrengths">
+<code class="sig-name descname">saveStrengths</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.saveStrengths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.saveStrengths" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.saveTwiss">
+<code class="sig-name descname">saveTwiss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.saveTwiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.saveTwiss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.session_data">
+<code class="sig-name descname">session_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.session_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.session_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.setFontSize">
+<code class="sig-name descname">setFontSize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.setFontSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.setFontSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.setInterpolate">
+<code class="sig-name descname">setInterpolate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.setInterpolate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.setInterpolate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.setLogSize">
+<code class="sig-name descname">setLogSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.setLogSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.setLogSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.setNumberFormat">
+<code class="sig-name descname">setNumberFormat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.setNumberFormat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.setNumberFormat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.showTwiss">
+<code class="sig-name descname">showTwiss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.showTwiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.showTwiss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.toggleSpinBox">
+<code class="sig-name descname">toggleSpinBox</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.toggleSpinBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.toggleSpinBox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.mainwindow.MainWindow.ui_file">
+<code class="sig-name descname">ui_file</code><em class="property"> = 'mainwindow.ui'</em><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.ui_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.update_twiss">
+<code class="sig-name descname">update_twiss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.update_twiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.update_twiss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.viewFloorPlan">
+<code class="sig-name descname">viewFloorPlan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.viewFloorPlan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.viewFloorPlan" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.viewLayout3d">
+<code class="sig-name descname">viewLayout3d</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.viewLayout3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.viewLayout3d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.viewMatchDialog">
+<em class="property">property </em><code class="sig-name descname">viewMatchDialog</code><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.viewMatchDialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.mainwindow.MainWindow.viewShell">
+<code class="sig-name descname">viewShell</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/mainwindow.html#MainWindow.viewShell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.mainwindow.MainWindow.viewShell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.match.html" class="btn btn-neutral float-right" title="madgui.widget.match module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.log.html" class="btn btn-neutral float-left" title="madgui.widget.log module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

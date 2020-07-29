@@ -1,0 +1,22 @@
+madgui package
+==============
+
+.. automodule:: madgui
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 2
+
+   madgui.core
+   madgui.data
+   madgui.model
+   madgui.online
+   madgui.plot
+   madgui.survey
+   madgui.util
+   madgui.widget

@@ -1,0 +1,454 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.undo &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.util.undo</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.util.undo</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides a lightweight alternative for the ``QUndoStack`` that</span>
+<span class="sd">can be used in the absence of Qt and without initializing a ``QApplication``.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Command&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;UndoCommand&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;UndoStack&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.misc</span> <span class="kn">import</span> <span class="n">invalidate</span>
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+
+
+<div class="viewcode-block" id="Command"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.Command">[docs]</a><span class="k">class</span> <span class="nc">Command</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;Base class for un-/re-doable actions. Command objects are only to</span>
+<span class="sd">    be pushed onto an UndoStack and must not be called directly.&quot;&quot;&quot;</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+<div class="viewcode-block" id="Command.undo"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.Command.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Undo the action represented by this command.&quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="Command.redo"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.Command.redo">[docs]</a>    <span class="k">def</span> <span class="nf">redo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Exec the action represented by this command.&quot;&quot;&quot;</span></div></div>
+
+
+<div class="viewcode-block" id="UndoCommand"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoCommand">[docs]</a><span class="k">class</span> <span class="nc">UndoCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A diff-based state transition, initialized with ``old`` and ``new`` values</span>
+<span class="sd">    that must be ``apply``-ed to go backward or forward in time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="n">apply</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_old</span> <span class="o">=</span> <span class="n">new</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new</span> <span class="o">=</span> <span class="n">old</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply</span> <span class="o">=</span> <span class="n">apply</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+
+<div class="viewcode-block" id="UndoCommand.undo"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoCommand.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Go backward in time by applying the ``old`` state.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_old</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UndoCommand.redo"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoCommand.redo">[docs]</a>    <span class="k">def</span> <span class="nf">redo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Go forward in time by applying the ``new`` state.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_new</span><span class="p">)</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">Stack</span><span class="p">:</span>
+
+    <span class="c1"># TODO: merge this class with History and Selection</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">items</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Empty the stack.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove all items past our current position.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the previous value from the buffer.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">unpop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Increase index by one and return the newly available item.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">can_pop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check whether an item can be popped from the stack.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">can_unpop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check whether an item is available past the top of the stack.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">top</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the top item.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">truncate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Forget all elements above current index.&quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">:]</span>
+
+
+<span class="k">class</span> <span class="nc">Macro</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;An accumulation of multiple recorded subcommands.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">commands</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commands</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">commands</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">commands</span>
+
+    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Undo all subcommands in reverse order.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">undo</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">redo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Exec all subcommands in original order.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">:</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">redo</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return number of commands.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="UndoStack"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack">[docs]</a><span class="k">class</span> <span class="nc">UndoStack</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Serves as lightweight replacement for QUndoStack.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">changed</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_root</span> <span class="o">=</span> <span class="n">Stack</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root</span>
+
+<div class="viewcode-block" id="UndoStack.clear"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clear the stack. This can only be done when no macro is active.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="UndoStack.push"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.push">[docs]</a>    <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Push and execute command, and truncate all history after current</span>
+<span class="sd">        stack position.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="n">command</span><span class="o">.</span><span class="n">redo</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="UndoStack.truncate"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.truncate">[docs]</a>    <span class="k">def</span> <span class="nf">truncate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Truncate history after current stack position.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="UndoStack.count"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return number of commands on the stack.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">items</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UndoStack.command"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.command">[docs]</a>    <span class="k">def</span> <span class="nf">command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the i-th command in the stack.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="UndoStack.can_undo"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.can_undo">[docs]</a>    <span class="k">def</span> <span class="nf">can_undo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if an undo action can be performed.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span><span class="o">.</span><span class="n">can_pop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="UndoStack.can_redo"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.can_redo">[docs]</a>    <span class="k">def</span> <span class="nf">can_redo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if a redo action can be performed.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span><span class="o">.</span><span class="n">can_unpop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="UndoStack.undo"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Undo command before current stack pointer.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span><span class="o">.</span><span class="n">can_pop</span><span class="p">():</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">undo</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="UndoStack.redo"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.redo">[docs]</a>    <span class="k">def</span> <span class="nf">redo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Redo command behind current stack pointer.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span><span class="o">.</span><span class="n">can_unpop</span><span class="p">():</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span><span class="o">.</span><span class="n">unpop</span><span class="p">()</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">redo</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="UndoStack.macro"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.macro">[docs]</a>    <span class="nd">@contextmanager</span>
+    <span class="k">def</span> <span class="nf">macro</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">stack</span> <span class="o">=</span> <span class="n">Stack</span><span class="p">()</span>
+        <span class="n">macro</span> <span class="o">=</span> <span class="n">Macro</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">stack</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+        <span class="n">backup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">macro</span><span class="p">)</span>    <span class="c1"># These two lines must be in this order to</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span> <span class="o">=</span> <span class="n">stack</span>  <span class="c1"># avoid an infinite recursion!</span>
+            <span class="k">yield</span> <span class="n">macro</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span> <span class="o">=</span> <span class="n">backup</span>
+            <span class="n">stack</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">macro</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span><span class="o">.</span><span class="n">top</span><span class="p">()</span> <span class="ow">is</span> <span class="n">macro</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">undo</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="UndoStack.rollback"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.rollback">[docs]</a>    <span class="nd">@contextmanager</span>
+    <span class="k">def</span> <span class="nf">rollback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;temporary change&quot;</span><span class="p">,</span> <span class="n">transient</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">macro</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">transient</span><span class="p">:</span>
+            <span class="n">old</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;_twiss&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">macro</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">as</span> <span class="n">macro</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">macro</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf</span><span class="o">.</span><span class="n">top</span><span class="p">()</span> <span class="ow">is</span> <span class="n">macro</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">undo</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">transient</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">old</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;twiss&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_twiss</span> <span class="o">=</span> <span class="n">old</span></div>
+
+<div class="viewcode-block" id="UndoStack.create_undo_action"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.create_undo_action">[docs]</a>    <span class="k">def</span> <span class="nf">create_undo_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a :class:`~PyQt5.QtWidgets.QAction` for an &quot;Undo&quot; button.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QAction</span><span class="p">,</span> <span class="n">QStyle</span>
+        <span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="kn">import</span> <span class="n">QKeySequence</span>
+        <span class="n">icon</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">style</span><span class="p">()</span><span class="o">.</span><span class="n">standardIcon</span><span class="p">(</span><span class="n">QStyle</span><span class="o">.</span><span class="n">SP_ArrowBack</span><span class="p">)</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">QAction</span><span class="p">(</span><span class="n">icon</span><span class="p">,</span> <span class="s2">&quot;Undo&quot;</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">setShortcut</span><span class="p">(</span><span class="n">QKeySequence</span><span class="o">.</span><span class="n">Undo</span><span class="p">)</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">setStatusTip</span><span class="p">(</span><span class="s2">&quot;Undo&quot;</span><span class="p">)</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">undo</span><span class="p">)</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">can_undo</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">action</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">can_undo</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="n">action</span></div>
+
+<div class="viewcode-block" id="UndoStack.create_redo_action"><a class="viewcode-back" href="../../../api/madgui.util.undo.html#madgui.util.undo.UndoStack.create_redo_action">[docs]</a>    <span class="k">def</span> <span class="nf">create_redo_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a :class:`~PyQt5.QtWidgets.QAction` for a &quot;Redo&quot; button.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QAction</span><span class="p">,</span> <span class="n">QStyle</span>
+        <span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="kn">import</span> <span class="n">QKeySequence</span>
+        <span class="n">icon</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">style</span><span class="p">()</span><span class="o">.</span><span class="n">standardIcon</span><span class="p">(</span><span class="n">QStyle</span><span class="o">.</span><span class="n">SP_ArrowForward</span><span class="p">)</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">QAction</span><span class="p">(</span><span class="n">icon</span><span class="p">,</span> <span class="s2">&quot;Redo&quot;</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">setShortcut</span><span class="p">(</span><span class="n">QKeySequence</span><span class="o">.</span><span class="n">Redo</span><span class="p">)</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">setStatusTip</span><span class="p">(</span><span class="s2">&quot;Redo&quot;</span><span class="p">)</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">redo</span><span class="p">)</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">can_redo</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">action</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">can_redo</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="n">action</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

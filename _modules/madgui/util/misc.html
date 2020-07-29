@@ -1,0 +1,346 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.misc &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.util.misc</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.util.misc</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Misc programming toolbox.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;memoize&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;invalidate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;cachedproperty&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ranges&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;strip_suffix&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;relpath&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;userpath&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+
+<span class="c1"># class utils</span>
+
+<div class="viewcode-block" id="memoize"><a class="viewcode-back" href="../../../api/madgui.util.misc.html#madgui.util.misc.memoize">[docs]</a><span class="k">def</span> <span class="nf">memoize</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator for cached method that remembers its result from the first</span>
+<span class="sd">    execution and returns this in all subsequent calls rather than executing</span>
+<span class="sd">    the function again.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; class Foo:</span>
+<span class="sd">        ...     @memoize</span>
+<span class="sd">        ...     def bar(self):</span>
+<span class="sd">        ...         print(&quot;executing bar…&quot;)</span>
+<span class="sd">        ...         return &#39;bar&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; foo = Foo()</span>
+<span class="sd">        &gt;&gt;&gt; foo.bar()</span>
+<span class="sd">        executing bar…</span>
+<span class="sd">        &#39;bar&#39;</span>
+<span class="sd">        &gt;&gt;&gt; foo.bar()</span>
+<span class="sd">        &#39;bar&#39;</span>
+
+<span class="sd">    The cached result can be cleared using ``invalidate``:</span>
+
+<span class="sd">        &gt;&gt;&gt; invalidate(foo, &#39;bar&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; foo.bar()</span>
+<span class="sd">        executing bar…</span>
+<span class="sd">        &#39;bar&#39;</span>
+
+<span class="sd">    If arguments are passed, the result is always recomputed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">args</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span>
+    <span class="k">return</span> <span class="n">get</span></div>
+
+
+<div class="viewcode-block" id="invalidate"><a class="viewcode-back" href="../../../api/madgui.util.misc.html#madgui.util.misc.invalidate">[docs]</a><span class="k">def</span> <span class="nf">invalidate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invalidate cache for memoized function.&quot;&quot;&quot;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">func</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">delattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="cachedproperty"><a class="viewcode-back" href="../../../api/madgui.util.misc.html#madgui.util.misc.cachedproperty">[docs]</a><span class="k">def</span> <span class="nf">cachedproperty</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator for cached, writeable properties.</span>
+
+<span class="sd">        &gt;&gt;&gt; class Foo:</span>
+<span class="sd">        ...     @cachedproperty</span>
+<span class="sd">        ...     def bar(self):</span>
+<span class="sd">        ...         return [&#39;bar&#39;]</span>
+
+<span class="sd">        &gt;&gt;&gt; foo = Foo()</span>
+<span class="sd">        &gt;&gt;&gt; foo.bar</span>
+<span class="sd">        [&#39;bar&#39;]</span>
+
+<span class="sd">        &gt;&gt;&gt; foo.bar is foo.bar</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &gt;&gt;&gt; foo.bar = &#39;qux&#39;</span>
+<span class="sd">        &gt;&gt;&gt; foo.bar</span>
+<span class="sd">        &#39;qux&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; del foo.bar</span>
+<span class="sd">        &gt;&gt;&gt; foo.bar</span>
+<span class="sd">        [&#39;bar&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="n">get_</span> <span class="o">=</span> <span class="n">memoize</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">del_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">property</span><span class="p">(</span><span class="n">get_</span><span class="p">,</span> <span class="n">set_</span><span class="p">,</span> <span class="n">del_</span><span class="p">)</span></div>
+
+
+<span class="c1"># dictionary utils</span>
+
+<div class="viewcode-block" id="ranges"><a class="viewcode-back" href="../../../api/madgui.util.misc.html#madgui.util.misc.ranges">[docs]</a><span class="k">def</span> <span class="nf">ranges</span><span class="p">(</span><span class="n">nums</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Identify groups of consecutive numbers in a list. Returns a list of</span>
+<span class="sd">    intervals ``[start, end)`` as tuples.&quot;&quot;&quot;</span>
+    <span class="n">nums</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nums</span><span class="p">))</span>
+    <span class="n">gaps</span> <span class="o">=</span> <span class="p">[[</span><span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nums</span><span class="p">,</span> <span class="n">nums</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="k">if</span> <span class="n">s</span><span class="o">+</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="n">e</span><span class="p">]</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">nums</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gaps</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">edges</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="strip_suffix"><a class="viewcode-back" href="../../../api/madgui.util.misc.html#madgui.util.misc.strip_suffix">[docs]</a><span class="k">def</span> <span class="nf">strip_suffix</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">suffix</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Strip a suffix from a string, if present.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">suffix</span><span class="p">)]</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">suffix</span><span class="p">)</span> <span class="ow">and</span> <span class="n">suffix</span> <span class="k">else</span> <span class="n">s</span></div>
+
+
+<div class="viewcode-block" id="relpath"><a class="viewcode-back" href="../../../api/madgui.util.misc.html#madgui.util.misc.relpath">[docs]</a><span class="k">def</span> <span class="nf">relpath</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Try to make ``path`` relative to ``start`` using ``os.path.relpath``,</span>
+<span class="sd">    but returns ``path`` itself if this fails (e.g. if they are on different</span>
+<span class="sd">    drives on windows).&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># e.g. different drive on windows</span>
+        <span class="k">return</span> <span class="n">path</span></div>
+
+
+<div class="viewcode-block" id="userpath"><a class="viewcode-back" href="../../../api/madgui.util.misc.html#madgui.util.misc.userpath">[docs]</a><span class="k">def</span> <span class="nf">userpath</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Expand &#39;~&#39; and environment variables in a user-given path string.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">path</span><span class="p">)))</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

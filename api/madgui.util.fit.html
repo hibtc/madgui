@@ -1,0 +1,340 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.fit module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.util.history module" href="madgui.util.history.html" />
+    <link rel="prev" title="madgui.util.export module" href="madgui.util.export.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.util.html">madgui.util package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.util.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.util.html">madgui.util package</a> &raquo;</li>
+        
+      <li>madgui.util.fit module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.util.fit.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.util.fit">
+<span id="madgui-util-fit-module"></span><h1>madgui.util.fit module<a class="headerlink" href="#module-madgui.util.fit" title="Permalink to this headline">¶</a></h1>
+<p>Utilities for fitting objective functions.</p>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.fit.fit" title="madgui.util.fit.fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code></a>(f, x0[, algorithm])</p></td>
+<td><p>Fit objective function <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code>, start from <code class="docutils literal notranslate"><span class="pre">x0</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.fit.reduced_chisq" title="madgui.util.fit.reduced_chisq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reduced_chisq</span></code></a>(residuals[, ddof])</p></td>
+<td><p>Compute reduced chi-squared.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.fit.fit_basinhopping" title="madgui.util.fit.fit_basinhopping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_basinhopping</span></code></a>(f, x0[, iterations, T, …])</p></td>
+<td><p>Global optimization of <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> based on <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.basinhopping()</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.fit.fit_diffevo" title="madgui.util.fit.fit_diffevo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_diffevo</span></code></a>(f, x0[, delta, bounds, …])</p></td>
+<td><p>Global optimization of <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> based on <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.differential_evolution()</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.fit.fit_minimize" title="madgui.util.fit.fit_minimize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_minimize</span></code></a>(f, x0[, iterations])</p></td>
+<td><p>Fit objective function <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> using least-squares fit via <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.fit.fit_svd" title="madgui.util.fit.fit_svd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_svd</span></code></a>(f, x0[, jac, tol, delta, …])</p></td>
+<td><p>Fit objective function <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> using a naive repeated linear least-squares fit using the svd-based pseudo inverse.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.fit.fit_lstsq" title="madgui.util.fit.fit_lstsq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_lstsq</span></code></a>(f, x0[, jac, tol, delta, …])</p></td>
+<td><p>Fit objective function <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> using a naive repeated linear least-squares fit.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.fit.fit_lstsq_oneshot" title="madgui.util.fit.fit_lstsq_oneshot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_lstsq_oneshot</span></code></a>(lstsq, f, x0[, y0, delta, …])</p></td>
+<td><p>Single least squares fit for <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> around <code class="docutils literal notranslate"><span class="pre">x0</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.fit.jac_twopoint" title="madgui.util.fit.jac_twopoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">jac_twopoint</span></code></a>(f, x0[, y0, delta])</p></td>
+<td><p>Compute jacobian <code class="docutils literal notranslate"><span class="pre">df/dx_i</span></code> using two point-finite differencing.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="madgui.util.fit.fit">
+<code class="sig-prename descclassname">madgui.util.fit.</code><code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">algorithm</span><span class="o">=</span><span class="default_value">'minimize'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; scipy.optimize.optimize.OptimizeResult<a class="reference internal" href="../_modules/madgui/util/fit.html#fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.fit.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit objective function <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code>, start from <code class="docutils literal notranslate"><span class="pre">x0</span></code>. Returns
+<code class="docutils literal notranslate"><span class="pre">scipy.optimize.OptimizeResult</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.fit.fit_basinhopping">
+<code class="sig-prename descclassname">madgui.util.fit.</code><code class="sig-name descname">fit_basinhopping</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">iterations</span><span class="o">=</span><span class="default_value">20</span></em>, <em class="sig-param"><span class="n">T</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">stepsize</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/fit.html#fit_basinhopping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.fit.fit_basinhopping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global optimization of <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> based on
+<code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.basinhopping()</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.fit.fit_diffevo">
+<code class="sig-prename descclassname">madgui.util.fit.</code><code class="sig-name descname">fit_diffevo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">delta</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">bounds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">iterations</span><span class="o">=</span><span class="default_value">20</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'best1bin'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/fit.html#fit_diffevo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.fit.fit_diffevo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global optimization of <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> based on
+<code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.differential_evolution()</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.fit.fit_lstsq">
+<code class="sig-prename descclassname">madgui.util.fit.</code><code class="sig-name descname">fit_lstsq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">jac</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">1e-08</span></em>, <em class="sig-param"><span class="n">delta</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">iterations</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">callback</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rcond</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">lstsq</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/fit.html#fit_lstsq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.fit.fit_lstsq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit objective function <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> using a naive repeated linear
+least-squares fit.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.fit.fit_lstsq_oneshot">
+<code class="sig-prename descclassname">madgui.util.fit.</code><code class="sig-name descname">fit_lstsq_oneshot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lstsq</span></em>, <em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">y0</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">delta</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">jac</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rcond</span><span class="o">=</span><span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/fit.html#fit_lstsq_oneshot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.fit.fit_lstsq_oneshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single least squares fit for <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> around <code class="docutils literal notranslate"><span class="pre">x0</span></code>.
+Returns <code class="docutils literal notranslate"><span class="pre">(Δx,</span> <span class="pre">Δy)</span></code>, where <code class="docutils literal notranslate"><span class="pre">Δy</span></code> is the linear hypothesis for how much
+<code class="docutils literal notranslate"><span class="pre">y</span></code> will change due to change in <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.fit.fit_minimize">
+<code class="sig-prename descclassname">madgui.util.fit.</code><code class="sig-name descname">fit_minimize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">iterations</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/fit.html#fit_minimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.fit.fit_minimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit objective function <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> using least-squares fit via
+<code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.fit.fit_svd">
+<code class="sig-prename descclassname">madgui.util.fit.</code><code class="sig-name descname">fit_svd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">jac</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">1e-08</span></em>, <em class="sig-param"><span class="n">delta</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">iterations</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">callback</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rcond</span><span class="o">=</span><span class="default_value">0.01</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/fit.html#fit_svd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.fit.fit_svd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit objective function <code class="docutils literal notranslate"><span class="pre">f(x)</span> <span class="pre">=</span> <span class="pre">y</span></code> using a naive repeated linear
+least-squares fit using the svd-based pseudo inverse.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.fit.jac_twopoint">
+<code class="sig-prename descclassname">madgui.util.fit.</code><code class="sig-name descname">jac_twopoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">y0</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">delta</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/fit.html#jac_twopoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.fit.jac_twopoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute jacobian <code class="docutils literal notranslate"><span class="pre">df/dx_i</span></code> using two point-finite differencing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.fit.reduced_chisq">
+<code class="sig-prename descclassname">madgui.util.fit.</code><code class="sig-name descname">reduced_chisq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">residuals</span></em>, <em class="sig-param"><span class="n">ddof</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/fit.html#reduced_chisq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.fit.reduced_chisq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute reduced chi-squared.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.util.history.html" class="btn btn-neutral float-right" title="madgui.util.history module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.util.export.html" class="btn btn-neutral float-left" title="madgui.util.export module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

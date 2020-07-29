@@ -1,0 +1,498 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.undo module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.util.unit module" href="madgui.util.unit.html" />
+    <link rel="prev" title="madgui.util.table module" href="madgui.util.table.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.util.html">madgui.util package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.util.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.util.html">madgui.util package</a> &raquo;</li>
+        
+      <li>madgui.util.undo module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.util.undo.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.util.undo">
+<span id="madgui-util-undo-module"></span><h1>madgui.util.undo module<a class="headerlink" href="#module-madgui.util.undo" title="Permalink to this headline">¶</a></h1>
+<p>This module provides a lightweight alternative for the <code class="docutils literal notranslate"><span class="pre">QUndoStack</span></code> that
+can be used in the absence of Qt and without initializing a <code class="docutils literal notranslate"><span class="pre">QApplication</span></code>.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.Command" title="madgui.util.undo.Command"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Command</span></code></a>()</p></td>
+<td><p>Base class for un-/re-doable actions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.undo.UndoCommand" title="madgui.util.undo.UndoCommand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UndoCommand</span></code></a>(old, new, apply, text)</p></td>
+<td><p>A diff-based state transition, initialized with <code class="docutils literal notranslate"><span class="pre">old</span></code> and <code class="docutils literal notranslate"><span class="pre">new</span></code> values that must be <code class="docutils literal notranslate"><span class="pre">apply</span></code>-ed to go backward or forward in time.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack" title="madgui.util.undo.UndoStack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UndoStack</span></code></a>()</p></td>
+<td><p>Serves as lightweight replacement for QUndoStack.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.util.undo.Command">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.undo.</code><code class="sig-name descname">Command</code><a class="reference internal" href="../_modules/madgui/util/undo.html#Command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.Command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for un-/re-doable actions. Command objects are only to
+be pushed onto an UndoStack and must not be called directly.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.Command.redo" title="madgui.util.undo.Command.redo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">redo</span></code></a>()</p></td>
+<td><p>Exec the action represented by this command.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.undo.Command.undo" title="madgui.util.undo.Command.undo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">undo</span></code></a>()</p></td>
+<td><p>Undo the action represented by this command.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.Command.text" title="madgui.util.undo.Command.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.util.undo.Command.redo">
+<code class="sig-name descname">redo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#Command.redo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.Command.redo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exec the action represented by this command.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.util.undo.Command.text">
+<code class="sig-name descname">text</code><em class="property"> = ''</em><a class="headerlink" href="#madgui.util.undo.Command.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.Command.undo">
+<code class="sig-name descname">undo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#Command.undo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.Command.undo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Undo the action represented by this command.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.util.undo.UndoCommand">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.undo.</code><code class="sig-name descname">UndoCommand</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">old</span></em>, <em class="sig-param"><span class="n">new</span></em>, <em class="sig-param"><span class="n">apply</span></em>, <em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.util.undo.Command" title="madgui.util.undo.Command"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.util.undo.Command</span></code></a></p>
+<p>A diff-based state transition, initialized with <code class="docutils literal notranslate"><span class="pre">old</span></code> and <code class="docutils literal notranslate"><span class="pre">new</span></code> values
+that must be <code class="docutils literal notranslate"><span class="pre">apply</span></code>-ed to go backward or forward in time.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.UndoCommand.redo" title="madgui.util.undo.UndoCommand.redo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">redo</span></code></a>()</p></td>
+<td><p>Go forward in time by applying the <code class="docutils literal notranslate"><span class="pre">new</span></code> state.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.undo.UndoCommand.undo" title="madgui.util.undo.UndoCommand.undo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">undo</span></code></a>()</p></td>
+<td><p>Go backward in time by applying the <code class="docutils literal notranslate"><span class="pre">old</span></code> state.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.util.undo.UndoCommand.redo">
+<code class="sig-name descname">redo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoCommand.redo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoCommand.redo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Go forward in time by applying the <code class="docutils literal notranslate"><span class="pre">new</span></code> state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoCommand.undo">
+<code class="sig-name descname">undo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoCommand.undo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoCommand.undo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Go backward in time by applying the <code class="docutils literal notranslate"><span class="pre">old</span></code> state.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.util.undo.UndoStack">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.undo.</code><code class="sig-name descname">UndoStack</code><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Serves as lightweight replacement for QUndoStack.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.can_redo" title="madgui.util.undo.UndoStack.can_redo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">can_redo</span></code></a>()</p></td>
+<td><p>Check if a redo action can be performed.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.can_undo" title="madgui.util.undo.UndoStack.can_undo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">can_undo</span></code></a>()</p></td>
+<td><p>Check if an undo action can be performed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.clear" title="madgui.util.undo.UndoStack.clear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code></a>()</p></td>
+<td><p>Clear the stack.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.command" title="madgui.util.undo.UndoStack.command"><code class="xref py py-obj docutils literal notranslate"><span class="pre">command</span></code></a>(index)</p></td>
+<td><p>Return the i-th command in the stack.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.count" title="madgui.util.undo.UndoStack.count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">count</span></code></a>()</p></td>
+<td><p>Return number of commands on the stack.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.create_redo_action" title="madgui.util.undo.UndoStack.create_redo_action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_redo_action</span></code></a>(parent)</p></td>
+<td><p>Create a <code class="xref py py-class docutils literal notranslate"><span class="pre">QAction</span></code> for a “Redo” button.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.create_undo_action" title="madgui.util.undo.UndoStack.create_undo_action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_undo_action</span></code></a>(parent)</p></td>
+<td><p>Create a <code class="xref py py-class docutils literal notranslate"><span class="pre">QAction</span></code> for an “Undo” button.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.macro" title="madgui.util.undo.UndoStack.macro"><code class="xref py py-obj docutils literal notranslate"><span class="pre">macro</span></code></a>([text])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.push" title="madgui.util.undo.UndoStack.push"><code class="xref py py-obj docutils literal notranslate"><span class="pre">push</span></code></a>(command)</p></td>
+<td><p>Push and execute command, and truncate all history after current stack position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.redo" title="madgui.util.undo.UndoStack.redo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">redo</span></code></a>()</p></td>
+<td><p>Redo command behind current stack pointer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.rollback" title="madgui.util.undo.UndoStack.rollback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rollback</span></code></a>([text, transient])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.truncate" title="madgui.util.undo.UndoStack.truncate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">truncate</span></code></a>()</p></td>
+<td><p>Truncate history after current stack position.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.undo" title="madgui.util.undo.UndoStack.undo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">undo</span></code></a>()</p></td>
+<td><p>Undo command before current stack pointer.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.undo.UndoStack.changed" title="madgui.util.undo.UndoStack.changed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">changed</span></code></a></p></td>
+<td><p>Signal&lt;&gt;</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.can_redo">
+<code class="sig-name descname">can_redo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.can_redo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.can_redo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a redo action can be performed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.can_undo">
+<code class="sig-name descname">can_undo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.can_undo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.can_undo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if an undo action can be performed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.util.undo.UndoStack.changed">
+<code class="sig-name descname">changed</code><a class="headerlink" href="#madgui.util.undo.UndoStack.changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the stack. This can only be done when no macro is active.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.command">
+<code class="sig-name descname">command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the i-th command in the stack.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.count">
+<code class="sig-name descname">count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of commands on the stack.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.create_redo_action">
+<code class="sig-name descname">create_redo_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.create_redo_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.create_redo_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <code class="xref py py-class docutils literal notranslate"><span class="pre">QAction</span></code> for a “Redo” button.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.create_undo_action">
+<code class="sig-name descname">create_undo_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.create_undo_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.create_undo_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <code class="xref py py-class docutils literal notranslate"><span class="pre">QAction</span></code> for an “Undo” button.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.macro">
+<code class="sig-name descname">macro</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.macro"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.macro" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.push">
+<code class="sig-name descname">push</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.push" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push and execute command, and truncate all history after current
+stack position.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.redo">
+<code class="sig-name descname">redo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.redo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.redo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redo command behind current stack pointer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.rollback">
+<code class="sig-name descname">rollback</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">'temporary change'</span></em>, <em class="sig-param"><span class="n">transient</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.rollback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.rollback" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.truncate">
+<code class="sig-name descname">truncate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.truncate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.truncate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Truncate history after current stack position.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.undo.UndoStack.undo">
+<code class="sig-name descname">undo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/undo.html#UndoStack.undo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.undo.UndoStack.undo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Undo command before current stack pointer.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.util.unit.html" class="btn btn-neutral float-right" title="madgui.util.unit module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.util.table.html" class="btn btn-neutral float-left" title="madgui.util.table module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,834 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.mainwindow &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.mainwindow</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.mainwindow</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Main window component for madgui.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;MainWindow&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="kn">import</span> <span class="n">QColor</span><span class="p">,</span> <span class="n">QKeySequence</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QInputDialog</span><span class="p">,</span> <span class="n">QMainWindow</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="p">,</span> <span class="n">QStyle</span><span class="p">,</span> <span class="n">QApplication</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+<span class="kn">from</span> <span class="nn">madgui.util.qt</span> <span class="kn">import</span> <span class="n">notifyEvent</span><span class="p">,</span> <span class="n">SingleWindow</span><span class="p">,</span> <span class="n">load_ui</span>
+<span class="kn">from</span> <span class="nn">madgui.util.undo</span> <span class="kn">import</span> <span class="n">UndoStack</span>
+<span class="kn">from</span> <span class="nn">madgui.widget.dialog</span> <span class="kn">import</span> <span class="n">Dialog</span>
+<span class="kn">from</span> <span class="nn">madgui.widget.log</span> <span class="kn">import</span> <span class="n">LogRecord</span>
+
+<span class="kn">import</span> <span class="nn">madgui.util.menu</span> <span class="k">as</span> <span class="nn">menu</span>
+
+
+<div class="viewcode-block" id="MainWindow"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow">[docs]</a><span class="k">class</span> <span class="nc">MainWindow</span><span class="p">(</span><span class="n">QMainWindow</span><span class="p">):</span>
+
+    <span class="n">ui_file</span> <span class="o">=</span> <span class="s1">&#39;mainwindow.ui&#39;</span>
+
+    <span class="c1"># Basic setup</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">load_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__package__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui_file</span><span class="p">)</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">model_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_ns</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">user_ns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exec_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">exec_folder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">str_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">str_folder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">changed2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_model_changed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initUI</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Welcome to madgui. Type &lt;Ctrl&gt;+O to open a file.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">folder</span>
+
+<div class="viewcode-block" id="MainWindow.session_data"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.session_data">[docs]</a>    <span class="k">def</span> <span class="nf">session_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">open_plot_windows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_plot_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">views</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;mainwindow&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;init_size&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()],</span>
+                <span class="s1">&#39;init_pos&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span><span class="o">.</span><span class="n">x</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span><span class="o">.</span><span class="n">y</span><span class="p">()],</span>
+                <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">()</span><span class="o">.</span><span class="n">pointSize</span><span class="p">(),</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;logging&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;enable&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">logging_enabled</span><span class="p">,</span>
+                <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">loglevel</span><span class="p">,</span>
+                <span class="s1">&#39;maxlen&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">maxlen</span><span class="p">,</span>
+                <span class="s1">&#39;times&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;enable&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">infobar</span><span class="o">.</span><span class="n">show_time</span><span class="p">,</span>
+                    <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">infobar</span><span class="o">.</span><span class="n">time_format</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s1">&#39;madx&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;in&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">enabled</span><span class="p">(</span><span class="s1">&#39;SEND&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;out&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">enabled</span><span class="p">(</span><span class="s1">&#39;MADX&#39;</span><span class="p">),</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;exec_folder&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">exec_folder</span><span class="p">,</span>
+            <span class="s1">&#39;str_folder&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">str_folder</span><span class="p">,</span>
+            <span class="s1">&#39;plot_windows&#39;</span><span class="p">:</span> <span class="n">open_plot_windows</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">plot_windows</span><span class="p">,</span>
+            <span class="s1">&#39;interpolate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">interpolate</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="MainWindow.initUI"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.initUI">[docs]</a>    <span class="k">def</span> <span class="nf">initUI</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">views</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createMenu</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createControls</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">mainwindow</span><span class="o">.</span><span class="n">init_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">mainwindow</span><span class="o">.</span><span class="n">init_pos</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">mainwindow</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;font_size&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setFontSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">mainwindow</span><span class="o">.</span><span class="n">font_size</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.createMenu"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.createMenu">[docs]</a>    <span class="k">def</span> <span class="nf">createMenu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span>
+        <span class="n">Menu</span><span class="p">,</span> <span class="n">Item</span><span class="p">,</span> <span class="n">Separator</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">Menu</span><span class="p">,</span> <span class="n">menu</span><span class="o">.</span><span class="n">Item</span><span class="p">,</span> <span class="n">menu</span><span class="o">.</span><span class="n">Separator</span>
+        <span class="n">menubar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">menuBar</span><span class="p">()</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">menubar</span><span class="p">,</span> <span class="p">[</span>
+            <span class="n">Menu</span><span class="p">(</span><span class="s1">&#39;&amp;Model&#39;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Open&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+O&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Load model or open new model from a MAD-X file.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">fileOpen</span><span class="p">,</span>
+                     <span class="n">QStyle</span><span class="o">.</span><span class="n">SP_DialogOpenButton</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Initial conditions&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+I&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Modify the initial conditions, beam, and parameters.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">editInitialConditions</span><span class="o">.</span><span class="n">create</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Execute MAD-X file&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+E&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Execute MAD-X file in current context.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">execFile</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Reverse sequence&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Reverse current sequence from back to front &#39;</span>
+                     <span class="s1">&#39;(experimental). Does not work with all element types.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">reverseSequence</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Quit&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+Q&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Close window.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">,</span>
+                     <span class="n">QStyle</span><span class="o">.</span><span class="n">SP_DialogCloseButton</span><span class="p">),</span>
+            <span class="p">]),</span>
+            <span class="n">Menu</span><span class="p">(</span><span class="s1">&#39;&amp;View&#39;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;Plo&amp;t window&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+T&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Open a new plot window.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">showTwiss</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Python shell&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+P&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Show a python shell.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">viewShell</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;2D &amp;floor plan&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+F&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Show a 2D floor plan of the lattice.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">viewFloorPlan</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;3D s&amp;urvey&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+U&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Show a 3D scene of the lattice.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">viewLayout3d</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Refresh&#39;</span><span class="p">,</span> <span class="s1">&#39;F5&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Redo TWISS and refresh plot.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">refreshTwiss</span><span class="p">),</span>
+            <span class="p">]),</span>
+            <span class="n">Menu</span><span class="p">(</span><span class="s1">&#39;&amp;Export&#39;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Strengths&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Export magnet strengths.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">saveStrengths</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Beam&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Export beam settings.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">saveBeam</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Twiss &amp;&amp; orbit&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Export initial twiss parameters.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">saveTwiss</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;Save MAD-X &amp;commands&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Export all MAD-X commands to a file.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">saveCommands</span><span class="p">),</span>
+            <span class="p">]),</span>
+            <span class="n">Menu</span><span class="p">(</span><span class="s1">&#39;&amp;Import&#39;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Strengths&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Load .str file (simplified syntax).&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">loadStrengths</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Beam&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Import beam settings.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">loadBeam</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Twiss &amp;&amp; orbit&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Import initial twiss parameters.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">loadTwiss</span><span class="p">),</span>
+            <span class="p">]),</span>
+            <span class="n">Menu</span><span class="p">(</span><span class="s1">&#39;&amp;Settings&#39;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Number format&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Set the number format/precision used in dialogs&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">setNumberFormat</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Spin box&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Display spinboxes for number input controls&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">toggleSpinBox</span><span class="p">,</span> <span class="n">checked</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">spinbox</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Interpolation points&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Set number of data points.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">setInterpolate</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Log size limit&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Set number of log entries.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">setLogSize</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Increase font size&#39;</span><span class="p">,</span> <span class="n">QKeySequence</span><span class="o">.</span><span class="n">ZoomIn</span><span class="p">,</span>
+                     <span class="s1">&#39;Increase font size&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">increaseFontSize</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Decrease font size&#39;</span><span class="p">,</span> <span class="n">QKeySequence</span><span class="o">.</span><span class="n">ZoomOut</span><span class="p">,</span>
+                     <span class="s1">&#39;Decrease font size&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">decreaseFontSize</span><span class="p">),</span>
+            <span class="p">]),</span>
+            <span class="n">Menu</span><span class="p">(</span><span class="s1">&#39;&amp;Online control&#39;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Connect&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Connect to the online backend&#39;</span><span class="p">,</span>
+                     <span class="n">control</span><span class="o">.</span><span class="n">connect</span><span class="p">,</span>
+                     <span class="n">enabled</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">can_connect</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Disconnect&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Disconnect online control interface&#39;</span><span class="p">,</span>
+                     <span class="n">control</span><span class="o">.</span><span class="n">disconnect</span><span class="p">,</span>
+                     <span class="n">enabled</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">is_connected</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Read strengths&#39;</span><span class="p">,</span> <span class="s1">&#39;F9&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Read magnet strengths from the online database&#39;</span><span class="p">,</span>
+                     <span class="n">control</span><span class="o">.</span><span class="n">on_read_all</span><span class="p">,</span>
+                     <span class="n">enabled</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">has_sequence</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;Read &amp;beam&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Read beam settings from the online database&#39;</span><span class="p">,</span>
+                     <span class="n">control</span><span class="o">.</span><span class="n">on_read_beam</span><span class="p">,</span>
+                     <span class="n">enabled</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">has_sequence</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;&amp;Write strengths&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Write magnet strengths to the online database&#39;</span><span class="p">,</span>
+                     <span class="n">control</span><span class="o">.</span><span class="n">on_write_all</span><span class="p">,</span>
+                     <span class="n">enabled</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">has_sequence</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;Beam &amp;diagnostic&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Beam position and emittance diagnostics&#39;</span><span class="p">,</span>
+                     <span class="n">control</span><span class="o">.</span><span class="n">monitor_widget</span><span class="o">.</span><span class="n">create</span><span class="p">,</span>
+                     <span class="n">enabled</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">has_sequence</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;ORM measurement&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;Measure ORM for later analysis&#39;</span><span class="p">,</span>
+                     <span class="n">control</span><span class="o">.</span><span class="n">orm_measure_widget</span><span class="o">.</span><span class="n">create</span><span class="p">,</span>
+                     <span class="n">enabled</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">has_sequence</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">menu</span><span class="o">.</span><span class="n">Menu</span><span class="p">(</span><span class="s1">&#39;&amp;Orbit correction&#39;</span><span class="p">,</span> <span class="p">[</span>
+                    <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;Optic &amp;variation&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+V&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;Perform orbit correction via 2-optics method&#39;</span><span class="p">,</span>
+                         <span class="n">control</span><span class="o">.</span><span class="n">on_correct_optic_variation_method</span><span class="p">,</span>
+                         <span class="n">enabled</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">has_sequence</span><span class="p">),</span>
+                    <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;Multi &amp;grid&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+G&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;Perform orbit correction via 2-grids method&#39;</span><span class="p">,</span>
+                         <span class="n">control</span><span class="o">.</span><span class="n">on_correct_multi_grid_method</span><span class="p">,</span>
+                         <span class="n">enabled</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">has_sequence</span><span class="p">),</span>
+                    <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;Measured &amp;Response&#39;</span><span class="p">,</span> <span class="s1">&#39;Ctrl+R&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;Perform orbit correction empirically by measuring&#39;</span>
+                         <span class="s1">&#39; the orbit response.&#39;</span><span class="p">,</span>
+                         <span class="n">control</span><span class="o">.</span><span class="n">on_correct_measured_response_method</span><span class="p">,</span>
+                         <span class="n">enabled</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">has_sequence</span><span class="p">),</span>
+                <span class="p">]),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">menu</span><span class="o">.</span><span class="n">Menu</span><span class="p">(</span><span class="s1">&#39;&amp;Settings&#39;</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="p">]),</span>
+            <span class="n">Menu</span><span class="p">(</span><span class="s1">&#39;&amp;Help&#39;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;About &amp;madgui&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;About the madgui GUI application.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">helpAboutMadGUI</span><span class="o">.</span><span class="n">create</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;About &amp;cpymad&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;About the cpymad python binding to MAD-X.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">helpAboutCPyMAD</span><span class="o">.</span><span class="n">create</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;About MAD-&amp;X&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;About the included MAD-X backend.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">helpAboutMadX</span><span class="o">.</span><span class="n">create</span><span class="p">),</span>
+                <span class="n">Separator</span><span class="p">,</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;About &amp;Python&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;About the currently running python interpreter.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">helpAboutPython</span><span class="o">.</span><span class="n">create</span><span class="p">),</span>
+                <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;About Q&amp;t&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;About Qt.&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">helpAboutQt</span><span class="p">),</span>
+            <span class="p">]),</span>
+        <span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acs_menu</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dc_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acs_menu</span><span class="o">.</span><span class="n">actions</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acs_settings_menu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acs_menu</span><span class="o">.</span><span class="n">children</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acs_settings_menu</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+    <span class="n">dataReceived</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MainWindow.createControls"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.createControls">[docs]</a>    <span class="k">def</span> <span class="nf">createControls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">highlight</span><span class="p">(</span><span class="s1">&#39;SEND&#39;</span><span class="p">,</span>     <span class="n">QColor</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">yellow</span><span class="p">)</span><span class="o">.</span><span class="n">lighter</span><span class="p">(</span><span class="mi">160</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">highlight</span><span class="p">(</span><span class="s1">&#39;MADX&#39;</span><span class="p">,</span>     <span class="n">QColor</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">lightGray</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">highlight</span><span class="p">(</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">,</span>    <span class="n">QColor</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">blue</span><span class="p">)</span><span class="o">.</span><span class="n">lighter</span><span class="p">(</span><span class="mi">180</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">highlight</span><span class="p">(</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span>     <span class="n">QColor</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">green</span><span class="p">)</span><span class="o">.</span><span class="n">lighter</span><span class="p">(</span><span class="mi">150</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">highlight</span><span class="p">(</span><span class="s1">&#39;WARNING&#39;</span><span class="p">,</span>  <span class="n">QColor</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">yellow</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">highlight</span><span class="p">(</span><span class="s1">&#39;ERROR&#39;</span><span class="p">,</span>    <span class="n">QColor</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">red</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">highlight</span><span class="p">(</span><span class="s1">&#39;CRITICAL&#39;</span><span class="p">,</span> <span class="n">QColor</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">red</span><span class="p">))</span>
+
+        <span class="n">log_conf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">logging</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">setup_logging</span><span class="p">(</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">maxlen</span> <span class="o">=</span> <span class="n">log_conf</span><span class="o">.</span><span class="n">maxlen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">infobar</span><span class="o">.</span><span class="n">enable_timestamps</span><span class="p">(</span><span class="n">log_conf</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">infobar</span><span class="o">.</span><span class="n">set_timeformat</span><span class="p">(</span><span class="n">log_conf</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">enable_logging</span><span class="p">(</span><span class="n">log_conf</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">set_loglevel</span><span class="p">(</span><span class="n">log_conf</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">enable</span><span class="p">(</span><span class="s1">&#39;SEND&#39;</span><span class="p">,</span> <span class="n">log_conf</span><span class="o">.</span><span class="n">madx</span><span class="p">[</span><span class="s1">&#39;in&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">enable</span><span class="p">(</span><span class="s1">&#39;MADX&#39;</span><span class="p">,</span> <span class="n">log_conf</span><span class="o">.</span><span class="n">madx</span><span class="p">[</span><span class="s1">&#39;out&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataReceived</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">append_from_binary_stream</span><span class="p">,</span> <span class="s1">&#39;MADX&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeCheckBox</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">infobar</span><span class="o">.</span><span class="n">show_time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loggingCheckBox</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">logging_enabled</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loglevelComboBox</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">logging_enabled</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loglevelComboBox</span><span class="o">.</span><span class="n">setCurrentText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">loglevel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madxInputCheckBox</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">enabled</span><span class="p">(</span><span class="s1">&#39;SEND&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madxOutputCheckBox</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">enabled</span><span class="p">(</span><span class="s1">&#39;MADX&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeCheckBox</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">infobar</span><span class="o">.</span><span class="n">enable_timestamps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loggingCheckBox</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">enable_logging</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loglevelComboBox</span><span class="o">.</span><span class="n">currentTextChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">set_loglevel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madxInputCheckBox</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">enable</span><span class="p">,</span> <span class="s1">&#39;SEND&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">madxOutputCheckBox</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">enable</span><span class="p">,</span> <span class="s1">&#39;MADX&#39;</span><span class="p">))</span>
+
+        <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undo_stack</span> <span class="o">=</span> <span class="n">undo_stack</span> <span class="o">=</span> <span class="n">UndoStack</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undo_action</span> <span class="o">=</span> <span class="n">undo_stack</span><span class="o">.</span><span class="n">create_undo_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redo_action</span> <span class="o">=</span> <span class="n">undo_stack</span><span class="o">.</span><span class="n">create_redo_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undo_action</span><span class="o">.</span><span class="n">setShortcut</span><span class="p">(</span><span class="n">QKeySequence</span><span class="o">.</span><span class="n">Undo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redo_action</span><span class="o">.</span><span class="n">setShortcut</span><span class="p">(</span><span class="n">QKeySequence</span><span class="o">.</span><span class="n">Redo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undo_action</span><span class="o">.</span><span class="n">setIcon</span><span class="p">(</span><span class="n">style</span><span class="o">.</span><span class="n">standardIcon</span><span class="p">(</span><span class="n">QStyle</span><span class="o">.</span><span class="n">SP_ArrowBack</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redo_action</span><span class="o">.</span><span class="n">setIcon</span><span class="p">(</span><span class="n">style</span><span class="o">.</span><span class="n">standardIcon</span><span class="p">(</span><span class="n">QStyle</span><span class="o">.</span><span class="n">SP_ArrowForward</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">undo_action</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">redo_action</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.log_command"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.log_command">[docs]</a>    <span class="k">def</span> <span class="nf">log_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LogRecord</span><span class="p">(</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span> <span class="s1">&#39;SEND&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">))</span></div>
+
+    <span class="c1"># Menu actions</span>
+
+<div class="viewcode-block" id="MainWindow.fileOpen"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.fileOpen">[docs]</a>    <span class="k">def</span> <span class="nf">fileOpen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.filedialog</span> <span class="kn">import</span> <span class="n">getOpenFileName</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;Model files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.cpymad.yml&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;MAD-X files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.madx&quot;</span><span class="p">,</span> <span class="s2">&quot;*.str&quot;</span><span class="p">,</span> <span class="s2">&quot;*.seq&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;All files&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">getOpenFileName</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Open file&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.execFile"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.execFile">[docs]</a>    <span class="k">def</span> <span class="nf">execFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.filedialog</span> <span class="kn">import</span> <span class="n">getOpenFileName</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;All MAD-X files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.madx&quot;</span><span class="p">,</span> <span class="s2">&quot;*.str&quot;</span><span class="p">,</span> <span class="s2">&quot;*.seq&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;Strength files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.str&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;All files&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exec_folder</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">getOpenFileName</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Open MAD-X file&#39;</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exec_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.loadStrengths"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.loadStrengths">[docs]</a>    <span class="k">def</span> <span class="nf">loadStrengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_import</span><span class="p">(</span><span class="s2">&quot;Import magnet strengths&quot;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;YAML files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yaml&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;Strength files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.str&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;All MAD-X files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.madx&quot;</span><span class="p">,</span> <span class="s2">&quot;*.str&quot;</span><span class="p">,</span> <span class="s2">&quot;*.seq&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;All files&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">),</span>
+        <span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">update_globals</span><span class="p">,</span> <span class="n">data_key</span><span class="o">=</span><span class="s1">&#39;globals&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.loadBeam"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.loadBeam">[docs]</a>    <span class="k">def</span> <span class="nf">loadBeam</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_import</span><span class="p">(</span><span class="s2">&quot;Import beam parameters&quot;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="p">(</span><span class="s2">&quot;YAML files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yaml&quot;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;All files&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">),</span>
+            <span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">update_beam</span><span class="p">,</span> <span class="n">data_key</span><span class="o">=</span><span class="s1">&#39;beam&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Could not load beam file. Please check input file.&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.loadTwiss"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.loadTwiss">[docs]</a>    <span class="k">def</span> <span class="nf">loadTwiss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_import</span><span class="p">(</span><span class="s2">&quot;Import initial twiss parameters&quot;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;YAML files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yaml&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;All files&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">),</span>
+        <span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">update_twiss_args</span><span class="p">,</span> <span class="n">data_key</span><span class="o">=</span><span class="s1">&#39;twiss&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_import</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">data_key</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.filedialog</span> <span class="kn">import</span> <span class="n">getOpenFileName</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">str_folder</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">getOpenFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">madgui.widget.params</span> <span class="kn">import</span> <span class="n">import_params</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">import_params</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">callback</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">str_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MainWindow.saveStrengths"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.saveStrengths">[docs]</a>    <span class="k">def</span> <span class="nf">saveStrengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_export</span><span class="p">(</span><span class="s2">&quot;Save MAD-X strengths file&quot;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;YAML files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yaml&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;Strength files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.str&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;All files&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">),</span>
+        <span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">export_globals</span><span class="p">,</span> <span class="n">data_key</span><span class="o">=</span><span class="s1">&#39;globals&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.saveBeam"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.saveBeam">[docs]</a>    <span class="k">def</span> <span class="nf">saveBeam</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO: import/export MAD-X file (with only BEAM command)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_export</span><span class="p">(</span><span class="s2">&quot;Export initial BEAM settings&quot;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;YAML files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yaml&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;All files&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">),</span>
+        <span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">export_beam</span><span class="p">,</span> <span class="n">data_key</span><span class="o">=</span><span class="s1">&#39;beam&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.saveTwiss"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.saveTwiss">[docs]</a>    <span class="k">def</span> <span class="nf">saveTwiss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO: import/export MAD-X file (with only TWISS command)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_export</span><span class="p">(</span><span class="s2">&quot;Export initial TWISS settings&quot;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;YAML files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;*.yaml&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;All files&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">),</span>
+        <span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">export_twiss</span><span class="p">,</span> <span class="n">data_key</span><span class="o">=</span><span class="s1">&#39;twiss&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.saveCommands"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.saveCommands">[docs]</a>    <span class="k">def</span> <span class="nf">saveCommands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">write_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+        <span class="c1"># TODO: save timestamps and chdirs as comments!</span>
+        <span class="c1"># TODO: add generic `saveLog` command instead?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_export</span><span class="p">(</span><span class="s2">&quot;Save MAD-X command session&quot;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;MAD-X files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.madx&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;All files&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">),</span>
+        <span class="p">],</span> <span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">history</span><span class="p">),</span> <span class="n">write_file</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">fetch_data</span><span class="p">,</span> <span class="n">export</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.filedialog</span> <span class="kn">import</span> <span class="n">getSaveFileName</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">str_folder</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">getSaveFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">export</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">madgui.widget.params</span> <span class="kn">import</span> <span class="n">export_params</span> <span class="k">as</span> <span class="n">export</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">()</span>
+            <span class="n">export</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">str_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MainWindow.reverseSequence"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.reverseSequence">[docs]</a>    <span class="k">def</span> <span class="nf">reverseSequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reverse sequence from back to front. Experimental feature. Not</span>
+<span class="sd">        implemented for all element types.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span></div>
+
+    <span class="nd">@SingleWindow</span><span class="o">.</span><span class="n">factory</span>
+    <span class="k">def</span> <span class="nf">editInitialConditions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.params</span> <span class="kn">import</span> <span class="n">model_params_dialog</span>
+        <span class="k">return</span> <span class="n">model_params_dialog</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(),</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MainWindow.viewShell"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.viewShell">[docs]</a>    <span class="k">def</span> <span class="nf">viewShell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createShell</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MainWindow.viewFloorPlan"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.viewFloorPlan">[docs]</a>    <span class="k">def</span> <span class="nf">viewFloorPlan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.floor_plan</span> <span class="kn">import</span> <span class="n">FloorPlanWidget</span>
+        <span class="k">return</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">FloorPlanWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="MainWindow.viewLayout3d"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.viewLayout3d">[docs]</a>    <span class="k">def</span> <span class="nf">viewLayout3d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.survey.widget</span> <span class="kn">import</span> <span class="n">FloorPlanWidget</span>
+        <span class="k">return</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">FloorPlanWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">))</span></div>
+
+    <span class="nd">@SingleWindow</span><span class="o">.</span><span class="n">factory</span>
+    <span class="k">def</span> <span class="nf">viewMatchDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.match</span> <span class="kn">import</span> <span class="n">MatchWidget</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="n">MatchWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">matcher</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MainWindow.setLogSize"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.setLogSize">[docs]</a>    <span class="k">def</span> <span class="nf">setLogSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;Maximum log size (0 for infinite):&quot;</span>
+        <span class="n">number</span><span class="p">,</span> <span class="n">ok</span> <span class="o">=</span> <span class="n">QInputDialog</span><span class="o">.</span><span class="n">getInt</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Set log size&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">maxlen</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logWidget</span><span class="o">.</span><span class="n">maxlen</span> <span class="o">=</span> <span class="n">number</span></div>
+
+<div class="viewcode-block" id="MainWindow.setInterpolate"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.setInterpolate">[docs]</a>    <span class="k">def</span> <span class="nf">setInterpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;Number of points (0 to disable):&quot;</span>
+        <span class="n">number</span><span class="p">,</span> <span class="n">ok</span> <span class="o">=</span> <span class="n">QInputDialog</span><span class="o">.</span><span class="n">getInt</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Set number of data points&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">interpolate</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">set_interpolate</span><span class="p">(</span><span class="n">number</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.refreshTwiss"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.refreshTwiss">[docs]</a>    <span class="k">def</span> <span class="nf">refreshTwiss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Redo twiss and redraw plot.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MainWindow.setNumberFormat"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.setNumberFormat">[docs]</a>    <span class="k">def</span> <span class="nf">setNumberFormat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fmtspec</span><span class="p">,</span> <span class="n">ok</span> <span class="o">=</span> <span class="n">QInputDialog</span><span class="o">.</span><span class="n">getText</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Set number format&quot;</span><span class="p">,</span> <span class="s2">&quot;Number format:&quot;</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">fmtspec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">format</span><span class="p">(</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">fmtspec</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Invalid number format ignored: </span><span class="si">{!r}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fmtspec</span><span class="p">))</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">fmtspec</span> <span class="o">=</span> <span class="n">fmtspec</span></div>
+
+<div class="viewcode-block" id="MainWindow.toggleSpinBox"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.toggleSpinBox">[docs]</a>    <span class="k">def</span> <span class="nf">toggleSpinBox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO: sync with menu state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">spinbox</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">spinbox</span></div>
+
+<div class="viewcode-block" id="MainWindow.increaseFontSize"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.increaseFontSize">[docs]</a>    <span class="k">def</span> <span class="nf">increaseFontSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFontSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">()</span><span class="o">.</span><span class="n">pointSize</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.decreaseFontSize"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.decreaseFontSize">[docs]</a>    <span class="k">def</span> <span class="nf">decreaseFontSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFontSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">()</span><span class="o">.</span><span class="n">pointSize</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MainWindow.setFontSize"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.setFontSize">[docs]</a>    <span class="k">def</span> <span class="nf">setFontSize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">size</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">()</span><span class="o">.</span><span class="n">pointSize</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">delta</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">widget</span> <span class="ow">in</span> <span class="n">QApplication</span><span class="o">.</span><span class="n">topLevelWidgets</span><span class="p">():</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">font</span><span class="p">()</span><span class="o">.</span><span class="n">pointSize</span><span class="p">()</span> <span class="o">+</span> <span class="n">delta</span>
+                <span class="n">widget</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;font-size:</span><span class="si">{}</span><span class="s2">pt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="mi">6</span><span class="p">)))</span></div>
+
+    <span class="nd">@SingleWindow</span><span class="o">.</span><span class="n">factory</span>
+    <span class="k">def</span> <span class="nf">helpAboutMadGUI</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show about dialog.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">madgui</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_showAboutDialog</span><span class="p">(</span><span class="n">madgui</span><span class="p">)</span>
+
+    <span class="nd">@SingleWindow</span><span class="o">.</span><span class="n">factory</span>
+    <span class="k">def</span> <span class="nf">helpAboutCPyMAD</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show about dialog.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">cpymad</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_showAboutDialog</span><span class="p">(</span><span class="n">cpymad</span><span class="p">)</span>
+
+    <span class="nd">@SingleWindow</span><span class="o">.</span><span class="n">factory</span>
+    <span class="k">def</span> <span class="nf">helpAboutMadX</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show about dialog.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">cpymad.madx</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_showAboutDialog</span><span class="p">(</span><span class="n">cpymad</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+
+    <span class="nd">@SingleWindow</span><span class="o">.</span><span class="n">factory</span>
+    <span class="k">def</span> <span class="nf">helpAboutPython</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show about dialog.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">sys</span>
+        <span class="kn">import</span> <span class="nn">site</span>     <span class="c1"># adds builtins.license/copyright/credits</span>
+        <span class="n">site</span>            <span class="c1"># silence pyflakes (suppress unused import warning)</span>
+        <span class="kn">import</span> <span class="nn">builtins</span>
+
+        <span class="k">class</span> <span class="nc">About</span><span class="p">:</span>
+            <span class="n">__uri__</span> <span class="o">=</span> <span class="s2">&quot;https::/www.python.org&quot;</span>
+            <span class="n">__title__</span> <span class="o">=</span> <span class="s1">&#39;python&#39;</span>
+            <span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">))</span>
+            <span class="n">__summary__</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Path: &quot;</span> <span class="o">+</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span>
+            <span class="n">__credits__</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">builtins</span><span class="o">.</span><span class="n">credits</span><span class="p">)</span>
+            <span class="n">get_copyright_notice</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">sys</span><span class="o">.</span><span class="n">copyright</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_showAboutDialog</span><span class="p">(</span><span class="n">About</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MainWindow.helpAboutQt"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.helpAboutQt">[docs]</a>    <span class="k">def</span> <span class="nf">helpAboutQt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">QMessageBox</span><span class="o">.</span><span class="n">aboutQt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_showAboutDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.about</span> <span class="kn">import</span> <span class="n">VersionInfo</span><span class="p">,</span> <span class="n">AboutWidget</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">VersionInfo</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">AboutWidget</span><span class="p">(</span><span class="n">info</span><span class="p">))</span>
+
+    <span class="c1"># Update state</span>
+
+<div class="viewcode-block" id="MainWindow.model_args"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.model_args">[docs]</a>    <span class="k">def</span> <span class="nf">model_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">command_log</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">log_command</span><span class="p">,</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataReceived</span><span class="o">.</span><span class="n">emit</span><span class="p">,</span>
+            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+            <span class="n">undo_stack</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">undo_stack</span><span class="p">,</span>
+            <span class="n">interpolate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">interpolate</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_on_model_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_model</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">old_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">old_model</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_twiss</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_ns</span><span class="o">.</span><span class="n">madx</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_ns</span><span class="o">.</span><span class="n">twiss</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;madgui&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">model</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">set_queued</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Loading </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">filename</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_ns</span><span class="o">.</span><span class="n">madx</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">madx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_ns</span><span class="o">.</span><span class="n">twiss</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">twiss</span><span class="p">()</span>
+        <span class="n">exec</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;onload&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_ns</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+        <span class="n">model</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_twiss</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">madgui.widget.elementinfo</span> <span class="kn">import</span> <span class="n">InfoBoxGroup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_group</span> <span class="o">=</span> <span class="n">InfoBoxGroup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">selected_elements</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">showTwiss</span><span class="p">()</span>
+
+<div class="viewcode-block" id="MainWindow.update_twiss"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.update_twiss">[docs]</a>    <span class="k">def</span> <span class="nf">update_twiss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_ns</span><span class="o">.</span><span class="n">twiss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">twiss</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MainWindow.showTwiss"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.showTwiss">[docs]</a>    <span class="k">def</span> <span class="nf">showTwiss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.twisswidget</span> <span class="kn">import</span> <span class="n">TwissWidget</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="n">TwissWidget</span><span class="o">.</span><span class="n">from_session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">scene</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">scene</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">views</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">destroyed</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">scene</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">views</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">plot_windows</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+                    <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_plot_window</span><span class="p">(</span><span class="n">scene</span><span class="p">))</span>
+                <span class="n">scene</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">views</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
+
+        <span class="n">notifyEvent</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">window</span><span class="p">(),</span> <span class="s1">&#39;Close&#39;</span><span class="p">,</span> <span class="n">destroyed</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_save_plot_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="p">):</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">window</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;graph&#39;</span><span class="p">:</span> <span class="n">scene</span><span class="o">.</span><span class="n">graph_name</span><span class="p">,</span>
+            <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">widget</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="n">widget</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()],</span>
+            <span class="s1">&#39;pos&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">widget</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span><span class="o">.</span><span class="n">x</span><span class="p">(),</span> <span class="n">widget</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span><span class="o">.</span><span class="n">y</span><span class="p">()],</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="MainWindow.graphs"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.graphs">[docs]</a>    <span class="k">def</span> <span class="nf">graphs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">scene</span> <span class="k">for</span> <span class="n">scene</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">views</span> <span class="k">if</span> <span class="n">scene</span><span class="o">.</span><span class="n">graph_name</span> <span class="o">==</span> <span class="n">name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="MainWindow.open_graph"><a class="viewcode-back" href="../../../api/madgui.widget.mainwindow.html#madgui.widget.mainwindow.MainWindow.open_graph">[docs]</a>    <span class="k">def</span> <span class="nf">open_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">views</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_graph</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">showTwiss</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_createShell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a python shell widget.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.pyshell</span> <span class="kn">import</span> <span class="n">PyShell</span>
+        <span class="k">return</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PyShell</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_ns</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

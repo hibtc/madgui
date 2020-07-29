@@ -1,0 +1,7 @@
+madgui.widget.correct.orm\_measure module
+=========================================
+
+.. automodule:: madgui.widget.correct.orm_measure
+   :members:
+   :undoc-members:
+   :show-inheritance:

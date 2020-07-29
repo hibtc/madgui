@@ -1,0 +1,486 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.elementinfo &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.elementinfo</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.elementinfo</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Info boxes to display element detail.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;ElementInfoBox&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;EllipseWidget&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;InfoBoxGroup&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">atan2</span>
+
+<span class="kn">from</span> <span class="nn">madgui.widget.plot</span> <span class="kn">import</span> <span class="n">mpl_backend</span>
+<span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="kn">import</span> <span class="n">Figure</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Ellipse</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">QSize</span><span class="p">,</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QComboBox</span><span class="p">,</span> <span class="n">QToolButton</span><span class="p">,</span> <span class="n">QWidget</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+<span class="kn">from</span> <span class="nn">madgui.util.unit</span> <span class="kn">import</span> <span class="n">ui_units</span><span class="p">,</span> <span class="n">to_ui</span>
+<span class="kn">from</span> <span class="nn">madgui.util.layout</span> <span class="kn">import</span> <span class="n">VBoxLayout</span><span class="p">,</span> <span class="n">HBoxLayout</span>
+<span class="kn">from</span> <span class="nn">madgui.util.qt</span> <span class="kn">import</span> <span class="n">EventFilter</span>
+<span class="kn">from</span> <span class="nn">madgui.widget.dialog</span> <span class="kn">import</span> <span class="n">Dialog</span>
+<span class="kn">from</span> <span class="nn">madgui.widget.params</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TabParamTables</span><span class="p">,</span> <span class="n">ParamTable</span><span class="p">,</span> <span class="n">CommandEdit</span><span class="p">,</span> <span class="n">ParamInfo</span><span class="p">,</span> <span class="n">MatrixTable</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ElementInfoBox"><a class="viewcode-back" href="../../../api/madgui.widget.elementinfo.html#madgui.widget.elementinfo.ElementInfoBox">[docs]</a><span class="k">class</span> <span class="nc">ElementInfoBox</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="n">changed_element</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">()</span>
+    <span class="n">_el_id</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">el_id</span><span class="p">,</span> <span class="n">summary</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summary</span> <span class="o">=</span> <span class="n">summary</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">notebook</span> <span class="o">=</span> <span class="n">TabParamTables</span><span class="p">([</span>
+            <span class="p">(</span><span class="s1">&#39;Summary&#39;</span><span class="p">,</span> <span class="s1">&#39;Summary of most important parameters&#39;</span><span class="p">,</span>
+             <span class="n">ParamTable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fetch_summary</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_element</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s1">&#39;Params&#39;</span><span class="p">,</span> <span class="s1">&#39;Complete list of all MAD-X element attributes&#39;</span><span class="p">,</span>
+             <span class="n">CommandEdit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fetch_cmdpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_element</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s1">&#39;Twiss&#39;</span><span class="p">,</span> <span class="s1">&#39;Computed TWISS parameters at the element exit end&#39;</span><span class="p">,</span>
+             <span class="n">ParamTable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fetch_twiss</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s1">&#39;Sigma&#39;</span><span class="p">,</span> <span class="s1">&#39;Beam SIGMA matrix at the element exit end&#39;</span><span class="p">,</span>
+             <span class="n">MatrixTable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fetch_sigma</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">get_name</span><span class="o">=</span><span class="n">sigmat_title</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s1">&#39;Ellipse&#39;</span><span class="p">,</span> <span class="s1">&#39;Beam ellipses at the element exit end&#39;</span><span class="p">,</span>
+             <span class="n">EllipseWidget</span><span class="p">(</span><span class="n">model</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s1">&#39;Sector&#39;</span><span class="p">,</span> <span class="s1">&#39;Transfermap of the element&#39;</span><span class="p">,</span>
+             <span class="n">MatrixTable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fetch_sector</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">get_name</span><span class="o">=</span><span class="n">secmap_title</span><span class="p">,</span>
+                         <span class="n">units</span><span class="o">=</span><span class="kc">False</span><span class="p">)),</span>
+        <span class="p">])</span>
+
+        <span class="c1"># navigation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="o">.</span><span class="n">addItems</span><span class="p">([</span><span class="n">elem</span><span class="o">.</span><span class="n">node_name</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="o">.</span><span class="n">currentIndexChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_element</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">el_id</span> <span class="o">=</span> <span class="n">el_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="o">.</span><span class="n">update</span><span class="p">)</span>
+
+        <span class="n">button_left</span> <span class="o">=</span> <span class="n">QToolButton</span><span class="p">()</span>
+        <span class="n">button_right</span> <span class="o">=</span> <span class="n">QToolButton</span><span class="p">()</span>
+        <span class="n">button_left</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">button_right</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">button_left</span><span class="o">.</span><span class="n">setArrowType</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">LeftArrow</span><span class="p">)</span>
+        <span class="n">button_right</span><span class="o">.</span><span class="n">setArrowType</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">RightArrow</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">VBoxLayout</span><span class="p">([</span>
+            <span class="n">HBoxLayout</span><span class="p">([</span><span class="n">button_left</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">,</span> <span class="n">button_right</span><span class="p">]),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="p">,</span>
+        <span class="p">],</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+<div class="viewcode-block" id="ElementInfoBox.closeEvent"><a class="viewcode-back" href="../../../api/madgui.widget.elementinfo.html#madgui.widget.elementinfo.ElementInfoBox.closeEvent">[docs]</a>    <span class="k">def</span> <span class="nf">closeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="o">.</span><span class="n">update</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">closeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElementInfoBox.advance"><a class="viewcode-back" href="../../../api/madgui.widget.elementinfo.html#madgui.widget.elementinfo.ElementInfoBox.advance">[docs]</a>    <span class="k">def</span> <span class="nf">advance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span>
+        <span class="n">old_index</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">el_id</span><span class="p">)</span>
+        <span class="n">new_index</span> <span class="o">=</span> <span class="n">old_index</span> <span class="o">+</span> <span class="n">step</span>
+        <span class="n">new_el_id</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="n">new_index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)]</span><span class="o">.</span><span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">el_id</span> <span class="o">=</span> <span class="n">new_el_id</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">el_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_el_id</span>
+
+    <span class="nd">@el_id</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">el_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_element</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ElementInfoBox.set_element"><a class="viewcode-back" href="../../../api/madgui.widget.elementinfo.html#madgui.widget.elementinfo.ElementInfoBox.set_element">[docs]</a>    <span class="k">def</span> <span class="nf">set_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_el_id</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_el_id</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">el_id</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="o">.</span><span class="n">kw</span><span class="p">[</span><span class="s1">&#39;elem_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">el_id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">()</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span>
+                <span class="s2">&quot;Element details: &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">el_id</span><span class="p">]</span><span class="o">.</span><span class="n">node_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">changed_element</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">element</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">el_id</span><span class="p">]</span>
+
+    <span class="c1"># for dialog.save/load:</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">exporter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="o">.</span><span class="n">currentWidget</span><span class="p">()</span><span class="o">.</span><span class="n">exporter</span>
+
+    <span class="k">def</span> <span class="nf">_fetch_cmdpar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_index</span><span class="p">):</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequence</span><span class="o">.</span><span class="n">expanded_elements</span><span class="p">[</span><span class="n">elem_index</span><span class="p">]</span>
+        <span class="n">cmdpars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">cmdpar</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="c1"># Implicit drifts being shallow clones of the base DRIFT have inform=1</span>
+        <span class="c1"># for all attributes (even those that are unchanged from a base drift).</span>
+        <span class="c1"># This results in everything being shown in bold style, which is ugly.</span>
+        <span class="c1"># We suppress it by setting inform=0 for most attributes:</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;occ_cnt&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">cmdpars</span><span class="p">:</span>
+                <span class="n">par</span><span class="o">.</span><span class="n">inform</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;at&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cmdpars</span>
+
+    <span class="k">def</span> <span class="nf">_update_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_element</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_fetch_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">elem_index</span><span class="p">]</span>
+        <span class="n">show</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">show</span><span class="p">[</span><span class="s1">&#39;common&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">show</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">base_name</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ParamInfo</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span> <span class="n">v</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="n">k</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">_fetch_twiss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_elem_twiss</span><span class="p">(</span><span class="n">elem_index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ParamInfo</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">_fetch_sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_elem_sigma</span><span class="p">(</span><span class="n">elem_index</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_fetch_sector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sectormap</span><span class="p">(</span><span class="n">elem_index</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">sigmat_title</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;Sig</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">secmap_title</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;R</span><span class="si">{}{}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">7</span> <span class="k">else</span> <span class="s1">&#39;K</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="EllipseWidget"><a class="viewcode-back" href="../../../api/madgui.widget.elementinfo.html#madgui.widget.elementinfo.EllipseWidget">[docs]</a><span class="k">class</span> <span class="nc">EllipseWidget</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">figure</span> <span class="o">=</span> <span class="n">Figure</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="n">canvas</span> <span class="o">=</span> <span class="n">mpl_backend</span><span class="o">.</span><span class="n">FigureCanvas</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span> <span class="o">=</span> <span class="n">toolbar</span> <span class="o">=</span> <span class="n">mpl_backend</span><span class="o">.</span><span class="n">NavigationToolbar2QT</span><span class="p">(</span><span class="n">canvas</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">VBoxLayout</span><span class="p">([</span><span class="n">canvas</span><span class="p">,</span> <span class="n">toolbar</span><span class="p">],</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="c1"># Needed on PyQt5 with tight_layout=True to prevent crash due to</span>
+        <span class="c1"># singular matrix if size=0:</span>
+        <span class="n">canvas</span><span class="o">.</span><span class="n">setMinimumSize</span><span class="p">(</span><span class="n">QSize</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+        <span class="n">canvas</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">QSize</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+
+<div class="viewcode-block" id="EllipseWidget.update"><a class="viewcode-back" href="../../../api/madgui.widget.elementinfo.html#madgui.widget.elementinfo.EllipseWidget.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+        <span class="n">axx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+        <span class="n">axy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">ellipse</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">alfa</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">eps</span><span class="p">):</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="n">atan2</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">alfa</span><span class="p">,</span> <span class="n">gamma</span><span class="o">-</span><span class="n">beta</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+            <span class="c1"># See: ELLIPTICAL TRANSFORMATIONS FOR BEAM OPTICS, R.B. Moore, 2004</span>
+            <span class="c1"># http://www.physics.mcgill.ca/~moore/Notes/Ellipses.pdf</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="p">(</span><span class="n">beta</span> <span class="o">+</span> <span class="n">gamma</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">eps</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">H</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">H</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">eps</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">H</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">H</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+            <span class="c1"># Same as:</span>
+            <span class="c1"># c, s = cos(phi), sin(phi)</span>
+            <span class="c1"># R = np.array([[c, -s], [s, c]])</span>
+            <span class="c1"># M = np.array([[beta, -alfa], [-alfa, gamma]])</span>
+            <span class="c1"># T = R.T.dot(M).dot(R)</span>
+            <span class="c1"># w = sqrt(eps*T[0,0])</span>
+            <span class="c1"># h = sqrt(eps*T[1,1])</span>
+
+            <span class="n">dx</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">eps</span><span class="o">*</span><span class="n">beta</span><span class="p">)</span>
+            <span class="n">dy</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">eps</span><span class="o">*</span><span class="n">gamma</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="n">dx</span><span class="o">*</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">dx</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="n">dy</span><span class="o">*</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">dy</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)</span>
+
+            <span class="c1"># zorder needed to draw on top of grid:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">Ellipse</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">2</span><span class="o">*</span><span class="n">w</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">h</span><span class="p">,</span> <span class="n">phi</span><span class="o">/</span><span class="n">pi</span><span class="o">*</span><span class="mi">180</span><span class="p">,</span>
+                                 <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># FIXME: gui_units</span>
+        <span class="n">twiss</span> <span class="o">=</span> <span class="n">to_ui</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_elem_twiss</span><span class="p">(</span><span class="n">elem_index</span><span class="p">))</span>
+        <span class="n">ellipse</span><span class="p">(</span><span class="n">axx</span><span class="p">,</span> <span class="n">twiss</span><span class="o">.</span><span class="n">alfx</span><span class="p">,</span> <span class="n">twiss</span><span class="o">.</span><span class="n">betx</span><span class="p">,</span> <span class="n">twiss</span><span class="o">.</span><span class="n">gamx</span><span class="p">,</span> <span class="n">twiss</span><span class="o">.</span><span class="n">ex</span><span class="p">)</span>
+        <span class="n">ellipse</span><span class="p">(</span><span class="n">axy</span><span class="p">,</span> <span class="n">twiss</span><span class="o">.</span><span class="n">alfy</span><span class="p">,</span> <span class="n">twiss</span><span class="o">.</span><span class="n">bety</span><span class="p">,</span> <span class="n">twiss</span><span class="o">.</span><span class="n">gamy</span><span class="p">,</span> <span class="n">twiss</span><span class="o">.</span><span class="n">ey</span><span class="p">)</span>
+
+        <span class="n">axx</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x [</span><span class="si">{}</span><span class="s2">]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ui_units</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)))</span>
+        <span class="n">axy</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;y [</span><span class="si">{}</span><span class="s2">]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ui_units</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)))</span>
+        <span class="n">axx</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;px | py&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="InfoBoxGroup"><a class="viewcode-back" href="../../../api/madgui.widget.elementinfo.html#madgui.widget.elementinfo.InfoBoxGroup">[docs]</a><span class="k">class</span> <span class="nc">InfoBoxGroup</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mainwindow</span><span class="p">,</span> <span class="n">selection</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add toolbar tool to panel and subscribe to capture events.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mainwindow</span> <span class="o">=</span> <span class="n">mainwindow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">mainwindow</span><span class="o">.</span><span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection</span> <span class="o">=</span> <span class="n">selection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">create_info_box</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">selection</span><span class="p">]</span>
+        <span class="n">selection</span><span class="o">.</span><span class="n">inserted</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_insert</span><span class="p">)</span>
+        <span class="n">selection</span><span class="o">.</span><span class="n">removed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_delete</span><span class="p">)</span>
+        <span class="n">selection</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_modify</span><span class="p">)</span>
+        <span class="n">selection</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cursor_changed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_filter</span> <span class="o">=</span> <span class="n">EventFilter</span><span class="p">({</span>
+            <span class="s1">&#39;WindowActivate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_activate_box</span><span class="p">,</span>
+            <span class="s1">&#39;Close&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_close_box</span><span class="p">,</span>
+        <span class="p">})</span>
+
+    <span class="c1"># keep info boxes in sync with current selection</span>
+
+    <span class="k">def</span> <span class="nf">_insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">el_id</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxes</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_info_box</span><span class="p">(</span><span class="n">el_id</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">isVisible</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boxes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">_el_id</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boxes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">window</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_modify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">el_id</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">el_id</span> <span class="o">=</span> <span class="n">el_id</span>
+
+    <span class="k">def</span> <span class="nf">_cursor_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">window</span><span class="p">()</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
+
+    <span class="c1"># utility methods</span>
+
+    <span class="k">def</span> <span class="nf">_on_close_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">removeEventFilter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_filter</span><span class="p">)</span>
+        <span class="n">box</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">widget</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">box</span><span class="o">.</span><span class="n">el_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">el_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_activate_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+        <span class="n">box</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">widget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boxes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">box</span><span class="p">),</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InfoBoxGroup.create_info_box"><a class="viewcode-back" href="../../../api/madgui.widget.elementinfo.html#madgui.widget.elementinfo.InfoBoxGroup.create_info_box">[docs]</a>    <span class="k">def</span> <span class="nf">create_info_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el_id</span><span class="p">):</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainwindow</span><span class="o">.</span><span class="n">config</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">ElementInfoBox</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">el_id</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">summary_attrs</span><span class="p">)</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">changed_element</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_changed_box_element</span><span class="p">,</span> <span class="n">info</span><span class="p">))</span>
+        <span class="n">dock</span> <span class="o">=</span> <span class="n">Dialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mainwindow</span><span class="p">)</span>
+        <span class="n">dock</span><span class="o">.</span><span class="n">setSimpleExportWidget</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">dock</span><span class="o">.</span><span class="n">installEventFilter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_filter</span><span class="p">)</span>
+        <span class="n">dock</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">info</span></div>
+
+    <span class="k">def</span> <span class="nf">_changed_box_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boxes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">box</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">el_id</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

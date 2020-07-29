@@ -1,0 +1,16 @@
+madgui.plot package
+===================
+
+.. automodule:: madgui.plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   madgui.plot.scene
+   madgui.plot.twissfigure

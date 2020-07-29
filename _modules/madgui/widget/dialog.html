@@ -1,0 +1,379 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.dialog &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.dialog</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.dialog</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities to create widgets</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Dialog&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QDialog</span><span class="p">,</span> <span class="n">QDialogButtonBox</span><span class="p">,</span> <span class="n">QSizePolicy</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.layout</span> <span class="kn">import</span> <span class="n">HBoxLayout</span><span class="p">,</span> <span class="n">VBoxLayout</span><span class="p">,</span> <span class="n">Stretch</span>
+<span class="kn">from</span> <span class="nn">madgui.util.qt</span> <span class="kn">import</span> <span class="n">present</span><span class="p">,</span> <span class="n">notifyEvent</span>
+
+<span class="c1"># short-hands:</span>
+<span class="n">Button</span> <span class="o">=</span> <span class="n">QDialogButtonBox</span>
+
+
+<span class="k">def</span> <span class="nf">perpendicular</span><span class="p">(</span><span class="n">orientation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get perpendicular orientation.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Horizontal</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Vertical</span><span class="p">)</span> <span class="o">^</span> <span class="n">orientation</span>
+
+
+<span class="k">def</span> <span class="nf">expand</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">orientation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Expand widget in specified direction.&quot;&quot;&quot;</span>
+    <span class="n">policy</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">sizePolicy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">orientation</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Horizontal</span><span class="p">:</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">setHorizontalPolicy</span><span class="p">(</span><span class="n">QSizePolicy</span><span class="o">.</span><span class="n">Minimum</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">setVerticalPolicy</span><span class="p">(</span><span class="n">QSizePolicy</span><span class="o">.</span><span class="n">Minimum</span><span class="p">)</span>
+    <span class="n">widget</span><span class="o">.</span><span class="n">setSizePolicy</span><span class="p">(</span><span class="n">policy</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">SerializeButtons</span><span class="p">(</span><span class="n">QDialogButtonBox</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar QWidget widget: the content area widget</span>
+<span class="sd">    :ivar str folder: folder for exports/imports</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">widget</span> <span class="o">=</span> <span class="n">widget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">folder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addButton</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Open</span><span class="p">)</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onImport</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addButton</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Save</span><span class="p">)</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onExport</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addButton</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onAccept</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Open</span><span class="p">)</span><span class="o">.</span><span class="n">setAutoDefault</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Save</span><span class="p">)</span><span class="o">.</span><span class="n">setAutoDefault</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span><span class="o">.</span><span class="n">setDefault</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">perpendicular</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orientation</span><span class="p">()))</span>
+
+    <span class="k">def</span> <span class="nf">updateButtons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Save</span><span class="p">)</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exporter</span><span class="p">,</span> <span class="s1">&#39;exportTo&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Open</span><span class="p">)</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exporter</span><span class="p">,</span> <span class="s1">&#39;importFrom&#39;</span><span class="p">)</span> <span class="ow">and</span>
+            <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exporter</span><span class="p">,</span> <span class="s1">&#39;readonly&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">exporter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">widget</span><span class="p">,</span> <span class="s1">&#39;exporter&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onImport</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Import data from JSON/YAML file.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.filedialog</span> <span class="kn">import</span> <span class="n">getOpenFileName</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">getOpenFileName</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">(),</span> <span class="s1">&#39;Import values&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exporter</span><span class="o">.</span><span class="n">importFilters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exporter</span><span class="o">.</span><span class="n">importFrom</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onExport</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export data to YAML file.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">madgui.widget.filedialog</span> <span class="kn">import</span> <span class="n">getSaveFileName</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">getSaveFileName</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">(),</span> <span class="s1">&#39;Export values&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exporter</span><span class="o">.</span><span class="n">exportFilters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exporter</span><span class="o">.</span><span class="n">exportTo</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onAccept</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">()</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">addCustomButton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buttonTag</span><span class="p">,</span> <span class="n">apply</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a custom button</span>
+<span class="sd">           @param buttonTag is a string that appears on the button</span>
+<span class="sd">           @param apply is the function performed when clicked on</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">custom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addButton</span><span class="p">(</span><span class="n">buttonTag</span><span class="p">,</span> <span class="n">Button</span><span class="o">.</span><span class="n">ActionRole</span><span class="p">)</span>
+        <span class="n">custom</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">apply</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Dialog"><a class="viewcode-back" href="../../../api/madgui.widget.dialog.html#madgui.widget.dialog.Dialog">[docs]</a><span class="k">class</span> <span class="nc">Dialog</span><span class="p">(</span><span class="n">QDialog</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Utility to wrap an application widget into a window with size-grip and</span>
+<span class="sd">    optional buttons, and manage their lifetime via an owner.</span>
+
+<span class="sd">    We distinguish between an `owner` and `parent` widget as follows:</span>
+
+<span class="sd">    - dialogs always stay on top of the parent and share their taskbar entry</span>
+<span class="sd">    - dialogs do not stay on top of the owner, nor share their taskbar entry,</span>
+<span class="sd">      However: they will be kept alive as long as the owner, and when the</span>
+<span class="sd">      owner is closed, will be closed as well.</span>
+
+<span class="sd">    The second option is preferrable for most non-modal windows!</span>
+
+<span class="sd">    - we want to allow the mainwindow in the foreground when focussed</span>
+<span class="sd">    - we want to allow choosing between all windows from the taskbar</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># TODO: reset button</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">widget</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setSizeGripEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_filter</span> <span class="o">=</span> <span class="n">owner</span> <span class="ow">and</span> <span class="n">notifyEvent</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="s1">&#39;Close&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">owner</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setFontSize</span><span class="p">(</span><span class="n">owner</span><span class="o">.</span><span class="n">font</span><span class="p">()</span><span class="o">.</span><span class="n">pointSize</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">widget</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setWidget</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">VBoxLayout</span><span class="p">([</span><span class="n">widget</span><span class="p">],</span> <span class="n">tight</span><span class="o">=</span><span class="n">tight</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Dialog.setFontSize"><a class="viewcode-back" href="../../../api/madgui.widget.dialog.html#madgui.widget.dialog.Dialog.setFontSize">[docs]</a>    <span class="k">def</span> <span class="nf">setFontSize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pointsize</span><span class="p">):</span>
+        <span class="c1"># Note that setStyleSheet is used because it propagates the change to</span>
+        <span class="c1"># subwidgets better than setFont.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;font-size:</span><span class="si">{}</span><span class="s2">pt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pointsize</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Dialog.setWidget"><a class="viewcode-back" href="../../../api/madgui.widget.dialog.html#madgui.widget.dialog.Dialog.setWidget">[docs]</a>    <span class="k">def</span> <span class="nf">setWidget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">layout</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">widget</span><span class="o">.</span><span class="n">windowTitle</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">windowTitle</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_widget</span> <span class="o">=</span> <span class="n">widget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dialog.widget"><a class="viewcode-back" href="../../../api/madgui.widget.dialog.html#madgui.widget.dialog.Dialog.widget">[docs]</a>    <span class="k">def</span> <span class="nf">widget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_widget</span></div>
+
+    <span class="c1"># TODO: update enabled-state of apply-button?</span>
+
+<div class="viewcode-block" id="Dialog.closeEvent"><a class="viewcode-back" href="../../../api/madgui.widget.dialog.html#madgui.widget.dialog.Dialog.closeEvent">[docs]</a>    <span class="k">def</span> <span class="nf">closeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="c1"># Prevent errors when closing the parent after the child:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_filter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event_filter</span><span class="o">.</span><span class="n">uninstall</span><span class="p">()</span>
+        <span class="c1"># send closeEvent to children!</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">widget</span><span class="p">(),</span> <span class="s1">&#39;closeEvent&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">widget</span><span class="p">()</span><span class="o">.</span><span class="n">closeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">closeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dialog.setExportWidget"><a class="viewcode-back" href="../../../api/madgui.widget.dialog.html#madgui.widget.dialog.Dialog.setExportWidget">[docs]</a>    <span class="k">def</span> <span class="nf">setExportWidget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">folder</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serious</span> <span class="o">=</span> <span class="n">SerializeButtons</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Vertical</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serious</span><span class="o">.</span><span class="n">addButton</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Cancel</span><span class="p">)</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reject</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWidget</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">HBoxLayout</span><span class="p">([</span><span class="n">widget</span><span class="p">,</span> <span class="p">[</span>
+            <span class="n">Stretch</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">serious</span><span class="p">,</span>
+        <span class="p">]]))</span></div>
+
+<div class="viewcode-block" id="Dialog.setSimpleExportWidget"><a class="viewcode-back" href="../../../api/madgui.widget.dialog.html#madgui.widget.dialog.Dialog.setSimpleExportWidget">[docs]</a>    <span class="k">def</span> <span class="nf">setSimpleExportWidget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">folder</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serious</span> <span class="o">=</span> <span class="n">SerializeButtons</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Horizontal</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWidget</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">VBoxLayout</span><span class="p">([</span>
+            <span class="n">widget</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">serious</span><span class="p">,</span>
+        <span class="p">]))</span></div>
+
+    <span class="n">present</span> <span class="o">=</span> <span class="n">present</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

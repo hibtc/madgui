@@ -1,0 +1,368 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.misc module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.util.qt module" href="madgui.util.qt.html" />
+    <link rel="prev" title="madgui.util.menu module" href="madgui.util.menu.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.util.html">madgui.util package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.util.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.util.html">madgui.util package</a> &raquo;</li>
+        
+      <li>madgui.util.misc module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.util.misc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.util.misc">
+<span id="madgui-util-misc-module"></span><h1>madgui.util.misc module<a class="headerlink" href="#module-madgui.util.misc" title="Permalink to this headline">¶</a></h1>
+<p>Misc programming toolbox.</p>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.misc.memoize" title="madgui.util.misc.memoize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">memoize</span></code></a>(func)</p></td>
+<td><p>Decorator for cached method that remembers its result from the first execution and returns this in all subsequent calls rather than executing the function again.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.misc.invalidate" title="madgui.util.misc.invalidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">invalidate</span></code></a>(obj, func)</p></td>
+<td><p>Invalidate cache for memoized function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.misc.cachedproperty" title="madgui.util.misc.cachedproperty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cachedproperty</span></code></a>(func)</p></td>
+<td><p>Decorator for cached, writeable properties.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.misc.ranges" title="madgui.util.misc.ranges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ranges</span></code></a>(nums)</p></td>
+<td><p>Identify groups of consecutive numbers in a list.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.misc.strip_suffix" title="madgui.util.misc.strip_suffix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strip_suffix</span></code></a>(s, suffix)</p></td>
+<td><p>Strip a suffix from a string, if present.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.misc.relpath" title="madgui.util.misc.relpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">relpath</span></code></a>(path, start)</p></td>
+<td><p>Try to make <code class="docutils literal notranslate"><span class="pre">path</span></code> relative to <code class="docutils literal notranslate"><span class="pre">start</span></code> using <code class="docutils literal notranslate"><span class="pre">os.path.relpath</span></code>, but returns <code class="docutils literal notranslate"><span class="pre">path</span></code> itself if this fails (e.g.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.misc.userpath" title="madgui.util.misc.userpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">userpath</span></code></a>(path)</p></td>
+<td><p>Expand ‘~’ and environment variables in a user-given path string.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="madgui.util.misc.cachedproperty">
+<code class="sig-prename descclassname">madgui.util.misc.</code><code class="sig-name descname">cachedproperty</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/misc.html#cachedproperty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.misc.cachedproperty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator for cached, writeable properties.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nd">@cachedproperty</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;bar&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="o">.</span><span class="n">bar</span>
+<span class="go">[&#39;bar&#39;]</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="o">.</span><span class="n">bar</span> <span class="ow">is</span> <span class="n">foo</span><span class="o">.</span><span class="n">bar</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="o">.</span><span class="n">bar</span> <span class="o">=</span> <span class="s1">&#39;qux&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="o">.</span><span class="n">bar</span>
+<span class="go">&#39;qux&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">foo</span><span class="o">.</span><span class="n">bar</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="o">.</span><span class="n">bar</span>
+<span class="go">[&#39;bar&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.misc.invalidate">
+<code class="sig-prename descclassname">madgui.util.misc.</code><code class="sig-name descname">invalidate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">func</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/misc.html#invalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.misc.invalidate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invalidate cache for memoized function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.misc.memoize">
+<code class="sig-prename descclassname">madgui.util.misc.</code><code class="sig-name descname">memoize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/misc.html#memoize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.misc.memoize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator for cached method that remembers its result from the first
+execution and returns this in all subsequent calls rather than executing
+the function again.</p>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nd">@memoize</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;executing bar…&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="s1">&#39;bar&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="o">.</span><span class="n">bar</span><span class="p">()</span>
+<span class="go">executing bar…</span>
+<span class="go">&#39;bar&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="o">.</span><span class="n">bar</span><span class="p">()</span>
+<span class="go">&#39;bar&#39;</span>
+</pre></div>
+</div>
+<p>The cached result can be cleared using <code class="docutils literal notranslate"><span class="pre">invalidate</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">invalidate</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="s1">&#39;bar&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="o">.</span><span class="n">bar</span><span class="p">()</span>
+<span class="go">executing bar…</span>
+<span class="go">&#39;bar&#39;</span>
+</pre></div>
+</div>
+<p>If arguments are passed, the result is always recomputed.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.misc.ranges">
+<code class="sig-prename descclassname">madgui.util.misc.</code><code class="sig-name descname">ranges</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nums</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/misc.html#ranges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.misc.ranges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify groups of consecutive numbers in a list. Returns a list of
+intervals <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">end)</span></code> as tuples.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.misc.relpath">
+<code class="sig-prename descclassname">madgui.util.misc.</code><code class="sig-name descname">relpath</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">start</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/misc.html#relpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.misc.relpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to make <code class="docutils literal notranslate"><span class="pre">path</span></code> relative to <code class="docutils literal notranslate"><span class="pre">start</span></code> using <code class="docutils literal notranslate"><span class="pre">os.path.relpath</span></code>,
+but returns <code class="docutils literal notranslate"><span class="pre">path</span></code> itself if this fails (e.g. if they are on different
+drives on windows).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.misc.strip_suffix">
+<code class="sig-prename descclassname">madgui.util.misc.</code><code class="sig-name descname">strip_suffix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span></em>, <em class="sig-param"><span class="n">suffix</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/misc.html#strip_suffix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.misc.strip_suffix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Strip a suffix from a string, if present.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.misc.userpath">
+<code class="sig-prename descclassname">madgui.util.misc.</code><code class="sig-name descname">userpath</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/misc.html#userpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.misc.userpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand ‘~’ and environment variables in a user-given path string.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.util.qt.html" class="btn btn-neutral float-right" title="madgui.util.qt module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.util.menu.html" class="btn btn-neutral float-left" title="madgui.util.menu module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

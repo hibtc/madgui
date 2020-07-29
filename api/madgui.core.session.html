@@ -1,0 +1,374 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.core.session module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.data package" href="madgui.data.html" />
+    <link rel="prev" title="madgui.core.config module" href="madgui.core.config.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.core.html">madgui.core package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.core.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.core.html">madgui.core package</a> &raquo;</li>
+        
+      <li>madgui.core.session module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.core.session.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.core.session">
+<span id="madgui-core-session-module"></span><h1>madgui.core.session module<a class="headerlink" href="#module-madgui.core.session" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the toplevel context that is used in madgui to keep track
+of current model, config, online control, and mainwindow.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.core.session.Session" title="madgui.core.session.Session"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Session</span></code></a>([config])</p></td>
+<td><p>Context variables and top-level application logic for a madgui session, i.e.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.core.session.Session">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.core.session.</code><code class="sig-name descname">Session</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Context variables and top-level application logic for a madgui session,
+i.e. the interaction between user and different parts of the computer
+program. This object keeps track and coordinates the use of the currently
+opened model, GUI window, user variables, control system connection, and
+configuration data.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.core.session.Session.configure" title="madgui.core.session.Session.configure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configure</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.core.session.Session.find_model" title="madgui.core.session.Session.find_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_model</span></code></a>(name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.core.session.Session.load_default" title="madgui.core.session.Session.load_default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_default</span></code></a>([model])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.core.session.Session.load_model" title="madgui.core.session.Session.load_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_model</span></code></a>(name, **madx_args)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.core.session.Session.model_args" title="madgui.core.session.Session.model_args"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model_args</span></code></a>(filename)</p></td>
+<td><p>Please OVERRIDE to provide custom model arguments.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.core.session.Session.on_model_changed" title="madgui.core.session.Session.on_model_changed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_model_changed</span></code></a>(old, new)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.core.session.Session.save" title="madgui.core.session.Session.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(filename)</p></td>
+<td><p>Save session state to file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.core.session.Session.session_data" title="madgui.core.session.Session.session_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">session_data</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.core.session.Session.set_interpolate" title="madgui.core.session.Session.set_interpolate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_interpolate</span></code></a>(points_per_meter)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.core.session.Session.terminate" title="madgui.core.session.Session.terminate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">terminate</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.core.session.Session.known_extensions" title="madgui.core.session.Session.known_extensions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">known_extensions</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.core.session.Session.configure">
+<code class="sig-name descname">configure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session.configure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session.configure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.core.session.Session.find_model">
+<code class="sig-name descname">find_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session.find_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session.find_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.core.session.Session.known_extensions">
+<code class="sig-name descname">known_extensions</code><em class="property"> = ['.cpymad.yml', '.madx']</em><a class="headerlink" href="#madgui.core.session.Session.known_extensions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.core.session.Session.load_default">
+<code class="sig-name descname">load_default</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session.load_default"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session.load_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.core.session.Session.load_model">
+<code class="sig-name descname">load_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">madx_args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session.load_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session.load_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.core.session.Session.model_args">
+<code class="sig-name descname">model_args</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session.model_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session.model_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Please OVERRIDE to provide custom model arguments.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.core.session.Session.on_model_changed">
+<code class="sig-name descname">on_model_changed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">old</span></em>, <em class="sig-param"><span class="n">new</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session.on_model_changed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session.on_model_changed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.core.session.Session.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save session state to file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.core.session.Session.session_data">
+<code class="sig-name descname">session_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session.session_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session.session_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.core.session.Session.set_interpolate">
+<code class="sig-name descname">set_interpolate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points_per_meter</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session.set_interpolate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session.set_interpolate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.core.session.Session.terminate">
+<code class="sig-name descname">terminate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/core/session.html#Session.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.core.session.Session.terminate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.data.html" class="btn btn-neutral float-right" title="madgui.data package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.core.config.html" class="btn btn-neutral float-left" title="madgui.core.config module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

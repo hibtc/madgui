@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.correct.configselect module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.correct.core module" href="madgui.widget.correct.core.html" />
+    <link rel="prev" title="madgui.widget.correct.autoproc module" href="madgui.widget.correct.autoproc.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.correct.html">madgui.widget.correct package</a> &raquo;</li>
+        
+      <li>madgui.widget.correct.configselect module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.correct.configselect.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.correct.configselect">
+<span id="madgui-widget-correct-configselect-module"></span><h1>madgui.widget.correct.configselect module<a class="headerlink" href="#module-madgui.widget.correct.configselect" title="Permalink to this headline">¶</a></h1>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect" title="madgui.widget.correct.configselect.ConfigSelect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConfigSelect</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Widget that lets the user select config and x/y mode.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.correct.configselect.ConfigSelect">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.correct.configselect.</code><code class="sig-name descname">ConfigSelect</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>Widget that lets the user select config and x/y mode.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect.apply_config" title="madgui.widget.correct.configselect.ConfigSelect.apply_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_config</span></code></a>(text)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect.on_configComboBox_currentIndexChanged" title="madgui.widget.correct.configselect.ConfigSelect.on_configComboBox_currentIndexChanged"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_configComboBox_currentIndexChanged</span></code></a>(index)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect.on_editConfigButton_clicked" title="madgui.widget.correct.configselect.ConfigSelect.on_editConfigButton_clicked"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_editConfigButton_clicked</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect.on_modeXButton_clicked" title="madgui.widget.correct.configselect.ConfigSelect.on_modeXButton_clicked"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_modeXButton_clicked</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect.on_modeXYButton_clicked" title="madgui.widget.correct.configselect.ConfigSelect.on_modeXYButton_clicked"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_modeXYButton_clicked</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect.on_modeYButton_clicked" title="madgui.widget.correct.configselect.ConfigSelect.on_modeYButton_clicked"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_modeYButton_clicked</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect.setEnabled" title="madgui.widget.correct.configselect.ConfigSelect.setEnabled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setEnabled</span></code></a>(self, bool)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect.set_corrector" title="madgui.widget.correct.configselect.ConfigSelect.set_corrector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_corrector</span></code></a>(corrector, data_key)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect.set_xy_mode" title="madgui.widget.correct.configselect.ConfigSelect.set_xy_mode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_xy_mode</span></code></a>(dirs)</p></td>
+<td><p>Set corrector to perform only in x or y plane or both.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.configselect.ConfigSelect.update_config_items" title="madgui.widget.correct.configselect.ConfigSelect.update_config_items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_config_items</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.correct.configselect.ConfigSelect.apply_config">
+<code class="sig-name descname">apply_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect.apply_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect.apply_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.configselect.ConfigSelect.on_configComboBox_currentIndexChanged">
+<code class="sig-name descname">on_configComboBox_currentIndexChanged</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect.on_configComboBox_currentIndexChanged"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect.on_configComboBox_currentIndexChanged" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.configselect.ConfigSelect.on_editConfigButton_clicked">
+<code class="sig-name descname">on_editConfigButton_clicked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect.on_editConfigButton_clicked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect.on_editConfigButton_clicked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.configselect.ConfigSelect.on_modeXButton_clicked">
+<code class="sig-name descname">on_modeXButton_clicked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect.on_modeXButton_clicked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect.on_modeXButton_clicked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.configselect.ConfigSelect.on_modeXYButton_clicked">
+<code class="sig-name descname">on_modeXYButton_clicked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect.on_modeXYButton_clicked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect.on_modeXYButton_clicked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.configselect.ConfigSelect.on_modeYButton_clicked">
+<code class="sig-name descname">on_modeYButton_clicked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect.on_modeYButton_clicked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect.on_modeYButton_clicked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.configselect.ConfigSelect.setEnabled">
+<code class="sig-name descname">setEnabled</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">bool</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect.setEnabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect.setEnabled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.configselect.ConfigSelect.set_corrector">
+<code class="sig-name descname">set_corrector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">corrector</span></em>, <em class="sig-param"><span class="n">data_key</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect.set_corrector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect.set_corrector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.configselect.ConfigSelect.set_xy_mode">
+<code class="sig-name descname">set_xy_mode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dirs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect.set_xy_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect.set_xy_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set corrector to perform only in x or y plane or both.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.configselect.ConfigSelect.update_config_items">
+<code class="sig-name descname">update_config_items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/configselect.html#ConfigSelect.update_config_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.configselect.ConfigSelect.update_config_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.correct.core.html" class="btn btn-neutral float-right" title="madgui.widget.correct.core module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.correct.autoproc.html" class="btn btn-neutral float-left" title="madgui.widget.correct.autoproc module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.plot &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.plot</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.plot</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities to create plots using matplotlib via the Qt5Agg backend.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Toolbar&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PlotWidget&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.backends.backend_qt5agg</span> <span class="k">as</span> <span class="nn">mpl_backend</span>
+<span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="kn">import</span> <span class="n">Figure</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">QSize</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QWidget</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+<span class="kn">from</span> <span class="nn">madgui.util.layout</span> <span class="kn">import</span> <span class="n">VBoxLayout</span>
+
+
+<div class="viewcode-block" id="Toolbar"><a class="viewcode-back" href="../../../api/madgui.widget.plot.html#madgui.widget.plot.Toolbar">[docs]</a><span class="k">class</span> <span class="nc">Toolbar</span><span class="p">(</span><span class="n">mpl_backend</span><span class="o">.</span><span class="n">NavigationToolbar2QT</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Toolbar that autoscales the figure when pressing the &quot;Home&quot; button.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Toolbar.home"><a class="viewcode-back" href="../../../api/madgui.widget.plot.html#madgui.widget.plot.Toolbar.home">[docs]</a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">relim</span><span class="p">()</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_autoscale_on</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">push_current</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_history_buttons</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_view</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="PlotWidget"><a class="viewcode-back" href="../../../api/madgui.widget.plot.html#madgui.widget.plot.PlotWidget">[docs]</a><span class="k">class</span> <span class="nc">PlotWidget</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Widget containing a matplotlib figure and toolbar. It fixes the annoying</span>
+<span class="sd">    cursor loading quirk of the original matplotlib widget and adds an API for</span>
+<span class="sd">    adding mouse capture buttons in the toolbar.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_updateCapture</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize figure/canvas and connect the view.</span>
+
+<span class="sd">        :param TwissFigure figure: the contained figure</span>
+<span class="sd">        :param args: positional arguments for :class:`QWidget`</span>
+<span class="sd">        :param kwargs: keyword arguments for :class:`QWidget`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">figure</span> <span class="o">=</span> <span class="n">figure</span> <span class="ow">or</span> <span class="n">Figure</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="n">canvas</span> <span class="o">=</span> <span class="n">mpl_backend</span><span class="o">.</span><span class="n">FigureCanvas</span><span class="p">(</span><span class="n">figure</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span> <span class="o">=</span> <span class="n">toolbar</span> <span class="o">=</span> <span class="n">Toolbar</span><span class="p">(</span><span class="n">canvas</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">VBoxLayout</span><span class="p">([</span><span class="n">canvas</span><span class="p">,</span> <span class="n">toolbar</span><span class="p">],</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="c1"># Needed on PyQt5 with tight_layout=True to prevent crash due to</span>
+        <span class="c1"># singular matrix if size=0:</span>
+        <span class="n">canvas</span><span class="o">.</span><span class="n">setMinimumSize</span><span class="p">(</span><span class="n">QSize</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+        <span class="c1"># Prevent annoying busy cursor due to MPL redraws, see:</span>
+        <span class="c1"># https://github.com/matplotlib/matplotlib/issues/9546</span>
+        <span class="n">canvas</span><span class="o">.</span><span class="n">set_cursor</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">cursor</span><span class="p">:</span> <span class="kc">None</span>
+
+        <span class="c1"># Monkey-patch MPL&#39;s mouse-capture update logic into a Qt signal:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateCapture</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">toolbar</span><span class="o">.</span><span class="n">_update_buttons_checked</span><span class="p">)</span>
+        <span class="n">toolbar</span><span class="o">.</span><span class="n">_update_buttons_checked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_updateCapture</span><span class="o">.</span><span class="n">emit</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_actions</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="PlotWidget.addCapture"><a class="viewcode-back" href="../../../api/madgui.widget.plot.html#madgui.widget.plot.PlotWidget.addCapture">[docs]</a>    <span class="k">def</span> <span class="nf">addCapture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">update</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateCapture</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">_active</span> <span class="o">==</span> <span class="n">mode</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="PlotWidget.startCapture"><a class="viewcode-back" href="../../../api/madgui.widget.plot.html#madgui.widget.plot.PlotWidget.startCapture">[docs]</a>    <span class="k">def</span> <span class="nf">startCapture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Capture the mouse for the plot widget using the specified mode name.</span>
+<span class="sd">        This manages the toolbar&#39;s active mouse mode and invokes the cleanup</span>
+<span class="sd">        routine when another mode receives mouse capture (e.g. ZOOM/PAN).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">_active</span> <span class="o">!=</span> <span class="n">mode</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">_active</span> <span class="o">=</span> <span class="n">mode</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">_update_buttons_checked</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlotWidget.endCapture"><a class="viewcode-back" href="../../../api/madgui.widget.plot.html#madgui.widget.plot.PlotWidget.endCapture">[docs]</a>    <span class="k">def</span> <span class="nf">endCapture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">_active</span> <span class="o">==</span> <span class="n">mode</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">_active</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">_update_buttons_checked</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlotWidget.addTool"><a class="viewcode-back" href="../../../api/madgui.widget.plot.html#madgui.widget.plot.PlotWidget.addTool">[docs]</a>    <span class="k">def</span> <span class="nf">addTool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="n">tool</span><span class="o">.</span><span class="n">action</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="PlotWidget.addAction"><a class="viewcode-back" href="../../../api/madgui.widget.plot.html#madgui.widget.plot.PlotWidget.addAction">[docs]</a>    <span class="k">def</span> <span class="nf">addAction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+        <span class="n">toolbar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">before</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insert_actions_before</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">before</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insert_actions_before</span> <span class="o">=</span> <span class="n">toolbar</span><span class="o">.</span><span class="n">actions</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">toolbar</span><span class="o">.</span><span class="n">insertSeparator</span><span class="p">(</span><span class="n">before</span><span class="p">)</span>
+        <span class="n">toolbar</span><span class="o">.</span><span class="n">insertAction</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+        <span class="c1"># Store reference so the object doesn&#39;t get garbage collected:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

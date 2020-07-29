@@ -1,0 +1,285 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Coding conventions &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Related projects" href="related.html" />
+    <link rel="prev" title="Proxy Settings" href="proxy.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer’s guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="setup.html">Development setup for madgui</a></li>
+<li class="toctree-l2"><a class="reference internal" href="proxy.html">Proxy Settings</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Coding conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html">Creating a new version</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Developer’s guide</a> &raquo;</li>
+        
+      <li>Coding conventions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/devguide/conventions.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="coding-conventions">
+<h1>Coding conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this headline">¶</a></h1>
+<p>In general, follow the style of the surrounding code. More precisely:</p>
+<ul class="simple">
+<li><p>Follow <a class="reference external" href="http://www.python.org/dev/peps/pep-0008/">PEP 8</a> and <a class="reference external" href="http://www.python.org/dev/peps/pep-0257/">PEP 257</a>.</p></li>
+<li><p>Add <a class="reference external" href="http://sphinx-doc.org/">sphinx</a> style docstrings for all modules, classes, functions</p></li>
+<li><p>Document user-relevant changes in the file <code class="docutils literal notranslate"><span class="pre">CHANGES.rst</span></code></p></li>
+</ul>
+<p>I highly recommend to also:</p>
+<ul class="simple">
+<li><p>watch Kevlin Henney’s <a class="reference external" href="https://www.youtube.com/watch?v=ZsHMHukIlJY">Seven ineffective Coding Habits of Many Programmers</a></p></li>
+<li><p>type <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">this</span></code> in a python shell and appreciate</p></li>
+</ul>
+<p><strong>Spaces:</strong></p>
+<p>I feel like this deserves an extra section because I see it done wrong so
+often. It is best to configure your text editor to take care of the following:</p>
+<ul class="simple">
+<li><p>Use spaces, not tabs! (This is important for consistent spacing across
+different editor settings and in particular in the context of python to
+avoid <code class="docutils literal notranslate"><span class="pre">IndentationError</span></code>.)</p></li>
+<li><p>indentation is always 4 spaces</p></li>
+<li><p>avoid trailing spaces</p></li>
+<li><p>files end with a single newline character (Some editors such as vim do this
+by default)</p></li>
+<li><p>unix line endings</p></li>
+<li><p>no more than 80 columns line length (reading becomes hard at about 60)</p></li>
+</ul>
+<p>These rules are designed to <strong>avoid ambiguity</strong> and some of the most common
+reasons to add noise in commit diffs due to incidental whitespace changes that
+have nothing to do with what the commit is actually trying to do.</p>
+<blockquote>
+<div><p>In the face of ambiguity, refuse the temptation to guess.</p>
+<p>There should be one– and preferably only one –obvious way to do it.</p>
+</div></blockquote>
+<p><strong>Naming:</strong></p>
+<p>Altough the current code base is not entirely consistent, all new code should
+follow these rules:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ClassNames</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">function_names</span></code> and methods</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">variable_names</span></code> and properties</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_private_variables</span></code> and methods</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">__special_methods__</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GLOBAL_CONSTANTS</span></code> (only constants!)</p></li>
+<li><p>PyQt class method overrides and their parameters, as well as child objects
+of widgets are in <code class="docutils literal notranslate"><span class="pre">lowerCamelCase</span></code></p></li>
+</ul>
+<p><strong>Breaking statements*</strong></p>
+<p>When breaking a statement over multiple lines, it is best formatted such that
+it becomes invariant with respect to refactorings.</p>
+<p>If you don’t know what this means, I recommend watching Kevlin Henney’s <a class="reference external" href="https://www.youtube.com/watch?v=ZsHMHukIlJY">Seven
+ineffective Coding Habits of Many Programmers</a>.</p>
+<p><strong>Version control:</strong></p>
+<p>Commits should be reversible, independent units if possible. Use descriptive
+titles and also add an explaining commit message unless the modification is
+trivial. See also: <a class="reference external" href="http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html">A Note About Git Commit Messages</a>.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="related.html" class="btn btn-neutral float-right" title="Related projects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="proxy.html" class="btn btn-neutral float-left" title="Proxy Settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

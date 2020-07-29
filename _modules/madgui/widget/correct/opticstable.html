@@ -1,0 +1,291 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.correct.opticstable &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.correct.opticstable</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.correct.opticstable</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QWidget</span><span class="p">,</span> <span class="n">QAbstractItemView</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.qt</span> <span class="kn">import</span> <span class="n">load_ui</span>
+<span class="kn">from</span> <span class="nn">madgui.util.unit</span> <span class="kn">import</span> <span class="n">change_unit</span><span class="p">,</span> <span class="n">get_raw_label</span>
+<span class="kn">from</span> <span class="nn">madgui.widget.tableview</span> <span class="kn">import</span> <span class="n">TableItem</span><span class="p">,</span> <span class="n">delegates</span>
+
+
+<div class="viewcode-block" id="OpticsTable"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.opticstable.html#madgui.widget.correct.opticstable.OpticsTable">[docs]</a><span class="k">class</span> <span class="nc">OpticsTable</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="n">num_focus_levels</span> <span class="o">=</span> <span class="mi">6</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">load_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__package__</span><span class="p">,</span> <span class="s1">&#39;opticstable.ui&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">setSelectionBehavior</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">SelectRows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">ExtendedSelection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readFocusButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_focus</span><span class="p">)</span>
+
+<div class="viewcode-block" id="OpticsTable.setEnabled"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.opticstable.html#madgui.widget.correct.opticstable.OpticsTable.setEnabled">[docs]</a>    <span class="k">def</span> <span class="nf">setEnabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enabled</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read1stFocusComboBox</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">enabled</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read2ndFocusComboBox</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">enabled</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readFocusButton</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">enabled</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OpticsTable.set_corrector"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.opticstable.html#madgui.widget.correct.opticstable.OpticsTable.set_corrector">[docs]</a>    <span class="k">def</span> <span class="nf">set_corrector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">corrector</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span> <span class="o">=</span> <span class="n">corrector</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">set_viewmodel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_optic_row</span><span class="p">,</span> <span class="n">corrector</span><span class="o">.</span><span class="n">optics</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">optics</span><span class="o">.</span><span class="n">update_finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_optics_updated</span><span class="p">)</span>
+
+        <span class="n">focus_choices</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;F</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_focus_levels</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read1stFocusComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">focus_choices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read2ndFocusComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">focus_choices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read1stFocusComboBox</span><span class="o">.</span><span class="n">setCurrentText</span><span class="p">(</span><span class="s2">&quot;F1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read2ndFocusComboBox</span><span class="o">.</span><span class="n">setCurrentText</span><span class="p">(</span><span class="s2">&quot;F4&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OpticsTable.get_optic_row"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.opticstable.html#madgui.widget.correct.opticstable.OpticsTable.get_optic_row">[docs]</a>    <span class="k">def</span> <span class="nf">get_optic_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="s2">&quot;kL (1)&quot;</span><span class="p">,</span> <span class="s2">&quot;kL (2)&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">change_unit</span><span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">lower</span><span class="p">()],</span> <span class="n">info</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">ui_unit</span><span class="p">),</span>
+                      <span class="n">set_value</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_optic_value</span><span class="p">,</span> <span class="n">par</span><span class="p">),</span>
+                      <span class="n">delegate</span><span class="o">=</span><span class="n">delegates</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">selected</span><span class="p">[</span><span class="s1">&#39;optics&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">optic_params</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="OpticsTable.set_optic_value"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.opticstable.html#madgui.widget.correct.opticstable.OpticsTable.set_optic_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_optic_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">par</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">o</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="OpticsTable.read_focus"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.opticstable.html#madgui.widget.correct.opticstable.OpticsTable.read_focus">[docs]</a>    <span class="k">def</span> <span class="nf">read_focus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update focus level and automatically load QP values.&quot;&quot;&quot;</span>
+        <span class="n">foci</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">read1stFocusComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">read2ndFocusComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">corr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span>
+        <span class="n">ctrl</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">control</span>
+        <span class="c1"># TODO: this should be done with a more generic API</span>
+        <span class="c1"># TODO: do this without beamoptikdll to decrease the waiting time</span>
+        <span class="n">acs</span> <span class="o">=</span> <span class="n">ctrl</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">beamoptikdll</span>
+        <span class="n">values</span><span class="p">,</span> <span class="n">channels</span> <span class="o">=</span> <span class="n">acs</span><span class="o">.</span><span class="n">GetMEFIValue</span><span class="p">()</span>
+        <span class="n">vacc</span> <span class="o">=</span> <span class="n">acs</span><span class="o">.</span><span class="n">GetSelectedVAcc</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">optics</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">focus</span> <span class="ow">in</span> <span class="n">foci</span><span class="p">:</span>
+                <span class="n">acs</span><span class="o">.</span><span class="n">SelectMEFI</span><span class="p">(</span><span class="n">vacc</span><span class="p">,</span> <span class="o">*</span><span class="n">channels</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">focus</span><span class="o">=</span><span class="n">focus</span><span class="p">))</span>
+                <span class="n">optics</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="n">par</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">ctrl</span><span class="o">.</span><span class="n">read_param</span><span class="p">(</span><span class="n">par</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">corr</span><span class="o">.</span><span class="n">selected</span><span class="p">[</span><span class="s1">&#39;optics&#39;</span><span class="p">]</span>
+                <span class="p">})</span>
+            <span class="n">corr</span><span class="o">.</span><span class="n">optics</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">optics</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">acs</span><span class="o">.</span><span class="n">SelectMEFI</span><span class="p">(</span><span class="n">vacc</span><span class="p">,</span> <span class="o">*</span><span class="n">channels</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OpticsTable.on_optics_updated"><a class="viewcode-back" href="../../../../api/madgui.widget.correct.opticstable.html#madgui.widget.correct.opticstable.OpticsTable.on_optics_updated">[docs]</a>    <span class="k">def</span> <span class="nf">on_optics_updated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opticsTable</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">titles</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">get_raw_label</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">ui_unit</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">corrector</span><span class="o">.</span><span class="n">optic_params</span>
+        <span class="p">]</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

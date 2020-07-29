@@ -1,0 +1,22 @@
+madgui.online package
+=====================
+
+.. automodule:: madgui.online
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   madgui.online.api
+   madgui.online.control
+   madgui.online.diagnostic
+   madgui.online.dialogs
+   madgui.online.offcal
+   madgui.online.orbit
+   madgui.online.orm_measure
+   madgui.online.procedure

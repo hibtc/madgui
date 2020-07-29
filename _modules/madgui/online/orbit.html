@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.orbit &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.online.orbit</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.online.orbit</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Contains functions to deduce initial particle coordinates from given</span>
+<span class="sd">measurements.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Readout&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;add_offsets&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fit_particle_readouts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fit_particle_orbit&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fit_initial_orbit&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="Readout"><a class="viewcode-back" href="../../../api/madgui.online.orbit.html#madgui.online.orbit.Readout">[docs]</a><span class="k">class</span> <span class="nc">Readout</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">posx</span><span class="p">,</span> <span class="n">posy</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">posx</span> <span class="o">=</span> <span class="n">posx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">posy</span> <span class="o">=</span> <span class="n">posy</span></div>
+
+
+<div class="viewcode-block" id="add_offsets"><a class="viewcode-back" href="../../../api/madgui.online.orbit.html#madgui.online.orbit.add_offsets">[docs]</a><span class="k">def</span> <span class="nf">add_offsets</span><span class="p">(</span><span class="n">readouts</span><span class="p">,</span> <span class="n">offsets</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">Readout</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">posx</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">posy</span> <span class="o">+</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">readouts</span>
+        <span class="k">for</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="ow">in</span> <span class="p">[</span><span class="n">offsets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))]</span>
+    <span class="p">]</span> <span class="k">if</span> <span class="n">offsets</span> <span class="k">else</span> <span class="n">readouts</span></div>
+
+
+<div class="viewcode-block" id="fit_particle_readouts"><a class="viewcode-back" href="../../../api/madgui.online.orbit.html#madgui.online.orbit.fit_particle_readouts">[docs]</a><span class="k">def</span> <span class="nf">fit_particle_readouts</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">readouts</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="s1">&#39;#s&#39;</span><span class="p">):</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">readouts</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">r</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">Readout</span><span class="p">(</span><span class="o">*</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">readouts</span>
+    <span class="p">]</span>
+    <span class="n">readouts</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">readouts</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">index</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+    <span class="n">from_</span> <span class="o">=</span> <span class="n">readouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">return</span> <span class="n">fit_particle_orbit</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">readouts</span><span class="p">,</span> <span class="p">[</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">sectormap</span><span class="p">(</span><span class="n">from_</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">readouts</span>
+    <span class="p">],</span> <span class="n">to</span><span class="o">=</span><span class="n">to</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="fit_particle_orbit"><a class="viewcode-back" href="../../../api/madgui.online.orbit.html#madgui.online.orbit.fit_particle_orbit">[docs]</a><span class="k">def</span> <span class="nf">fit_particle_orbit</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">records</span><span class="p">,</span> <span class="n">secmaps</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="s1">&#39;#s&#39;</span><span class="p">):</span>
+
+    <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">px</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">py</span><span class="p">),</span> <span class="n">chi_squared</span><span class="p">,</span> <span class="n">singular</span> <span class="o">=</span> <span class="n">fit_initial_orbit</span><span class="p">([</span>
+        <span class="p">(</span><span class="n">secmap</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">6</span><span class="p">],</span> <span class="n">secmap</span><span class="p">[:,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">posx</span><span class="p">,</span> <span class="n">record</span><span class="o">.</span><span class="n">posy</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">record</span><span class="p">,</span> <span class="n">secmap</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">secmaps</span><span class="p">)</span>
+    <span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">from_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">from_</span> <span class="o">=</span> <span class="n">records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">from_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">from_</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">track_one</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">px</span><span class="o">=</span><span class="n">px</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">py</span><span class="o">=</span><span class="n">py</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="n">from_</span><span class="p">,</span> <span class="n">to</span><span class="p">))</span>
+    <span class="n">orbit</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;px&#39;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">px</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+             <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;py&#39;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">py</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]}</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">orbit</span><span class="p">,</span> <span class="n">chi_squared</span><span class="p">,</span> <span class="n">singular</span><span class="p">),</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="fit_initial_orbit"><a class="viewcode-back" href="../../../api/madgui.online.orbit.html#madgui.online.orbit.fit_initial_orbit">[docs]</a><span class="k">def</span> <span class="nf">fit_initial_orbit</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute initial beam position/momentum from multiple recorded monitor</span>
+<span class="sd">    readouts + associated transfer maps.</span>
+
+<span class="sd">    Call as follows:</span>
+
+<span class="sd">        &gt;&gt;&gt; fit_initial_orbit([(T1, K1, Y1), (T2, K2, Y2), …])</span>
+
+<span class="sd">    where</span>
+
+<span class="sd">        T are the 4D/6D SECTORMAPs from start to the monitor.</span>
+<span class="sd">        K are the 4D/6D KICKs of the map from the start to the monitor.</span>
+<span class="sd">        Y are the 2D measurement vectors (x, y)</span>
+
+<span class="sd">    This function solves the linear system:</span>
+
+<span class="sd">            T1 X + K1 = Y1</span>
+<span class="sd">            T2 X + K2 = Y2</span>
+<span class="sd">            …</span>
+
+<span class="sd">    for the 4D phase space vector X = (x, px, y, py).</span>
+
+<span class="sd">    Returns:    [x,px,y,py],    chi_squared,    underdetermined</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">T_</span><span class="p">,</span> <span class="n">K_</span><span class="p">,</span> <span class="n">Y_</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">records</span><span class="p">)</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">T</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span> <span class="k">for</span> <span class="n">T</span> <span class="ow">in</span> <span class="n">T_</span><span class="p">])[:,</span> <span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">K</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span> <span class="k">for</span> <span class="n">K</span> <span class="ow">in</span> <span class="n">K_</span><span class="p">])</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">Y_</span><span class="p">)</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">residuals</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">singular</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">Y</span><span class="o">-</span><span class="n">K</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="n">rcond</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">residuals</span><span class="p">),</span> <span class="p">(</span><span class="n">rank</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

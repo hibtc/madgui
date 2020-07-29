@@ -1,0 +1,425 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.match module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.params module" href="madgui.widget.params.html" />
+    <link rel="prev" title="madgui.widget.mainwindow module" href="madgui.widget.mainwindow.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.match module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.match.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.match">
+<span id="madgui-widget-match-module"></span><h1>madgui.widget.match module<a class="headerlink" href="#module-madgui.widget.match" title="Permalink to this headline">¶</a></h1>
+<p>UI for matching.</p>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.parse_knob" title="madgui.widget.match.parse_knob"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_knob</span></code></a>(model, text)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget" title="madgui.widget.match.MatchWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatchWidget</span></code></a>(matcher, control)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.match.MatchWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.match.</code><code class="sig-name descname">MatchWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">matcher</span></em>, <em class="sig-param"><span class="n">control</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.accept" title="madgui.widget.match.MatchWidget.accept"><code class="xref py py-obj docutils literal notranslate"><span class="pre">accept</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.add_constraint" title="madgui.widget.match.MatchWidget.add_constraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_constraint</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.add_variable" title="madgui.widget.match.MatchWidget.add_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_variable</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.connect_execute_button" title="madgui.widget.match.MatchWidget.connect_execute_button"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connect_execute_button</span></code></a>()</p></td>
+<td><p>Enables the execute button if madgui has an online backend</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.connect_signals" title="madgui.widget.match.MatchWidget.connect_signals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connect_signals</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.cons_items" title="madgui.widget.match.MatchWidget.cons_items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cons_items</span></code></a>(i, c)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.hideEvent" title="madgui.widget.match.MatchWidget.hideEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hideEvent</span></code></a>(self, QHideEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.init_controls" title="madgui.widget.match.MatchWidget.init_controls"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_controls</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.on_change_mirror" title="madgui.widget.match.MatchWidget.on_change_mirror"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_change_mirror</span></code></a>(checked)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.on_update_constraints" title="madgui.widget.match.MatchWidget.on_update_constraints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_update_constraints</span></code></a>(*args)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.on_update_variables" title="madgui.widget.match.MatchWidget.on_update_variables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_update_variables</span></code></a>(*args)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.set_initial_values" title="madgui.widget.match.MatchWidget.set_initial_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_initial_values</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.showEvent" title="madgui.widget.match.MatchWidget.showEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">showEvent</span></code></a>(self, QShowEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.update_buttons" title="madgui.widget.match.MatchWidget.update_buttons"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_buttons</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.var_items" title="madgui.widget.match.MatchWidget.var_items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">var_items</span></code></a>(i, v)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.match.MatchWidget.ui_file" title="madgui.widget.match.MatchWidget.ui_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_file</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.accept"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.accept" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.add_constraint">
+<code class="sig-name descname">add_constraint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.add_constraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.add_constraint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.add_variable">
+<code class="sig-name descname">add_variable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.add_variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.add_variable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.connect_execute_button">
+<code class="sig-name descname">connect_execute_button</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.connect_execute_button"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.connect_execute_button" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the execute button if madgui has an online backend</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.connect_signals">
+<code class="sig-name descname">connect_signals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.connect_signals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.connect_signals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.cons_items">
+<code class="sig-name descname">cons_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">c</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.cons_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.cons_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.hideEvent">
+<code class="sig-name descname">hideEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QHideEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.hideEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.hideEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.init_controls">
+<code class="sig-name descname">init_controls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.init_controls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.init_controls" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.on_change_mirror">
+<code class="sig-name descname">on_change_mirror</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">checked</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.on_change_mirror"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.on_change_mirror" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.on_update_constraints">
+<code class="sig-name descname">on_update_constraints</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.on_update_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.on_update_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.on_update_variables">
+<code class="sig-name descname">on_update_variables</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.on_update_variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.on_update_variables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.set_initial_values">
+<code class="sig-name descname">set_initial_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.set_initial_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.set_initial_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.showEvent">
+<code class="sig-name descname">showEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QShowEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.showEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.showEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.match.MatchWidget.ui_file">
+<code class="sig-name descname">ui_file</code><em class="property"> = 'match.ui'</em><a class="headerlink" href="#madgui.widget.match.MatchWidget.ui_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.update_buttons">
+<code class="sig-name descname">update_buttons</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.update_buttons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.update_buttons" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.match.MatchWidget.var_items">
+<code class="sig-name descname">var_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">v</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#MatchWidget.var_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.MatchWidget.var_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.widget.match.parse_knob">
+<code class="sig-prename descclassname">madgui.widget.match.</code><code class="sig-name descname">parse_knob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/match.html#parse_knob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.match.parse_knob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.params.html" class="btn btn-neutral float-right" title="madgui.widget.params module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.mainwindow.html" class="btn btn-neutral float-left" title="madgui.widget.mainwindow module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

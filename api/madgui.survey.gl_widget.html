@@ -1,0 +1,491 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.survey.gl_widget module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.survey.shapes module" href="madgui.survey.shapes.html" />
+    <link rel="prev" title="madgui.survey.gl_util module" href="madgui.survey.gl_util.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.survey.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.survey.html">madgui.survey package</a> &raquo;</li>
+        
+      <li>madgui.survey.gl_widget module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.survey.gl_widget.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.survey.gl_widget">
+<span id="madgui-survey-gl-widget-module"></span><h1>madgui.survey.gl_widget module<a class="headerlink" href="#module-madgui.survey.gl_widget" title="Permalink to this headline">¶</a></h1>
+<p>Contains a OpenGL widget to display a static scene.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget" title="madgui.survey.gl_widget.GLWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GLWidget</span></code></a>(create_items, *args, **kwargs)</p></td>
+<td><p>OpenGL widget that shows a static 3D scene, allowing the observer to freely move and look around.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.survey.gl_widget.GLWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.survey.gl_widget.</code><code class="sig-name descname">GLWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">create_items</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QOpenGLWidget</span></code></p>
+<p>OpenGL widget that shows a static 3D scene, allowing the observer to
+freely move and look around.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.camera_speed" title="madgui.survey.gl_widget.GLWidget.camera_speed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">camera_speed</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.mouse_sensitivity" title="madgui.survey.gl_widget.GLWidget.mouse_sensitivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouse_sensitivity</span></code></a></p></td>
+<td><p>float(x) -&gt; floating point number</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.update_interval" title="madgui.survey.gl_widget.GLWidget.update_interval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_interval</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.zoom_speed" title="madgui.survey.gl_widget.GLWidget.zoom_speed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zoom_speed</span></code></a></p></td>
+<td><p>float(x) -&gt; floating point number</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.closeEvent" title="madgui.survey.gl_widget.GLWidget.closeEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">closeEvent</span></code></a>(event)</p></td>
+<td><p>Free items.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.create_scene" title="madgui.survey.gl_widget.GLWidget.create_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_scene</span></code></a>()</p></td>
+<td><p>Fetch new items from the given callable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.create_shader_program" title="madgui.survey.gl_widget.GLWidget.create_shader_program"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_shader_program</span></code></a>()</p></td>
+<td><p>Create simple program with generic fragment/vertex shaders used to render objects with a simple ambient+diffuse lighting model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.free" title="madgui.survey.gl_widget.GLWidget.free"><code class="xref py py-obj docutils literal notranslate"><span class="pre">free</span></code></a>()</p></td>
+<td><p>Free all items.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.hideEvent" title="madgui.survey.gl_widget.GLWidget.hideEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hideEvent</span></code></a>(event)</p></td>
+<td><p>Stop scene updates (camera movement).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.initializeGL" title="madgui.survey.gl_widget.GLWidget.initializeGL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initializeGL</span></code></a>()</p></td>
+<td><p>Called after first creating a valid OpenGL context.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.keyPressEvent" title="madgui.survey.gl_widget.GLWidget.keyPressEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keyPressEvent</span></code></a>(event)</p></td>
+<td><p>Maintain a list of pressed keys for camera movement.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.keyReleaseEvent" title="madgui.survey.gl_widget.GLWidget.keyReleaseEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keyReleaseEvent</span></code></a>(event)</p></td>
+<td><p>Maintain a list of pressed keys for camera movement.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.minimumSizeHint" title="madgui.survey.gl_widget.GLWidget.minimumSizeHint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimumSizeHint</span></code></a>(self)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.mouseMoveEvent" title="madgui.survey.gl_widget.GLWidget.mouseMoveEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouseMoveEvent</span></code></a>(event)</p></td>
+<td><p>Handle camera look around.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.mousePressEvent" title="madgui.survey.gl_widget.GLWidget.mousePressEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mousePressEvent</span></code></a>(event)</p></td>
+<td><p>Handle camera look around.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.paintGL" title="madgui.survey.gl_widget.GLWidget.paintGL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paintGL</span></code></a>()</p></td>
+<td><p>Handle paint event by drawing the items returned by the creator function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.showEvent" title="madgui.survey.gl_widget.GLWidget.showEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">showEvent</span></code></a>(event)</p></td>
+<td><p>Start scene updates (camera movement).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.show_gl_info" title="madgui.survey.gl_widget.GLWidget.show_gl_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_gl_info</span></code></a>(spec, text)</p></td>
+<td><p>Show GL version info.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.sizeHint" title="madgui.survey.gl_widget.GLWidget.sizeHint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sizeHint</span></code></a>(self)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.update_event" title="madgui.survey.gl_widget.GLWidget.update_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_event</span></code></a>()</p></td>
+<td><p>Implement camera movement.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.gl_widget.GLWidget.wheelEvent" title="madgui.survey.gl_widget.GLWidget.wheelEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wheelEvent</span></code></a>(event)</p></td>
+<td><p>Handle mouse wheel as zoom.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.survey.gl_widget.GLWidget.ambient_color">
+<code class="sig-name descname">ambient_color</code><em class="property"> = array([0.1, 0.1, 0.1], dtype=float32)</em><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.ambient_color" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.gl_widget.GLWidget.background_color">
+<code class="sig-name descname">background_color</code><em class="property"> = array([0.6, 0.6, 0.6], dtype=float32)</em><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.background_color" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.gl_widget.GLWidget.camera_speed">
+<code class="sig-name descname">camera_speed</code><em class="property"> = 1</em><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.camera_speed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.closeEvent">
+<code class="sig-name descname">closeEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.closeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.closeEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Free items.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.create_scene">
+<code class="sig-name descname">create_scene</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.create_scene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.create_scene" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch new items from the given callable.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.create_shader_program">
+<code class="sig-name descname">create_shader_program</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.create_shader_program"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.create_shader_program" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create simple program with generic fragment/vertex shaders used to
+render objects with a simple ambient+diffuse lighting model.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.gl_widget.GLWidget.diffuse_color">
+<code class="sig-name descname">diffuse_color</code><em class="property"> = array([1., 1., 1.], dtype=float32)</em><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.diffuse_color" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.free">
+<code class="sig-name descname">free</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.free"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.free" title="Permalink to this definition">¶</a></dt>
+<dd><p>Free all items.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.hideEvent">
+<code class="sig-name descname">hideEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.hideEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.hideEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop scene updates (camera movement).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.initializeGL">
+<code class="sig-name descname">initializeGL</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.initializeGL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.initializeGL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called after first creating a valid OpenGL context. Creates shader
+program, sets up camera and creates an initial scene.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.keyPressEvent">
+<code class="sig-name descname">keyPressEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.keyPressEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.keyPressEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maintain a list of pressed keys for camera movement.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.keyReleaseEvent">
+<code class="sig-name descname">keyReleaseEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.keyReleaseEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.keyReleaseEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maintain a list of pressed keys for camera movement.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.minimumSizeHint">
+<code class="sig-name descname">minimumSizeHint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; QSize<a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.minimumSizeHint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.minimumSizeHint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.mouseMoveEvent">
+<code class="sig-name descname">mouseMoveEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.mouseMoveEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.mouseMoveEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle camera look around.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.mousePressEvent">
+<code class="sig-name descname">mousePressEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.mousePressEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.mousePressEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle camera look around.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.gl_widget.GLWidget.mouse_sensitivity">
+<code class="sig-name descname">mouse_sensitivity</code><em class="property"> = 0.01</em><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.mouse_sensitivity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.paintGL">
+<code class="sig-name descname">paintGL</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.paintGL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.paintGL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle paint event by drawing the items returned by the creator
+function.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.gl_widget.GLWidget.shader_program">
+<code class="sig-name descname">shader_program</code><em class="property"> = None</em><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.shader_program" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.showEvent">
+<code class="sig-name descname">showEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.showEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.showEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start scene updates (camera movement).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.show_gl_info">
+<code class="sig-name descname">show_gl_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.show_gl_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.show_gl_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show GL version info.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.sizeHint">
+<code class="sig-name descname">sizeHint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; QSize<a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.sizeHint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.sizeHint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.update_event">
+<code class="sig-name descname">update_event</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.update_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.update_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement camera movement. Called regularly.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.gl_widget.GLWidget.update_interval">
+<code class="sig-name descname">update_interval</code><em class="property"> = 25</em><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.update_interval" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.gl_widget.GLWidget.update_timer">
+<code class="sig-name descname">update_timer</code><em class="property"> = None</em><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.update_timer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.gl_widget.GLWidget.wheelEvent">
+<code class="sig-name descname">wheelEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/gl_widget.html#GLWidget.wheelEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.wheelEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle mouse wheel as zoom.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.gl_widget.GLWidget.zoom_speed">
+<code class="sig-name descname">zoom_speed</code><em class="property"> = 0.1</em><a class="headerlink" href="#madgui.survey.gl_widget.GLWidget.zoom_speed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.survey.shapes.html" class="btn btn-neutral float-right" title="madgui.survey.shapes module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.survey.gl_util.html" class="btn btn-neutral float-left" title="madgui.survey.gl_util module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

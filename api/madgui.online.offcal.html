@@ -1,0 +1,570 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.offcal module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.online.orbit module" href="madgui.online.orbit.html" />
+    <link rel="prev" title="madgui.online.dialogs module" href="madgui.online.dialogs.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.online.html">madgui.online package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.online.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.online.html">madgui.online package</a> &raquo;</li>
+        
+      <li>madgui.online.offcal module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.online.offcal.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.online.offcal">
+<span id="madgui-online-offcal-module"></span><h1>madgui.online.offcal module<a class="headerlink" href="#module-madgui.online.offcal" title="Permalink to this headline">¶</a></h1>
+<p>Defines a widget that can be used to estimate monitor offsets from online
+measurements (flawed approach).</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.ResultItem" title="madgui.online.offcal.ResultItem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ResultItem</span></code></a>(name, x, y)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget" title="madgui.online.offcal.OffsetCalibrationWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OffsetCalibrationWidget</span></code></a>(parent, monitors)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.fit_monitor_offsets" title="madgui.online.offcal.fit_monitor_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_monitor_offsets</span></code></a>(*records)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.offcal.</code><code class="sig-name descname">OffsetCalibrationWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em>, <em class="sig-param"><span class="n">monitors</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.apply" title="madgui.online.offcal.OffsetCalibrationWidget.apply"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.cancel" title="madgui.online.offcal.OffsetCalibrationWidget.cancel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cancel</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.change_output_file" title="madgui.online.offcal.OffsetCalibrationWidget.change_output_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_output_file</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.closeEvent" title="madgui.online.offcal.OffsetCalibrationWidget.closeEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">closeEvent</span></code></a>(self, QCloseEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.finish" title="madgui.online.offcal.OffsetCalibrationWidget.finish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">finish</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.get_optics" title="madgui.online.offcal.OffsetCalibrationWidget.get_optics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_optics</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.get_quads" title="madgui.online.offcal.OffsetCalibrationWidget.get_quads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_quads</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.get_result_row" title="madgui.online.offcal.OffsetCalibrationWidget.get_result_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_result_row</span></code></a>(i, r)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.is_optics_valid" title="madgui.online.offcal.OffsetCalibrationWidget.is_optics_valid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_optics_valid</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.load_optics" title="madgui.online.offcal.OffsetCalibrationWidget.load_optics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_optics</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.log" title="madgui.online.offcal.OffsetCalibrationWidget.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log</span></code></a>(text, *args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.read_focus" title="madgui.online.offcal.OffsetCalibrationWidget.read_focus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_focus</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.reset" title="madgui.online.offcal.OffsetCalibrationWidget.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.restore" title="madgui.online.offcal.OffsetCalibrationWidget.restore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">restore</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.round" title="madgui.online.offcal.OffsetCalibrationWidget.round"><code class="xref py py-obj docutils literal notranslate"><span class="pre">round</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.save_optics" title="madgui.online.offcal.OffsetCalibrationWidget.save_optics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_optics</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.set_filename" title="madgui.online.offcal.OffsetCalibrationWidget.set_filename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_filename</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.start" title="madgui.online.offcal.OffsetCalibrationWidget.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.stop" title="madgui.online.offcal.OffsetCalibrationWidget.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.update_filename" title="madgui.online.offcal.OffsetCalibrationWidget.update_filename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_filename</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.update_results" title="madgui.online.offcal.OffsetCalibrationWidget.update_results"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_results</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.update_ui" title="madgui.online.offcal.OffsetCalibrationWidget.update_ui"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_ui</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.extension" title="madgui.online.offcal.OffsetCalibrationWidget.extension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extension</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.filename_filters" title="madgui.online.offcal.OffsetCalibrationWidget.filename_filters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filename_filters</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.progress" title="madgui.online.offcal.OffsetCalibrationWidget.progress"><code class="xref py py-obj docutils literal notranslate"><span class="pre">progress</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.running" title="madgui.online.offcal.OffsetCalibrationWidget.running"><code class="xref py py-obj docutils literal notranslate"><span class="pre">running</span></code></a></p></td>
+<td><p>bool(x) -&gt; bool</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.totalops" title="madgui.online.offcal.OffsetCalibrationWidget.totalops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">totalops</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.OffsetCalibrationWidget.ui_file" title="madgui.online.offcal.OffsetCalibrationWidget.ui_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_file</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.cancel">
+<code class="sig-name descname">cancel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.cancel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.cancel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.change_output_file">
+<code class="sig-name descname">change_output_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.change_output_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.change_output_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.closeEvent">
+<code class="sig-name descname">closeEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QCloseEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.closeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.closeEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.extension">
+<code class="sig-name descname">extension</code><em class="property"> = '.calibration.yml'</em><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.extension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.filename_filters">
+<code class="sig-name descname">filename_filters</code><em class="property"> = [('YAML files', '*.yml', '*.yaml'), ('All files', '*')]</em><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.filename_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.finish">
+<code class="sig-name descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.finish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.finish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.folder">
+<code class="sig-name descname">folder</code><em class="property"> = None</em><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.get_optics">
+<code class="sig-name descname">get_optics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.get_optics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.get_optics" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.get_quads">
+<code class="sig-name descname">get_quads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.get_quads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.get_quads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.get_result_row">
+<code class="sig-name descname">get_result_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">r</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.get_result_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.get_result_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.is_optics_valid">
+<code class="sig-name descname">is_optics_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.is_optics_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.is_optics_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.load_optics">
+<code class="sig-name descname">load_optics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.load_optics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.load_optics" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.log">
+<code class="sig-name descname">log</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.progress">
+<code class="sig-name descname">progress</code><em class="property"> = 0</em><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.read_focus">
+<code class="sig-name descname">read_focus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.read_focus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.read_focus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.restore">
+<code class="sig-name descname">restore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.restore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.restore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.round">
+<code class="sig-name descname">round</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.round"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.round" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.running">
+<code class="sig-name descname">running</code><em class="property"> = False</em><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.running" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.save_optics">
+<code class="sig-name descname">save_optics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.save_optics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.save_optics" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.set_filename">
+<code class="sig-name descname">set_filename</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.set_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.set_filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.totalops">
+<code class="sig-name descname">totalops</code><em class="property"> = 100</em><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.totalops" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.ui_file">
+<code class="sig-name descname">ui_file</code><em class="property"> = 'offcal.ui'</em><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.ui_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.update_filename">
+<code class="sig-name descname">update_filename</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.update_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.update_filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.update_results">
+<code class="sig-name descname">update_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.update_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.update_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.OffsetCalibrationWidget.update_ui">
+<code class="sig-name descname">update_ui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#OffsetCalibrationWidget.update_ui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.OffsetCalibrationWidget.update_ui" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.offcal.ResultItem">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.offcal.</code><code class="sig-name descname">ResultItem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.online.offcal.ResultItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.ResultItem.name" title="madgui.online.offcal.ResultItem.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
+<td><p>Alias for field number 0</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.offcal.ResultItem.x" title="madgui.online.offcal.ResultItem.x"><code class="xref py py-obj docutils literal notranslate"><span class="pre">x</span></code></a></p></td>
+<td><p>Alias for field number 1</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.offcal.ResultItem.y" title="madgui.online.offcal.ResultItem.y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">y</span></code></a></p></td>
+<td><p>Alias for field number 2</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.offcal.ResultItem.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#madgui.online.offcal.ResultItem.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.ResultItem.x">
+<em class="property">property </em><code class="sig-name descname">x</code><a class="headerlink" href="#madgui.online.offcal.ResultItem.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.offcal.ResultItem.y">
+<em class="property">property </em><code class="sig-name descname">y</code><a class="headerlink" href="#madgui.online.offcal.ResultItem.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.online.offcal.fit_monitor_offsets">
+<code class="sig-prename descclassname">madgui.online.offcal.</code><code class="sig-name descname">fit_monitor_offsets</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">records</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/offcal.html#fit_monitor_offsets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.offcal.fit_monitor_offsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.online.orbit.html" class="btn btn-neutral float-right" title="madgui.online.orbit module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.online.dialogs.html" class="btn btn-neutral float-left" title="madgui.online.dialogs module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

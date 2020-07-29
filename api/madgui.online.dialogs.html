@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.dialogs module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.online.offcal module" href="madgui.online.offcal.html" />
+    <link rel="prev" title="madgui.online.diagnostic module" href="madgui.online.diagnostic.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.online.html">madgui.online package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.online.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.online.html">madgui.online package</a> &raquo;</li>
+        
+      <li>madgui.online.dialogs module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.online.dialogs.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.online.dialogs">
+<span id="madgui-online-dialogs-module"></span><h1>madgui.online.dialogs module<a class="headerlink" href="#module-madgui.online.dialogs" title="Permalink to this headline">¶</a></h1>
+<p>Dialog for selecting ACS parameters to be synchronized.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.dialogs.SyncParamItem" title="madgui.online.dialogs.SyncParamItem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SyncParamItem</span></code></a>(param, acs_value, mad_value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.dialogs.SyncParamWidget" title="madgui.online.dialogs.SyncParamWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SyncParamWidget</span></code></a>(title, headline[, highlight])</p></td>
+<td><p>Dialog for selecting ACS parameters to be synchronized.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.dialogs.ImportParamWidget" title="madgui.online.dialogs.ImportParamWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImportParamWidget</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.dialogs.ExportParamWidget" title="madgui.online.dialogs.ExportParamWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExportParamWidget</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="madgui.online.dialogs.ExportParamWidget">
+<code class="sig-prename descclassname">madgui.online.dialogs.</code><code class="sig-name descname">ExportParamWidget</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/dialogs.html#ExportParamWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.dialogs.ExportParamWidget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.online.dialogs.ImportParamWidget">
+<code class="sig-prename descclassname">madgui.online.dialogs.</code><code class="sig-name descname">ImportParamWidget</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/dialogs.html#ImportParamWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.dialogs.ImportParamWidget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.dialogs.SyncParamItem">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.dialogs.</code><code class="sig-name descname">SyncParamItem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">param</span></em>, <em class="sig-param"><span class="n">acs_value</span></em>, <em class="sig-param"><span class="n">mad_value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/dialogs.html#SyncParamItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.dialogs.SyncParamItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.dialogs.SyncParamWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.dialogs.</code><code class="sig-name descname">SyncParamWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">title</span></em>, <em class="sig-param"><span class="n">headline</span></em>, <em class="sig-param"><span class="n">highlight</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/dialogs.html#SyncParamWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.dialogs.SyncParamWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>Dialog for selecting ACS parameters to be synchronized.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.dialogs.SyncParamWidget.data" title="madgui.online.dialogs.SyncParamWidget.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.dialogs.SyncParamWidget.exportFilters" title="madgui.online.dialogs.SyncParamWidget.exportFilters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportFilters</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.dialogs.SyncParamWidget.exporter" title="madgui.online.dialogs.SyncParamWidget.exporter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exporter</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.dialogs.SyncParamWidget.exportTo" title="madgui.online.dialogs.SyncParamWidget.exportTo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportTo</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.dialogs.SyncParamWidget.get_row" title="madgui.online.dialogs.SyncParamWidget.get_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_row</span></code></a>(i, p)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.dialogs.SyncParamWidget.data">
+<em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#madgui.online.dialogs.SyncParamWidget.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.dialogs.SyncParamWidget.exportFilters">
+<code class="sig-name descname">exportFilters</code><em class="property"> = [('YAML file', '*.yml', '*.yaml'), ('STR file', '*.str')]</em><a class="headerlink" href="#madgui.online.dialogs.SyncParamWidget.exportFilters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.dialogs.SyncParamWidget.exportTo">
+<code class="sig-name descname">exportTo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/dialogs.html#SyncParamWidget.exportTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.dialogs.SyncParamWidget.exportTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.dialogs.SyncParamWidget.exporter">
+<em class="property">property </em><code class="sig-name descname">exporter</code><a class="headerlink" href="#madgui.online.dialogs.SyncParamWidget.exporter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.dialogs.SyncParamWidget.get_row">
+<code class="sig-name descname">get_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">p</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/dialogs.html#SyncParamWidget.get_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.dialogs.SyncParamWidget.get_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.online.offcal.html" class="btn btn-neutral float-right" title="madgui.online.offcal module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.online.diagnostic.html" class="btn btn-neutral float-left" title="madgui.online.diagnostic module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

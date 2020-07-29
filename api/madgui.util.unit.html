@@ -1,0 +1,479 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.unit module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.util.yaml module" href="madgui.util.yaml.html" />
+    <link rel="prev" title="madgui.util.undo module" href="madgui.util.undo.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.util.html">madgui.util package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.util.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.util.html">madgui.util package</a> &raquo;</li>
+        
+      <li>madgui.util.unit module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.util.unit.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.util.unit">
+<span id="madgui-util-unit-module"></span><h1>madgui.util.unit module<a class="headerlink" href="#module-madgui.util.unit" title="Permalink to this headline">¶</a></h1>
+<p>Utilities for converting between units of physical quantities, e.g. meters to
+millimeters, etc. This is done using the <a class="reference external" href="https://pint.readthedocs.io/">Pint</a> library.</p>
+<p>Note that we do not use pint to wrap quantities that are passed around within
+madgui internally, as it would be the idiomatic approach: add units on input,
+internally work with quantities with units attached, remove units on output.</p>
+<p>Instead, we convert units usually only on input and then assume everything is
+in <a class="reference external" href="https://mad.web.cern.ch/mad/webguide/manual.html#Ch1.S8">MAD-X units</a>. The reason is that using quantities internally infects the
+whole applications and requires unpack/repack operations in hundreds of
+places. This amount of book-keeping is not justified in a space, where we can
+almost exclusively rely on MAD-X units being used anyway.</p>
+<p>Furthermore, we pass around strings internally and not <code class="docutils literal notranslate"><span class="pre">Unit</span></code> objects. This
+simplifies interoperability with external packages and the performance cost
+for parsing the unit multiple times is negligible (since it rarely needs to be
+done now anyway).</p>
+<p>The most frequent usage of this module is to convert a number between internal
+(MAD-X) and UI display units. This works as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">in_madx_units</span> <span class="o">=</span> <span class="n">from_ui</span><span class="p">({</span><span class="s1">&#39;energy&#39;</span><span class="p">:</span> <span class="n">textcontrol_energy</span><span class="o">.</span><span class="n">text</span><span class="p">()})</span>
+
+<span class="n">in_ui_units</span> <span class="o">=</span> <span class="n">to_ui</span><span class="p">({</span><span class="s1">&#39;energy&#39;</span><span class="p">:</span> <span class="mi">450</span><span class="p">})</span>
+</pre></div>
+</div>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.get_unit" title="madgui.util.unit.get_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unit</span></code></a>(quantity)</p></td>
+<td><p>Return a <code class="docutils literal notranslate"><span class="pre">Quantity</span></code> object with the same unit as <code class="docutils literal notranslate"><span class="pre">quantity</span></code>, but magnitude 1 (one).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.unit.add_unit" title="madgui.util.unit.add_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_unit</span></code></a>(quantity, unit)</p></td>
+<td><p>Add a unit to the number <code class="docutils literal notranslate"><span class="pre">quantity</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.strip_unit" title="madgui.util.unit.strip_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strip_unit</span></code></a>(quantity[, unit])</p></td>
+<td><p>Convert the quantity to a plain float.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.unit.change_unit" title="madgui.util.unit.change_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_unit</span></code></a>(quantity, from_unit, to_unit)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.toquantity" title="madgui.util.unit.toquantity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">toquantity</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.unit.tounit" title="madgui.util.unit.tounit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tounit</span></code></a>(quantity, unit)</p></td>
+<td><p>Cast the quantity to a specific unit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.format_quantity" title="madgui.util.unit.format_quantity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_quantity</span></code></a>(quantity[, num_spec])</p></td>
+<td><p>Get a nice display string for the quantity.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.unit.get_raw_label" title="madgui.util.unit.get_raw_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raw_label</span></code></a>(quantity)</p></td>
+<td><p>Get the name of the unit, without enclosing brackets.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.from_config" title="madgui.util.unit.from_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code></a>(unit)</p></td>
+<td><p>Parse a config entry for a unit to a <code class="xref py py-class docutils literal notranslate"><span class="pre">pint.unit.Quantity</span></code> instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.unit.convert" title="madgui.util.unit.convert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert</span></code></a>(from_, to, *args)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.from_ui" title="madgui.util.unit.from_ui"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_ui</span></code></a>(*args)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.unit.to_ui" title="madgui.util.unit.to_ui"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_ui</span></code></a>(*args)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.UnitConverter" title="madgui.util.unit.UnitConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnitConverter</span></code></a>(units)</p></td>
+<td><p>Quantity converter.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.util.unit.UnitConverter">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">UnitConverter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">units</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#UnitConverter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.UnitConverter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Quantity converter.</p>
+<p>Used to add and remove units from quanitities and evaluate expressions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><p><strong>_units</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – unit dictionary</p>
+</dd>
+</dl>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.UnitConverter.add_unit" title="madgui.util.unit.UnitConverter.add_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_unit</span></code></a>(name, value)</p></td>
+<td><p>Add units to a single number.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.unit.UnitConverter.dict_add_unit" title="madgui.util.unit.UnitConverter.dict_add_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict_add_unit</span></code></a>(obj)</p></td>
+<td><p>Add units to all elements in a dictionary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.UnitConverter.dict_strip_unit" title="madgui.util.unit.UnitConverter.dict_strip_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict_strip_unit</span></code></a>(obj)</p></td>
+<td><p>Remove units from all elements in a dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.unit.UnitConverter.from_config_dict" title="madgui.util.unit.UnitConverter.from_config_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config_dict</span></code></a>(conf_dict)</p></td>
+<td><p>Convert a config dict of units to their in-memory representation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.UnitConverter.get" title="madgui.util.unit.UnitConverter.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a>(name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.unit.UnitConverter.label" title="madgui.util.unit.UnitConverter.label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">label</span></code></a>(name[, value])</p></td>
+<td><p>Get the name of the unit for the specified parameter name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.unit.UnitConverter.strip_unit" title="madgui.util.unit.UnitConverter.strip_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strip_unit</span></code></a>(name, value)</p></td>
+<td><p>Convert to MAD-X units.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.util.unit.UnitConverter.add_unit">
+<code class="sig-name descname">add_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#UnitConverter.add_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.UnitConverter.add_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add units to a single number.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.unit.UnitConverter.dict_add_unit">
+<code class="sig-name descname">dict_add_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#UnitConverter.dict_add_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.UnitConverter.dict_add_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add units to all elements in a dictionary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.unit.UnitConverter.dict_strip_unit">
+<code class="sig-name descname">dict_strip_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#UnitConverter.dict_strip_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.UnitConverter.dict_strip_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove units from all elements in a dictionary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.unit.UnitConverter.from_config_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_config_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#UnitConverter.from_config_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.UnitConverter.from_config_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a config dict of units to their in-memory representation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.unit.UnitConverter.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#UnitConverter.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.UnitConverter.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.unit.UnitConverter.label">
+<code class="sig-name descname">label</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#UnitConverter.label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.UnitConverter.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the unit for the specified parameter name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.unit.UnitConverter.strip_unit">
+<code class="sig-name descname">strip_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#UnitConverter.strip_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.UnitConverter.strip_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert to MAD-X units.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.add_unit">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">add_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">quantity</span></em>, <em class="sig-param"><span class="n">unit</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#add_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.add_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a unit to the number <code class="docutils literal notranslate"><span class="pre">quantity</span></code>. If <code class="docutils literal notranslate"><span class="pre">quantity</span></code> already has a
+unit, it will perform unit conversion.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.change_unit">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">change_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">quantity</span></em>, <em class="sig-param"><span class="n">from_unit</span></em>, <em class="sig-param"><span class="n">to_unit</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#change_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.change_unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.convert">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">convert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">from_</span></em>, <em class="sig-param"><span class="n">to</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.convert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.format_quantity">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">format_quantity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">quantity</span></em>, <em class="sig-param"><span class="n">num_spec</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#format_quantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.format_quantity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a nice display string for the quantity.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.from_config">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">from_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">unit</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#from_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.from_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a config entry for a unit to a <code class="xref py py-class docutils literal notranslate"><span class="pre">pint.unit.Quantity</span></code> instance.</p>
+<p>The pint parser is quite powerful. Valid examples are:</p>
+<blockquote>
+<div><p>s / m²
+microsecond
+10 rad
+m^-2</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.from_ui">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">from_ui</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#from_ui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.from_ui" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.get_raw_label">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">get_raw_label</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">quantity</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#get_raw_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.get_raw_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the unit, without enclosing brackets.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.get_unit">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">get_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">quantity</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#get_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.get_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <code class="docutils literal notranslate"><span class="pre">Quantity</span></code> object with the same unit as <code class="docutils literal notranslate"><span class="pre">quantity</span></code>, but
+magnitude 1 (one). Returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if <code class="docutils literal notranslate"><span class="pre">quantity</span></code> does not have a unit.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.strip_unit">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">strip_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">quantity</span></em>, <em class="sig-param"><span class="n">unit</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#strip_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.strip_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the quantity to a plain float.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.to_ui">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">to_ui</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#to_ui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.to_ui" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.toquantity">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">toquantity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#toquantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.toquantity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.unit.tounit">
+<code class="sig-prename descclassname">madgui.util.unit.</code><code class="sig-name descname">tounit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">quantity</span></em>, <em class="sig-param"><span class="n">unit</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/unit.html#tounit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.unit.tounit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cast the quantity to a specific unit.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.util.yaml.html" class="btn btn-neutral float-right" title="madgui.util.yaml module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.util.undo.html" class="btn btn-neutral float-left" title="madgui.util.undo module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

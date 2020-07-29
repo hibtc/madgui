@@ -1,0 +1,719 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.model.errors module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.model.madx module" href="madgui.model.madx.html" />
+    <link rel="prev" title="madgui.model package" href="madgui.model.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.model.html">madgui.model package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.model.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.model.html">madgui.model package</a> &raquo;</li>
+        
+      <li>madgui.model.errors module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.model.errors.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.model.errors">
+<span id="madgui-model-errors-module"></span><h1>madgui.model.errors module<a class="headerlink" href="#module-madgui.model.errors" title="Permalink to this headline">¶</a></h1>
+<p>This module defines functions and classes to load and represent MAD-X model
+errors, such as alignment errors or field errors.</p>
+<p>Errors are represented as strings such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;Δax_b3mu1&#39;</span>         <span class="c1"># absolute error in parameter</span>
+<span class="s1">&#39;δax_b3mu1&#39;</span>         <span class="c1"># relative error in parameter</span>
+<span class="s1">&#39;Δb3mu1v-&gt;kick&#39;</span>     <span class="c1"># absolute error in element attribute</span>
+<span class="s1">&#39;g3mu1&lt;dx&gt;&#39;</span>         <span class="c1"># alignment error</span>
+</pre></div>
+</div>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.import_errors" title="madgui.model.errors.import_errors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_errors</span></code></a>(model, spec)</p></td>
+<td><p>Apply errors to a model defined by a dictionary <code class="docutils literal notranslate"><span class="pre">{error:</span> <span class="pre">value}</span></code> with types <code class="docutils literal notranslate"><span class="pre">{str:</span> <span class="pre">float}</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.apply_errors" title="madgui.model.errors.apply_errors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_errors</span></code></a>(model, errors, values)</p></td>
+<td><p>Apply list of errors and list of corresponding values to a given model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.parse_error" title="madgui.model.errors.parse_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_error</span></code></a>(name)</p></td>
+<td><p>Instanciate a subtype of <a class="reference internal" href="#madgui.model.errors.BaseError" title="madgui.model.errors.BaseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseError</span></code></a>, depending on the format of <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.Param" title="madgui.model.errors.Param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Param</span></code></a>(name)</p></td>
+<td><p>Error on a global variable (knob).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.Ealign" title="madgui.model.errors.Ealign"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Ealign</span></code></a>(select, attr)</p></td>
+<td><p>Alignment error.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.Efcomp" title="madgui.model.errors.Efcomp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Efcomp</span></code></a>(select, attr, value[, order, radius])</p></td>
+<td><p>Field error.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.ElemAttr" title="madgui.model.errors.ElemAttr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElemAttr</span></code></a>(elem, attr)</p></td>
+<td><p>Element attribute error.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.InitTwiss" title="madgui.model.errors.InitTwiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InitTwiss</span></code></a>(name)</p></td>
+<td><p>Error in twiss initial condition (x, px, y, py).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.ScaleAttr" title="madgui.model.errors.ScaleAttr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ScaleAttr</span></code></a>(elem, attr)</p></td>
+<td><p>Relative element attribute error.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.ScaleParam" title="madgui.model.errors.ScaleParam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ScaleParam</span></code></a>(name)</p></td>
+<td><p>Relative global variable error.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.BaseError" title="madgui.model.errors.BaseError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseError</span></code></a>(name)</p></td>
+<td><p>Base class for model errors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.RelativeError" title="madgui.model.errors.RelativeError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RelativeError</span></code></a>(name)</p></td>
+<td><p>Base class for relative errors.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.model.errors.BaseError">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">BaseError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#BaseError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.BaseError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for model errors.</p>
+<p>Subclasses must implement <code class="docutils literal notranslate"><span class="pre">get</span></code>, <code class="docutils literal notranslate"><span class="pre">set</span></code>, and <code class="docutils literal notranslate"><span class="pre">tinker</span></code>.</p>
+<p>In the simplest case, <code class="docutils literal notranslate"><span class="pre">get</span></code> returns the current value of the error,
+<code class="docutils literal notranslate"><span class="pre">tinker</span></code> returns the given step, and <code class="docutils literal notranslate"><span class="pre">set</span></code> sets a variable. However,
+this logic is not always available. In general, the following protocol
+must be implemented:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#madgui.model.errors.BaseError.get" title="madgui.model.errors.BaseError.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a>: return a backup value that will be later used to restore
+the current error value</p></li>
+<li><p><a class="reference internal" href="#madgui.model.errors.BaseError.tinker" title="madgui.model.errors.BaseError.tinker"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tinker()</span></code></a> returns a value that should be used to update the current
+value</p></li>
+<li><p><a class="reference internal" href="#madgui.model.errors.BaseError.set" title="madgui.model.errors.BaseError.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> is called with the return value of <a class="reference internal" href="#madgui.model.errors.BaseError.tinker" title="madgui.model.errors.BaseError.tinker"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tinker()</span></code></a> to change
+the value of the error, and later with the return value of <a class="reference internal" href="#madgui.model.errors.BaseError.get" title="madgui.model.errors.BaseError.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a>
+to restore to the original state.</p></li>
+</ul>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.BaseError.get" title="madgui.model.errors.BaseError.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a>(model, step)</p></td>
+<td><p>Get a “backup” value that represents with what <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> should be called to restore the current value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.BaseError.is_defined_for" title="madgui.model.errors.BaseError.is_defined_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_defined_for</span></code></a>(model)</p></td>
+<td><p>Check whether this error is relevant for the given model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.BaseError.set" title="madgui.model.errors.BaseError.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a>(model, value)</p></td>
+<td><p>Update the error value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.BaseError.tinker" title="madgui.model.errors.BaseError.tinker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tinker</span></code></a>(value, step)</p></td>
+<td><p>Return the value that should be passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> in order to increment the error by <code class="docutils literal notranslate"><span class="pre">step</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.BaseError.vary" title="madgui.model.errors.BaseError.vary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vary</span></code></a>(model, step)</p></td>
+<td><p>Applies the error and returns a context manager that restores the error to its original value on exit.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.BaseError.leader" title="madgui.model.errors.BaseError.leader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">leader</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.model.errors.BaseError.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#BaseError.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.BaseError.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a “backup” value that represents with what <a class="reference internal" href="#madgui.model.errors.BaseError.set" title="madgui.model.errors.BaseError.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> should
+be called to restore the current value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.BaseError.is_defined_for">
+<code class="sig-name descname">is_defined_for</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#BaseError.is_defined_for"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.BaseError.is_defined_for" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether this error is relevant for the given model.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.model.errors.BaseError.leader">
+<code class="sig-name descname">leader</code><em class="property"> = 'Δ'</em><a class="headerlink" href="#madgui.model.errors.BaseError.leader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.BaseError.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#BaseError.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.BaseError.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the error value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.BaseError.tinker">
+<code class="sig-name descname">tinker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#BaseError.tinker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.BaseError.tinker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value that should be passed to <a class="reference internal" href="#madgui.model.errors.BaseError.set" title="madgui.model.errors.BaseError.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> in order to
+increment the error by <code class="docutils literal notranslate"><span class="pre">step</span></code>. <code class="docutils literal notranslate"><span class="pre">value</span></code> is provided as the return
+value of <a class="reference internal" href="#madgui.model.errors.BaseError.get" title="madgui.model.errors.BaseError.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.BaseError.vary">
+<code class="sig-name descname">vary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#BaseError.vary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.BaseError.vary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the error and returns a context manager that restores the
+error to its original value on exit.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.model.errors.Ealign">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">Ealign</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">select</span></em>, <em class="sig-param"><span class="n">attr</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Ealign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Ealign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.model.errors.BaseError" title="madgui.model.errors.BaseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.errors.BaseError</span></code></a></p>
+<p>Alignment error.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.Ealign.get" title="madgui.model.errors.Ealign.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a>(model, step)</p></td>
+<td><p>Get a “backup” value that represents with what <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> should be called to restore the current value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.Ealign.is_defined_for" title="madgui.model.errors.Ealign.is_defined_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_defined_for</span></code></a>(model)</p></td>
+<td><p>Check whether this error is relevant for the given model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.Ealign.set" title="madgui.model.errors.Ealign.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a>(model, value)</p></td>
+<td><p>Update the error value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.Ealign.tinker" title="madgui.model.errors.Ealign.tinker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tinker</span></code></a>(value, step)</p></td>
+<td><p>Return the value that should be passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> in order to increment the error by <code class="docutils literal notranslate"><span class="pre">step</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.model.errors.Ealign.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Ealign.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Ealign.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a “backup” value that represents with what <a class="reference internal" href="#madgui.model.errors.Ealign.set" title="madgui.model.errors.Ealign.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> should
+be called to restore the current value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.Ealign.is_defined_for">
+<code class="sig-name descname">is_defined_for</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Ealign.is_defined_for"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Ealign.is_defined_for" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether this error is relevant for the given model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.Ealign.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Ealign.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Ealign.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the error value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.Ealign.tinker">
+<code class="sig-name descname">tinker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Ealign.tinker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Ealign.tinker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value that should be passed to <a class="reference internal" href="#madgui.model.errors.Ealign.set" title="madgui.model.errors.Ealign.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> in order to
+increment the error by <code class="docutils literal notranslate"><span class="pre">step</span></code>. <code class="docutils literal notranslate"><span class="pre">value</span></code> is provided as the return
+value of <a class="reference internal" href="#madgui.model.errors.Ealign.get" title="madgui.model.errors.Ealign.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.model.errors.Efcomp">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">Efcomp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">select</span></em>, <em class="sig-param"><span class="n">attr</span></em>, <em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">order</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Efcomp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Efcomp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.model.errors.BaseError" title="madgui.model.errors.BaseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.errors.BaseError</span></code></a></p>
+<p>Field error.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.Efcomp.get" title="madgui.model.errors.Efcomp.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a>(model, step)</p></td>
+<td><p>Get a “backup” value that represents with what <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> should be called to restore the current value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.Efcomp.is_defined_for" title="madgui.model.errors.Efcomp.is_defined_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_defined_for</span></code></a>(model)</p></td>
+<td><p>Check whether this error is relevant for the given model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.Efcomp.set" title="madgui.model.errors.Efcomp.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a>(model, value)</p></td>
+<td><p>Update the error value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.Efcomp.tinker" title="madgui.model.errors.Efcomp.tinker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tinker</span></code></a>(value, step)</p></td>
+<td><p>Return the value that should be passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> in order to increment the error by <code class="docutils literal notranslate"><span class="pre">step</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.model.errors.Efcomp.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Efcomp.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Efcomp.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a “backup” value that represents with what <a class="reference internal" href="#madgui.model.errors.Efcomp.set" title="madgui.model.errors.Efcomp.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> should
+be called to restore the current value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.Efcomp.is_defined_for">
+<code class="sig-name descname">is_defined_for</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Efcomp.is_defined_for"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Efcomp.is_defined_for" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether this error is relevant for the given model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.Efcomp.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Efcomp.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Efcomp.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the error value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.Efcomp.tinker">
+<code class="sig-name descname">tinker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Efcomp.tinker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Efcomp.tinker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value that should be passed to <a class="reference internal" href="#madgui.model.errors.Efcomp.set" title="madgui.model.errors.Efcomp.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> in order to
+increment the error by <code class="docutils literal notranslate"><span class="pre">step</span></code>. <code class="docutils literal notranslate"><span class="pre">value</span></code> is provided as the return
+value of <a class="reference internal" href="#madgui.model.errors.Efcomp.get" title="madgui.model.errors.Efcomp.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.model.errors.ElemAttr">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">ElemAttr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elem</span></em>, <em class="sig-param"><span class="n">attr</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#ElemAttr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.ElemAttr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.model.errors.BaseError" title="madgui.model.errors.BaseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.errors.BaseError</span></code></a></p>
+<p>Element attribute error.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.ElemAttr.get" title="madgui.model.errors.ElemAttr.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a>(model, step)</p></td>
+<td><p>Get a “backup” value that represents with what <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> should be called to restore the current value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.ElemAttr.is_defined_for" title="madgui.model.errors.ElemAttr.is_defined_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_defined_for</span></code></a>(model)</p></td>
+<td><p>Check whether this error is relevant for the given model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.ElemAttr.set" title="madgui.model.errors.ElemAttr.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a>(model, value)</p></td>
+<td><p>Update the error value.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.model.errors.ElemAttr.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#ElemAttr.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.ElemAttr.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a “backup” value that represents with what <a class="reference internal" href="#madgui.model.errors.ElemAttr.set" title="madgui.model.errors.ElemAttr.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> should
+be called to restore the current value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.ElemAttr.is_defined_for">
+<code class="sig-name descname">is_defined_for</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#ElemAttr.is_defined_for"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.ElemAttr.is_defined_for" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether this error is relevant for the given model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.ElemAttr.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#ElemAttr.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.ElemAttr.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the error value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.model.errors.InitTwiss">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">InitTwiss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#InitTwiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.InitTwiss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.model.errors.BaseError" title="madgui.model.errors.BaseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.errors.BaseError</span></code></a></p>
+<p>Error in twiss initial condition (x, px, y, py).</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.InitTwiss.get" title="madgui.model.errors.InitTwiss.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a>(model, step)</p></td>
+<td><p>Get a “backup” value that represents with what <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> should be called to restore the current value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.InitTwiss.set" title="madgui.model.errors.InitTwiss.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a>(model, value)</p></td>
+<td><p>Update the error value.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.model.errors.InitTwiss.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#InitTwiss.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.InitTwiss.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a “backup” value that represents with what <a class="reference internal" href="#madgui.model.errors.InitTwiss.set" title="madgui.model.errors.InitTwiss.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> should
+be called to restore the current value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.InitTwiss.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#InitTwiss.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.InitTwiss.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the error value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.model.errors.Param">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">Param</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.model.errors.BaseError" title="madgui.model.errors.BaseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.errors.BaseError</span></code></a></p>
+<p>Error on a global variable (knob).</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.Param.get" title="madgui.model.errors.Param.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a>(model, step)</p></td>
+<td><p>Get a “backup” value that represents with what <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> should be called to restore the current value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.errors.Param.is_defined_for" title="madgui.model.errors.Param.is_defined_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_defined_for</span></code></a>(model)</p></td>
+<td><p>Check whether this error is relevant for the given model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.Param.set" title="madgui.model.errors.Param.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a>(model, value)</p></td>
+<td><p>Update the error value.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.model.errors.Param.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Param.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Param.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a “backup” value that represents with what <a class="reference internal" href="#madgui.model.errors.Param.set" title="madgui.model.errors.Param.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> should
+be called to restore the current value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.Param.is_defined_for">
+<code class="sig-name descname">is_defined_for</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Param.is_defined_for"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Param.is_defined_for" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether this error is relevant for the given model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.Param.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#Param.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.Param.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the error value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.model.errors.RelativeError">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">RelativeError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#RelativeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.RelativeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.model.errors.BaseError" title="madgui.model.errors.BaseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.errors.BaseError</span></code></a></p>
+<p>Base class for relative errors.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.RelativeError.leader" title="madgui.model.errors.RelativeError.leader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">leader</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.errors.RelativeError.tinker" title="madgui.model.errors.RelativeError.tinker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tinker</span></code></a>(value, step)</p></td>
+<td><p>Return the value that should be passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> in order to increment the error by <code class="docutils literal notranslate"><span class="pre">step</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.model.errors.RelativeError.leader">
+<code class="sig-name descname">leader</code><em class="property"> = 'δ'</em><a class="headerlink" href="#madgui.model.errors.RelativeError.leader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.errors.RelativeError.tinker">
+<code class="sig-name descname">tinker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#RelativeError.tinker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.RelativeError.tinker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value that should be passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> in order to
+increment the error by <code class="docutils literal notranslate"><span class="pre">step</span></code>. <code class="docutils literal notranslate"><span class="pre">value</span></code> is provided as the return
+value of <code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.model.errors.ScaleAttr">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">ScaleAttr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elem</span></em>, <em class="sig-param"><span class="n">attr</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#ScaleAttr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.ScaleAttr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.model.errors.RelativeError" title="madgui.model.errors.RelativeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.errors.RelativeError</span></code></a>, <a class="reference internal" href="#madgui.model.errors.ElemAttr" title="madgui.model.errors.ElemAttr"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.errors.ElemAttr</span></code></a></p>
+<p>Relative element attribute error.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.model.errors.ScaleParam">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">ScaleParam</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#ScaleParam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.ScaleParam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.model.errors.RelativeError" title="madgui.model.errors.RelativeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.errors.RelativeError</span></code></a>, <a class="reference internal" href="#madgui.model.errors.Param" title="madgui.model.errors.Param"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.errors.Param</span></code></a></p>
+<p>Relative global variable error.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.model.errors.apply_errors">
+<code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">apply_errors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">errors</span></em>, <em class="sig-param"><span class="n">values</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#apply_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.apply_errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply list of errors and list of corresponding values to a given model.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.model.errors.import_errors">
+<code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">import_errors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">spec</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#import_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.import_errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply errors to a model defined by a dictionary <code class="docutils literal notranslate"><span class="pre">{error:</span> <span class="pre">value}</span></code> with
+types <code class="docutils literal notranslate"><span class="pre">{str:</span> <span class="pre">float}</span></code>. The error keys are parsed by <code class="docutils literal notranslate"><span class="pre">parse_error</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.model.errors.parse_error">
+<code class="sig-prename descclassname">madgui.model.errors.</code><code class="sig-name descname">parse_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/errors.html#parse_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.errors.parse_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instanciate a subtype of <a class="reference internal" href="#madgui.model.errors.BaseError" title="madgui.model.errors.BaseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseError</span></code></a>, depending on the format of
+<code class="docutils literal notranslate"><span class="pre">name</span></code>. We currently understand the following formats:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span>               <span class="o">-&gt;</span> <span class="n">InitTwiss</span>
+<span class="n">Δax_b3mu1</span>       <span class="o">-&gt;</span> <span class="n">ElemAttr</span>
+<span class="n">δax_b3mu1</span>       <span class="o">-&gt;</span> <span class="n">ScaleAttr</span>
+<span class="n">Δg3mu1</span><span class="o">-&gt;</span><span class="n">angle</span>   <span class="o">-&gt;</span> <span class="n">Param</span>
+<span class="n">δg3mu1</span><span class="o">-&gt;</span><span class="n">angle</span>   <span class="o">-&gt;</span> <span class="n">ScaleParam</span>
+<span class="n">g3mu1</span><span class="o">&lt;</span><span class="n">dx</span><span class="o">&gt;</span>       <span class="o">-&gt;</span> <span class="n">Ealign</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.model.madx.html" class="btn btn-neutral float-right" title="madgui.model.madx module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.model.html" class="btn btn-neutral float-left" title="madgui.model package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

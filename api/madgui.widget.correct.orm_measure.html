@@ -1,0 +1,417 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.correct.orm_measure module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.correct.recordstable module" href="madgui.widget.correct.recordstable.html" />
+    <link rel="prev" title="madgui.widget.correct.opticstable module" href="madgui.widget.correct.opticstable.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.correct.html">madgui.widget.correct package</a> &raquo;</li>
+        
+      <li>madgui.widget.correct.orm_measure module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.correct.orm_measure.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.correct.orm_measure">
+<span id="madgui-widget-correct-orm-measure-module"></span><h1>madgui.widget.correct.orm_measure module<a class="headerlink" href="#module-madgui.widget.correct.orm_measure" title="Permalink to this headline">¶</a></h1>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget" title="madgui.widget.correct.orm_measure.MeasureWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasureWidget</span></code></a>(corrector)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.correct.orm_measure.</code><code class="sig-name descname">MeasureWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">corrector</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.add_record" title="madgui.widget.correct.orm_measure.MeasureWidget.add_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_record</span></code></a>(step, shot)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.cancel" title="madgui.widget.correct.orm_measure.MeasureWidget.cancel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cancel</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.closeEvent" title="madgui.widget.correct.orm_measure.MeasureWidget.closeEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">closeEvent</span></code></a>(self, QCloseEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.connect_signals" title="madgui.widget.correct.orm_measure.MeasureWidget.connect_signals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connect_signals</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.get_corrector_row" title="madgui.widget.correct.orm_measure.MeasureWidget.get_corrector_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_corrector_row</span></code></a>(i, c)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.init_controls" title="madgui.widget.correct.orm_measure.MeasureWidget.init_controls"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_controls</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.log" title="madgui.widget.correct.orm_measure.MeasureWidget.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log</span></code></a>(text, *args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.set_initial_values" title="madgui.widget.correct.orm_measure.MeasureWidget.set_initial_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_initial_values</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.set_kick" title="madgui.widget.correct.orm_measure.MeasureWidget.set_kick"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_kick</span></code></a>(i, c, value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.set_progress" title="madgui.widget.correct.orm_measure.MeasureWidget.set_progress"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_progress</span></code></a>(progress)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.sizeHint" title="madgui.widget.correct.orm_measure.MeasureWidget.sizeHint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sizeHint</span></code></a>(self)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.start_bot" title="madgui.widget.correct.orm_measure.MeasureWidget.start_bot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start_bot</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.update_fit" title="madgui.widget.correct.orm_measure.MeasureWidget.update_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_fit</span></code></a>()</p></td>
+<td><p>Called when procedure finishes succesfully.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.update_ui" title="madgui.widget.correct.orm_measure.MeasureWidget.update_ui"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_ui</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.extension" title="madgui.widget.correct.orm_measure.MeasureWidget.extension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extension</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.running" title="madgui.widget.correct.orm_measure.MeasureWidget.running"><code class="xref py py-obj docutils literal notranslate"><span class="pre">running</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.correct.orm_measure.MeasureWidget.ui_file" title="madgui.widget.correct.orm_measure.MeasureWidget.ui_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_file</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.add_record">
+<code class="sig-name descname">add_record</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">step</span></em>, <em class="sig-param"><span class="n">shot</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.add_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.add_record" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.cancel">
+<code class="sig-name descname">cancel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.cancel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.cancel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.closeEvent">
+<code class="sig-name descname">closeEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QCloseEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.closeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.closeEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.connect_signals">
+<code class="sig-name descname">connect_signals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.connect_signals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.connect_signals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.extension">
+<code class="sig-name descname">extension</code><em class="property"> = '.orm_measurement.yml'</em><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.extension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.get_corrector_row">
+<code class="sig-name descname">get_corrector_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">c</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.get_corrector_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.get_corrector_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.init_controls">
+<code class="sig-name descname">init_controls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.init_controls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.init_controls" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.log">
+<code class="sig-name descname">log</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.running">
+<em class="property">property </em><code class="sig-name descname">running</code><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.running" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.set_initial_values">
+<code class="sig-name descname">set_initial_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.set_initial_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.set_initial_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.set_kick">
+<code class="sig-name descname">set_kick</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">c</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.set_kick"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.set_kick" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.set_progress">
+<code class="sig-name descname">set_progress</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">progress</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.set_progress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.set_progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.sizeHint">
+<code class="sig-name descname">sizeHint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; QSize<a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.sizeHint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.sizeHint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.start_bot">
+<code class="sig-name descname">start_bot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.start_bot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.start_bot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.ui_file">
+<code class="sig-name descname">ui_file</code><em class="property"> = 'orm_measure.ui'</em><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.ui_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.update_fit">
+<code class="sig-name descname">update_fit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.update_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.update_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when procedure finishes succesfully.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.correct.orm_measure.MeasureWidget.update_ui">
+<code class="sig-name descname">update_ui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/correct/orm_measure.html#MeasureWidget.update_ui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.correct.orm_measure.MeasureWidget.update_ui" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.correct.recordstable.html" class="btn btn-neutral float-right" title="madgui.widget.correct.recordstable module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.correct.opticstable.html" class="btn btn-neutral float-left" title="madgui.widget.correct.opticstable module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

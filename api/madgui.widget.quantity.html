@@ -1,0 +1,795 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.quantity module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.spinbox module" href="madgui.widget.spinbox.html" />
+    <link rel="prev" title="madgui.widget.pyshell module" href="madgui.widget.pyshell.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.quantity module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.quantity.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.quantity">
+<span id="madgui-widget-quantity-module"></span><h1>madgui.widget.quantity module<a class="headerlink" href="#module-madgui.widget.quantity" title="Permalink to this headline">¶</a></h1>
+<p>Utility classes for creating widgets holding physical quantities.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase" title="madgui.widget.quantity.AffixControlBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AffixControlBase</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Base class for controls showing a prefix/suffix surrounding an editable value in a QLineEdit.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.DoubleValidator" title="madgui.widget.quantity.DoubleValidator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DoubleValidator</span></code></a></p></td>
+<td><p>Use this validator instead of QDoubleValidator to avoid allowing</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.ExpressionValidator" title="madgui.widget.quantity.ExpressionValidator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExpressionValidator</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.ValueControlBase" title="madgui.widget.quantity.ValueControlBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ValueControlBase</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Base class for widgets displaying values from an ordered set.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase" title="madgui.widget.quantity.QuantityControlBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuantityControlBase</span></code></a>([parent, value, unit])</p></td>
+<td><p>Base class for widgets displaying physical quantities.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityDisplay" title="madgui.widget.quantity.QuantityDisplay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuantityDisplay</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Readonly line-edit showing a quantity.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.quantity.AffixControlBase">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.quantity.</code><code class="sig-name descname">AffixControlBase</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for controls showing a prefix/suffix surrounding an editable
+value in a QLineEdit.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.focusInEvent" title="madgui.widget.quantity.AffixControlBase.focusInEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">focusInEvent</span></code></a>(event)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.format" title="madgui.widget.quantity.AffixControlBase.format"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.get_value" title="madgui.widget.quantity.AffixControlBase.get_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_value</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.interpretText" title="madgui.widget.quantity.AffixControlBase.interpretText"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpretText</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.keyPressEvent" title="madgui.widget.quantity.AffixControlBase.keyPressEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keyPressEvent</span></code></a>(event)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.line_edit" title="madgui.widget.quantity.AffixControlBase.line_edit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_edit</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.parse" title="madgui.widget.quantity.AffixControlBase.parse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.sanitize" title="madgui.widget.quantity.AffixControlBase.sanitize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sanitize</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.selectAll" title="madgui.widget.quantity.AffixControlBase.selectAll"><code class="xref py py-obj docutils literal notranslate"><span class="pre">selectAll</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.set_value" title="madgui.widget.quantity.AffixControlBase.set_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_value</span></code></a>(value[, update])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.stripped" title="madgui.widget.quantity.AffixControlBase.stripped"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stripped</span></code></a>(text)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.textFromValue" title="madgui.widget.quantity.AffixControlBase.textFromValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">textFromValue</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.updateEdit" title="madgui.widget.quantity.AffixControlBase.updateEdit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">updateEdit</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.validate" title="madgui.widget.quantity.AffixControlBase.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(text, pos)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.valueFromText" title="madgui.widget.quantity.AffixControlBase.valueFromText"><code class="xref py py-obj docutils literal notranslate"><span class="pre">valueFromText</span></code></a>(text)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.placeholder_text" title="madgui.widget.quantity.AffixControlBase.placeholder_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">placeholder_text</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.prefix" title="madgui.widget.quantity.AffixControlBase.prefix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prefix</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.suffix" title="madgui.widget.quantity.AffixControlBase.suffix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suffix</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.AffixControlBase.value" title="madgui.widget.quantity.AffixControlBase.value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.focusInEvent">
+<code class="sig-name descname">focusInEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.focusInEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.focusInEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.format">
+<em class="property">abstract </em><code class="sig-name descname">format</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.get_value">
+<code class="sig-name descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.get_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.get_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.interpretText">
+<code class="sig-name descname">interpretText</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.interpretText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.interpretText" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.keyPressEvent">
+<code class="sig-name descname">keyPressEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.keyPressEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.keyPressEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.line_edit">
+<em class="property">abstract </em><code class="sig-name descname">line_edit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.line_edit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.line_edit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.parse">
+<em class="property">abstract </em><code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.quantity.AffixControlBase.placeholder_text">
+<code class="sig-name descname">placeholder_text</code><em class="property"> = ''</em><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.placeholder_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.prefix">
+<em class="property">property </em><code class="sig-name descname">prefix</code><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.prefix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.sanitize">
+<em class="property">abstract </em><code class="sig-name descname">sanitize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.sanitize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.sanitize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.selectAll">
+<code class="sig-name descname">selectAll</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.selectAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.selectAll" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.set_value">
+<code class="sig-name descname">set_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">update</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.set_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.set_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.stripped">
+<code class="sig-name descname">stripped</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.stripped"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.stripped" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.suffix">
+<em class="property">property </em><code class="sig-name descname">suffix</code><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.textFromValue">
+<code class="sig-name descname">textFromValue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.textFromValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.textFromValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.updateEdit">
+<code class="sig-name descname">updateEdit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.updateEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.updateEdit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.validate">
+<code class="sig-name descname">validate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em>, <em class="sig-param"><span class="n">pos</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.quantity.AffixControlBase.validator">
+<code class="sig-name descname">validator</code><em class="property"> = None</em><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.validator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.value">
+<em class="property">property </em><code class="sig-name descname">value</code><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.AffixControlBase.valueFromText">
+<code class="sig-name descname">valueFromText</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#AffixControlBase.valueFromText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.AffixControlBase.valueFromText" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.quantity.DoubleValidator">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.quantity.</code><code class="sig-name descname">DoubleValidator</code><a class="reference internal" href="../_modules/madgui/widget/quantity.html#DoubleValidator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.DoubleValidator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtGui.QValidator</span></code></p>
+<p>Use this validator instead of QDoubleValidator to avoid allowing
+numbers in the current locale…</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.DoubleValidator.validate" title="madgui.widget.quantity.DoubleValidator.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(self, str, int)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.widget.quantity.DoubleValidator.maximum">
+<code class="sig-name descname">maximum</code><em class="property"> = None</em><a class="headerlink" href="#madgui.widget.quantity.DoubleValidator.maximum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.quantity.DoubleValidator.minimum">
+<code class="sig-name descname">minimum</code><em class="property"> = None</em><a class="headerlink" href="#madgui.widget.quantity.DoubleValidator.minimum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.DoubleValidator.validate">
+<code class="sig-name descname">validate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">str</span></em>, <em class="sig-param"><span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>QValidator.State<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a><span class="p">]</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#DoubleValidator.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.DoubleValidator.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.quantity.ExpressionValidator">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.quantity.</code><code class="sig-name descname">ExpressionValidator</code><a class="reference internal" href="../_modules/madgui/widget/quantity.html#ExpressionValidator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.ExpressionValidator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtGui.QValidator</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.ExpressionValidator.parse" title="madgui.widget.quantity.ExpressionValidator.parse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse</span></code></a>(text)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.ExpressionValidator.validate" title="madgui.widget.quantity.ExpressionValidator.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(self, str, int)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.quantity.ExpressionValidator.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#ExpressionValidator.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.ExpressionValidator.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.ExpressionValidator.validate">
+<code class="sig-name descname">validate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">str</span></em>, <em class="sig-param"><span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>QValidator.State<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a><span class="p">]</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#ExpressionValidator.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.ExpressionValidator.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.quantity.QuantityControlBase">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.quantity.</code><code class="sig-name descname">QuantityControlBase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">unit</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityControlBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.quantity.ValueControlBase" title="madgui.widget.quantity.ValueControlBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.quantity.ValueControlBase</span></code></a></p>
+<p>Base class for widgets displaying physical quantities.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.fmtspec" title="madgui.widget.quantity.QuantityControlBase.fmtspec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fmtspec</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.magnitude" title="madgui.widget.quantity.QuantityControlBase.magnitude"><code class="xref py py-obj docutils literal notranslate"><span class="pre">magnitude</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.quantity" title="madgui.widget.quantity.QuantityControlBase.quantity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantity</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.unit" title="madgui.widget.quantity.QuantityControlBase.unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.format" title="madgui.widget.quantity.QuantityControlBase.format"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.get_magnitude" title="madgui.widget.quantity.QuantityControlBase.get_magnitude"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_magnitude</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.get_quantity" title="madgui.widget.quantity.QuantityControlBase.get_quantity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_quantity</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.get_unit" title="madgui.widget.quantity.QuantityControlBase.get_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unit</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.parse" title="madgui.widget.quantity.QuantityControlBase.parse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse</span></code></a>(text)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.set_magnitude" title="madgui.widget.quantity.QuantityControlBase.set_magnitude"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_magnitude</span></code></a>(magnitude)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.set_quantity" title="madgui.widget.quantity.QuantityControlBase.set_quantity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_quantity</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.set_quantity_checked" title="madgui.widget.quantity.QuantityControlBase.set_quantity_checked"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_quantity_checked</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase.set_unit" title="madgui.widget.quantity.QuantityControlBase.set_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_unit</span></code></a>(unit)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.fmtspec">
+<em class="property">property </em><code class="sig-name descname">fmtspec</code><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.fmtspec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.format">
+<code class="sig-name descname">format</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityControlBase.format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.get_magnitude">
+<code class="sig-name descname">get_magnitude</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityControlBase.get_magnitude"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.get_magnitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.get_quantity">
+<code class="sig-name descname">get_quantity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityControlBase.get_quantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.get_quantity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.get_unit">
+<code class="sig-name descname">get_unit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityControlBase.get_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.get_unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.magnitude">
+<em class="property">property </em><code class="sig-name descname">magnitude</code><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.magnitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityControlBase.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.quantity">
+<em class="property">property </em><code class="sig-name descname">quantity</code><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.quantity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.set_magnitude">
+<code class="sig-name descname">set_magnitude</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">magnitude</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityControlBase.set_magnitude"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.set_magnitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.set_quantity">
+<code class="sig-name descname">set_quantity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityControlBase.set_quantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.set_quantity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.set_quantity_checked">
+<code class="sig-name descname">set_quantity_checked</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityControlBase.set_quantity_checked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.set_quantity_checked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.set_unit">
+<code class="sig-name descname">set_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">unit</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityControlBase.set_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.set_unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityControlBase.unit">
+<em class="property">property </em><code class="sig-name descname">unit</code><a class="headerlink" href="#madgui.widget.quantity.QuantityControlBase.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.quantity.QuantityDisplay">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.quantity.</code><code class="sig-name descname">QuantityDisplay</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityDisplay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityDisplay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.quantity.QuantityControlBase" title="madgui.widget.quantity.QuantityControlBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.quantity.QuantityControlBase</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QLineEdit</span></code></p>
+<p>Readonly line-edit showing a quantity.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityDisplay.clear_selectall_pending" title="madgui.widget.quantity.QuantityDisplay.clear_selectall_pending"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_selectall_pending</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityDisplay.line_edit" title="madgui.widget.quantity.QuantityDisplay.line_edit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_edit</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityDisplay.mousePressEvent" title="madgui.widget.quantity.QuantityDisplay.mousePressEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mousePressEvent</span></code></a>(self, QMouseEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityDisplay.mouseReleaseEvent" title="madgui.widget.quantity.QuantityDisplay.mouseReleaseEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouseReleaseEvent</span></code></a>(self, QMouseEvent)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.QuantityDisplay.valueChanged" title="madgui.widget.quantity.QuantityDisplay.valueChanged"><code class="xref py py-obj docutils literal notranslate"><span class="pre">valueChanged</span></code></a></p></td>
+<td><p>Signal&lt;&lt;class ‘object’&gt;&gt;</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityDisplay.clear_selectall_pending">
+<code class="sig-name descname">clear_selectall_pending</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityDisplay.clear_selectall_pending"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityDisplay.clear_selectall_pending" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityDisplay.line_edit">
+<code class="sig-name descname">line_edit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityDisplay.line_edit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityDisplay.line_edit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityDisplay.mousePressEvent">
+<code class="sig-name descname">mousePressEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QMouseEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityDisplay.mousePressEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityDisplay.mousePressEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.QuantityDisplay.mouseReleaseEvent">
+<code class="sig-name descname">mouseReleaseEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QMouseEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#QuantityDisplay.mouseReleaseEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.QuantityDisplay.mouseReleaseEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.quantity.QuantityDisplay.valueChanged">
+<code class="sig-name descname">valueChanged</code><a class="headerlink" href="#madgui.widget.quantity.QuantityDisplay.valueChanged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&lt;class ‘object’&gt;&gt;</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.quantity.ValueControlBase">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.quantity.</code><code class="sig-name descname">ValueControlBase</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#ValueControlBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.ValueControlBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.quantity.AffixControlBase" title="madgui.widget.quantity.AffixControlBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.quantity.AffixControlBase</span></code></a></p>
+<p>Base class for widgets displaying values from an ordered set.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.ValueControlBase.get_range" title="madgui.widget.quantity.ValueControlBase.get_range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_range</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.ValueControlBase.round_value" title="madgui.widget.quantity.ValueControlBase.round_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">round_value</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.ValueControlBase.sanitize" title="madgui.widget.quantity.ValueControlBase.sanitize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sanitize</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.ValueControlBase.set_range" title="madgui.widget.quantity.ValueControlBase.set_range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_range</span></code></a>(minimum, maximum)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.ValueControlBase.maximum" title="madgui.widget.quantity.ValueControlBase.maximum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maximum</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.quantity.ValueControlBase.minimum" title="madgui.widget.quantity.ValueControlBase.minimum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.quantity.ValueControlBase.range" title="madgui.widget.quantity.ValueControlBase.range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">range</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.quantity.ValueControlBase.get_range">
+<code class="sig-name descname">get_range</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#ValueControlBase.get_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.ValueControlBase.get_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.ValueControlBase.maximum">
+<em class="property">property </em><code class="sig-name descname">maximum</code><a class="headerlink" href="#madgui.widget.quantity.ValueControlBase.maximum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.ValueControlBase.minimum">
+<em class="property">property </em><code class="sig-name descname">minimum</code><a class="headerlink" href="#madgui.widget.quantity.ValueControlBase.minimum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.ValueControlBase.range">
+<em class="property">property </em><code class="sig-name descname">range</code><a class="headerlink" href="#madgui.widget.quantity.ValueControlBase.range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.ValueControlBase.round_value">
+<code class="sig-name descname">round_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#ValueControlBase.round_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.ValueControlBase.round_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.ValueControlBase.sanitize">
+<code class="sig-name descname">sanitize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#ValueControlBase.sanitize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.ValueControlBase.sanitize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.quantity.ValueControlBase.set_range">
+<code class="sig-name descname">set_range</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">minimum</span></em>, <em class="sig-param"><span class="n">maximum</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/quantity.html#ValueControlBase.set_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.quantity.ValueControlBase.set_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.spinbox.html" class="btn btn-neutral float-right" title="madgui.widget.spinbox module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.pyshell.html" class="btn btn-neutral float-left" title="madgui.widget.pyshell module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

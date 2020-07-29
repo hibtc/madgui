@@ -1,0 +1,7 @@
+madgui.widget.correct.responsetable module
+==========================================
+
+.. automodule:: madgui.widget.correct.responsetable
+   :members:
+   :undoc-members:
+   :show-inheritance:

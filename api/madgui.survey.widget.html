@@ -1,0 +1,357 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.survey.widget module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.util package" href="madgui.util.html" />
+    <link rel="prev" title="madgui.survey.transform module" href="madgui.survey.transform.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.survey.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.survey.html">madgui.survey package</a> &raquo;</li>
+        
+      <li>madgui.survey.widget module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.survey.widget.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.survey.widget">
+<span id="madgui-survey-widget-module"></span><h1>madgui.survey.widget module<a class="headerlink" href="#module-madgui.survey.widget" title="Permalink to this headline">¶</a></h1>
+<p>Components to draw a 3D floor plan of a given MAD-X lattice.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.widget.FloorPlanWidget" title="madgui.survey.widget.FloorPlanWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FloorPlanWidget</span></code></a>(session)</p></td>
+<td><p>A widget that shows a 3D scene of the accelerator.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.survey.widget.FloorPlanWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.survey.widget.</code><code class="sig-name descname">FloorPlanWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/widget.html#FloorPlanWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.widget.FloorPlanWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>A widget that shows a 3D scene of the accelerator.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.widget.FloorPlanWidget.circle_points_per_m" title="madgui.survey.widget.FloorPlanWidget.circle_points_per_m"><code class="xref py py-obj docutils literal notranslate"><span class="pre">circle_points_per_m</span></code></a></p></td>
+<td><p>float(x) -&gt; floating point number</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.widget.FloorPlanWidget.thin_element_length" title="madgui.survey.widget.FloorPlanWidget.thin_element_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">thin_element_length</span></code></a></p></td>
+<td><p>float(x) -&gt; floating point number</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.widget.FloorPlanWidget.closeEvent" title="madgui.survey.widget.FloorPlanWidget.closeEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">closeEvent</span></code></a>(self, QCloseEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.widget.FloorPlanWidget.create_element_items" title="madgui.survey.widget.FloorPlanWidget.create_element_items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_element_items</span></code></a>(element, coords)</p></td>
+<td><p>Create an <code class="docutils literal notranslate"><span class="pre">Object3D</span></code> for a single beam line element.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.widget.FloorPlanWidget.create_items" title="madgui.survey.widget.FloorPlanWidget.create_items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_items</span></code></a>(camera)</p></td>
+<td><p>Turn the MAD-X sequence of elements into a list of <code class="docutils literal notranslate"><span class="pre">Object3D</span></code> constituting the scene to be drawn.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.widget.FloorPlanWidget.create_object" title="madgui.survey.widget.FloorPlanWidget.create_object"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_object</span></code></a>(element, coords, color, width)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.widget.FloorPlanWidget.session_data" title="madgui.survey.widget.FloorPlanWidget.session_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">session_data</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.survey.widget.FloorPlanWidget.setElements" title="madgui.survey.widget.FloorPlanWidget.setElements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setElements</span></code></a>(elements, survey)</p></td>
+<td><p>Set scene using given elements and floor coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.survey.widget.FloorPlanWidget.set_session" title="madgui.survey.widget.FloorPlanWidget.set_session"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_session</span></code></a>(session)</p></td>
+<td><p>Set session.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.survey.widget.FloorPlanWidget.circle_points_per_m">
+<code class="sig-name descname">circle_points_per_m</code><em class="property"> = 200.0</em><a class="headerlink" href="#madgui.survey.widget.FloorPlanWidget.circle_points_per_m" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.widget.FloorPlanWidget.closeEvent">
+<code class="sig-name descname">closeEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QCloseEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/widget.html#FloorPlanWidget.closeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.widget.FloorPlanWidget.closeEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.widget.FloorPlanWidget.create_element_items">
+<code class="sig-name descname">create_element_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span></em>, <em class="sig-param"><span class="n">coords</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/widget.html#FloorPlanWidget.create_element_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.widget.FloorPlanWidget.create_element_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <code class="docutils literal notranslate"><span class="pre">Object3D</span></code> for a single beam line element. Use the
+supplied color and tube diameter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.widget.FloorPlanWidget.create_items">
+<code class="sig-name descname">create_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">camera</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/widget.html#FloorPlanWidget.create_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.widget.FloorPlanWidget.create_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn the MAD-X sequence of elements into a list of <code class="docutils literal notranslate"><span class="pre">Object3D</span></code>
+constituting the scene to be drawn.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.widget.FloorPlanWidget.create_object">
+<code class="sig-name descname">create_object</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span></em>, <em class="sig-param"><span class="n">coords</span></em>, <em class="sig-param"><span class="n">color</span></em>, <em class="sig-param"><span class="n">width</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/widget.html#FloorPlanWidget.create_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.widget.FloorPlanWidget.create_object" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.widget.FloorPlanWidget.session_data">
+<code class="sig-name descname">session_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/widget.html#FloorPlanWidget.session_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.widget.FloorPlanWidget.session_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.widget.FloorPlanWidget.setElements">
+<code class="sig-name descname">setElements</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elements</span></em>, <em class="sig-param"><span class="n">survey</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/widget.html#FloorPlanWidget.setElements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.widget.FloorPlanWidget.setElements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set scene using given elements and floor coordinates.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.survey.widget.FloorPlanWidget.set_session">
+<code class="sig-name descname">set_session</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/survey/widget.html#FloorPlanWidget.set_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.survey.widget.FloorPlanWidget.set_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set session.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.survey.widget.FloorPlanWidget.thin_element_length">
+<code class="sig-name descname">thin_element_length</code><em class="property"> = 0.005</em><a class="headerlink" href="#madgui.survey.widget.FloorPlanWidget.thin_element_length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.util.html" class="btn btn-neutral float-right" title="madgui.util package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.survey.transform.html" class="btn btn-neutral float-left" title="madgui.survey.transform module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

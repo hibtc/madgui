@@ -1,0 +1,431 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.qt module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.util.signal module" href="madgui.util.signal.html" />
+    <link rel="prev" title="madgui.util.misc module" href="madgui.util.misc.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.util.html">madgui.util package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.util.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.util.html">madgui.util package</a> &raquo;</li>
+        
+      <li>madgui.util.qt module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.util.qt.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.util.qt">
+<span id="madgui-util-qt-module"></span><h1>madgui.util.qt module<a class="headerlink" href="#module-madgui.util.qt" title="Permalink to this headline">¶</a></h1>
+<p>Miscellaneous utilities for programming with the Qt framework.</p>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.qt.notifyEvent" title="madgui.util.qt.notifyEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">notifyEvent</span></code></a>(widget, name, handler)</p></td>
+<td><p>Connect the handler function to be called when the widget receives an event specified by the given name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.qt.eventFilter" title="madgui.util.qt.eventFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eventFilter</span></code></a>(object, events[, parent])</p></td>
+<td><p>Subscribe to events from <code class="docutils literal notranslate"><span class="pre">object</span></code> and dispatch via <code class="docutils literal notranslate"><span class="pre">events</span></code> lookup table.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.qt.present" title="madgui.util.qt.present"><code class="xref py py-obj docutils literal notranslate"><span class="pre">present</span></code></a>(window[, raise_])</p></td>
+<td><p>Activate window and bring to front.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.qt.monospace" title="madgui.util.qt.monospace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monospace</span></code></a>()</p></td>
+<td><p>Return a fixed-space <code class="docutils literal notranslate"><span class="pre">QFont</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.qt.bold" title="madgui.util.qt.bold"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bold</span></code></a>()</p></td>
+<td><p>Return a bold <code class="docutils literal notranslate"><span class="pre">QFont</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.qt.load_ui" title="madgui.util.qt.load_ui"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_ui</span></code></a>(widget, package, filename)</p></td>
+<td><p>Initialize widget from <code class="docutils literal notranslate"><span class="pre">.uic</span></code> file loaded from the given package.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.qt.load_icon_resource" title="madgui.util.qt.load_icon_resource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_icon_resource</span></code></a>(module, name[, format])</p></td>
+<td><p>Load an icon distributed with the given python package.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.qt.EventFilter" title="madgui.util.qt.EventFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventFilter</span></code></a>(events[, parent])</p></td>
+<td><p>Implements an event filter from a lookup table.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.qt.SingleWindow" title="madgui.util.qt.SingleWindow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SingleWindow</span></code></a>(construct)</p></td>
+<td><p>Decorator for widget constructor methods.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.qt.Queued" title="madgui.util.qt.Queued"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Queued</span></code></a>(func)</p></td>
+<td><p>A queued trigger.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.util.qt.EventFilter">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.qt.</code><code class="sig-name descname">EventFilter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">events</span></em>, <em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#EventFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.EventFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QObject</span></code></p>
+<p>Implements an event filter from a lookup table. It is preferred to use
+the <a class="reference internal" href="#madgui.util.qt.eventFilter" title="madgui.util.qt.eventFilter"><code class="xref py py-func docutils literal notranslate"><span class="pre">eventFilter()</span></code></a> function rather than instanciating this class
+directly.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.qt.EventFilter.eventFilter" title="madgui.util.qt.EventFilter.eventFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eventFilter</span></code></a>(self, QObject, QEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.util.qt.EventFilter.uninstall" title="madgui.util.qt.EventFilter.uninstall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uninstall</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.util.qt.EventFilter.eventFilter">
+<code class="sig-name descname">eventFilter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">QObject</span></em>, <em class="sig-param"><span class="n">QEvent</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a><a class="reference internal" href="../_modules/madgui/util/qt.html#EventFilter.eventFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.EventFilter.eventFilter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.util.qt.EventFilter.uninstall">
+<code class="sig-name descname">uninstall</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#EventFilter.uninstall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.EventFilter.uninstall" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.util.qt.Queued">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.qt.</code><code class="sig-name descname">Queued</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#Queued"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.Queued" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A queued trigger. Calling the trigger will invoke the handler function
+in another mainloop iteration.</p>
+<p>Calling the trigger multiple times before the handler was invoked (e.g.
+within the same mainloop iteration) will result in only a <em>single</em> handler
+invocation!</p>
+<p>This can only be used with at least a <code class="docutils literal notranslate"><span class="pre">QCoreApplication</span></code> instanciated.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.util.qt.Queued.method" title="madgui.util.qt.Queued.method"><code class="xref py py-obj docutils literal notranslate"><span class="pre">method</span></code></a>(func)</p></td>
+<td><p>Decorator for a queued method, i.e.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.util.qt.Queued.method">
+<em class="property">classmethod </em><code class="sig-name descname">method</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#Queued.method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.Queued.method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator for a queued method, i.e. a method that when called,
+actually runs at a later time.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.util.qt.SingleWindow">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.util.qt.</code><code class="sig-name descname">SingleWindow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">construct</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#SingleWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.SingleWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.util.qt.Property</span></code></p>
+<p>Decorator for widget constructor methods. It manages the lifetime of the
+widget to ensure that only one is active at the same time.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.qt.bold">
+<code class="sig-prename descclassname">madgui.util.qt.</code><code class="sig-name descname">bold</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#bold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.bold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a bold <code class="docutils literal notranslate"><span class="pre">QFont</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.qt.eventFilter">
+<code class="sig-prename descclassname">madgui.util.qt.</code><code class="sig-name descname">eventFilter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">object</span></em>, <em class="sig-param"><span class="n">events</span></em>, <em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#eventFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.eventFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subscribe to events from <code class="docutils literal notranslate"><span class="pre">object</span></code> and dispatch via <code class="docutils literal notranslate"><span class="pre">events</span></code> lookup
+table. Callbacks are invoked with two parameters <code class="docutils literal notranslate"><span class="pre">(object,</span> <span class="pre">event)</span></code> and
+should return a false-ish value. A true-ish value will stop the event from
+being processed further.</p>
+<p>Example usage:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">event_filter</span> <span class="o">=</span> <span class="n">eventFilter</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s1">&#39;WindowActivate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_window_activate</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;Close&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_window_close</span><span class="p">))</span>
+<span class="gp">... </span><span class="p">})</span>
+</pre></div>
+</div>
+<p>(Note that it is important to store the reference to the event filter
+somewhere - otherwise it may be garbage collected.)</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">QEvent</span></code> for possible events.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.qt.load_icon_resource">
+<code class="sig-prename descclassname">madgui.util.qt.</code><code class="sig-name descname">load_icon_resource</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">module</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">format</span><span class="o">=</span><span class="default_value">'XPM'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#load_icon_resource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.load_icon_resource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load an icon distributed with the given python package. Returns a
+<code class="docutils literal notranslate"><span class="pre">QPixmap</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.qt.load_ui">
+<code class="sig-prename descclassname">madgui.util.qt.</code><code class="sig-name descname">load_ui</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">widget</span></em>, <em class="sig-param"><span class="n">package</span></em>, <em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#load_ui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.load_ui" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize widget from <code class="docutils literal notranslate"><span class="pre">.uic</span></code> file loaded from the given package.</p>
+<p>This function is for loading GUIs that were developed using the qt-designer
+rapid development tool which creates <code class="docutils literal notranslate"><span class="pre">.uic</span></code> description files. These can
+be saved in the same package alongside the corresponding python code. Now,
+in the class that implements the widget, use this function as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyWidget</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">load_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__package__</span><span class="p">,</span> <span class="s1">&#39;mywidget.uic&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.qt.monospace">
+<code class="sig-prename descclassname">madgui.util.qt.</code><code class="sig-name descname">monospace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#monospace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.monospace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a fixed-space <code class="docutils literal notranslate"><span class="pre">QFont</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.qt.notifyEvent">
+<code class="sig-prename descclassname">madgui.util.qt.</code><code class="sig-name descname">notifyEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">widget</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">handler</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#notifyEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.notifyEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect the handler function to be called when the widget receives an
+event specified by the given name.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.util.qt.present">
+<code class="sig-prename descclassname">madgui.util.qt.</code><code class="sig-name descname">present</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">window</span></em>, <em class="sig-param"><span class="n">raise_</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/util/qt.html#present"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.util.qt.present" title="Permalink to this definition">¶</a></dt>
+<dd><p>Activate window and bring to front.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.util.signal.html" class="btn btn-neutral float-right" title="madgui.util.signal module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.util.misc.html" class="btn btn-neutral float-left" title="madgui.util.misc module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

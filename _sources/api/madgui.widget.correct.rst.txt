@@ -1,0 +1,26 @@
+madgui.widget.correct package
+=============================
+
+.. automodule:: madgui.widget.correct
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   madgui.widget.correct.autoproc
+   madgui.widget.correct.configselect
+   madgui.widget.correct.core
+   madgui.widget.correct.fitsettings
+   madgui.widget.correct.manproc
+   madgui.widget.correct.mor_dialog
+   madgui.widget.correct.multi_grid
+   madgui.widget.correct.optic_variation
+   madgui.widget.correct.opticstable
+   madgui.widget.correct.orm_measure
+   madgui.widget.correct.recordstable
+   madgui.widget.correct.responsetable

@@ -1,0 +1,1019 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.tableview &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.tableview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.tableview</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Table widget specified by column behaviour.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;TableItem&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TableModel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TableView&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TreeView&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lookupDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;NodeItem&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TreeNode&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ItemView&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ItemViewDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ItemDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;StringDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;IntDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BoolDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;QuantityDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ExpressionDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ListDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;EnumDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ReadOnlyDelegate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;AffixLineEdit&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">getmro</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">QAbstractItemModel</span><span class="p">,</span> <span class="n">QModelIndex</span><span class="p">,</span> <span class="n">QSize</span><span class="p">,</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QAbstractItemView</span><span class="p">,</span> <span class="n">QComboBox</span><span class="p">,</span> <span class="n">QLabel</span><span class="p">,</span> <span class="n">QLineEdit</span><span class="p">,</span> <span class="n">QSpinBox</span><span class="p">,</span>
+    <span class="n">QStyledItemDelegate</span><span class="p">,</span> <span class="n">QTableView</span><span class="p">,</span> <span class="n">QTreeView</span><span class="p">,</span> <span class="n">QWidget</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+<span class="kn">from</span> <span class="nn">madgui.util.unit</span> <span class="kn">import</span> <span class="n">to_ui</span><span class="p">,</span> <span class="n">from_ui</span><span class="p">,</span> <span class="n">ui_units</span>
+<span class="kn">from</span> <span class="nn">madgui.util.layout</span> <span class="kn">import</span> <span class="n">HBoxLayout</span>
+<span class="kn">from</span> <span class="nn">madgui.util.misc</span> <span class="kn">import</span> <span class="n">ranges</span><span class="p">,</span> <span class="n">cachedproperty</span>
+<span class="kn">from</span> <span class="nn">madgui.util.collections</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">madgui.util.qt</span> <span class="kn">import</span> <span class="n">monospace</span>
+<span class="kn">from</span> <span class="nn">madgui.util.enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">madgui.widget.spinbox</span> <span class="kn">import</span> <span class="n">QuantitySpinBox</span><span class="p">,</span> <span class="n">ExpressionSpinBox</span>
+
+<span class="kn">import</span> <span class="nn">madgui.util.unit</span> <span class="k">as</span> <span class="nn">unit</span>
+<span class="kn">import</span> <span class="nn">madgui.core.config</span> <span class="k">as</span> <span class="nn">config</span>
+
+<span class="c1"># TODO: more consistent behaviour/feel of controls: Quantity vs Bare</span>
+
+
+<span class="c1"># data role, see: http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum</span>
+<span class="n">ROLES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># general purpose roles</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">:</span>                 <span class="s1">&#39;display&#39;</span><span class="p">,</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">DecorationRole</span><span class="p">:</span>              <span class="s1">&#39;decoration&#39;</span><span class="p">,</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">:</span>                    <span class="s1">&#39;edit&#39;</span><span class="p">,</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">ToolTipRole</span><span class="p">:</span>                 <span class="s1">&#39;toolTip&#39;</span><span class="p">,</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">StatusTipRole</span><span class="p">:</span>               <span class="s1">&#39;statusTip&#39;</span><span class="p">,</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">WhatsThisRole</span><span class="p">:</span>               <span class="s1">&#39;whatsThis&#39;</span><span class="p">,</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">SizeHintRole</span><span class="p">:</span>                <span class="s1">&#39;sizeHint&#39;</span><span class="p">,</span>
+    <span class="c1"># appearance and meta data</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">FontRole</span><span class="p">:</span>                    <span class="s1">&#39;font&#39;</span><span class="p">,</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">TextAlignmentRole</span><span class="p">:</span>           <span class="s1">&#39;textAlignment&#39;</span><span class="p">,</span>
+    <span class="c1"># NOTE: Background colors don&#39;t seem to work with css styling. For this</span>
+    <span class="c1"># reason they show only in our TableView, not in our TreeView (for which</span>
+    <span class="c1"># we need styling to make it look acceptable, see `madgui/data/style.css`).</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">BackgroundRole</span><span class="p">:</span>              <span class="s1">&#39;background&#39;</span><span class="p">,</span>
+    <span class="c1"># NOTE: BackgroundColorRole is obsolete in favor of BackgroundRole:</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">BackgroundColorRole</span><span class="p">:</span>         <span class="s1">&#39;backgroundColor&#39;</span><span class="p">,</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">ForegroundRole</span><span class="p">:</span>              <span class="s1">&#39;foreground&#39;</span><span class="p">,</span>
+    <span class="c1"># Qt.TextColorRole:               &#39;textColor&#39;,   # = ForegroundRole</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">CheckStateRole</span><span class="p">:</span>              <span class="s1">&#39;checkState&#39;</span><span class="p">,</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">InitialSortOrderRole</span><span class="p">:</span>        <span class="s1">&#39;initialSortOrder&#39;</span><span class="p">,</span>
+    <span class="c1"># Accessibility roles</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">AccessibleTextRole</span><span class="p">:</span>          <span class="s1">&#39;accessibleText&#39;</span><span class="p">,</span>
+    <span class="n">Qt</span><span class="o">.</span><span class="n">AccessibleDescriptionRole</span><span class="p">:</span>   <span class="s1">&#39;accessibleDescription&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="NodeItem"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.NodeItem">[docs]</a><span class="k">class</span> <span class="nc">NodeItem</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;Descriptor/type information for a TreeNode.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param value: item -&gt; value</span>
+<span class="sd">        :param kwargs: any parameter in ``ROLES`` or a method override, in</span>
+<span class="sd">                       particular ``mutable``, ``delegate``, ``checkable``,</span>
+<span class="sd">                       ``checked``, ``set_checked``. Can be given as static</span>
+<span class="sd">                       value or as function: cell-&gt;value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;get_&#39;</span><span class="p">,</span> <span class="s1">&#39;set_&#39;</span><span class="p">):</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_call</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">row</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">index</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">row</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="c1"># Resolve missing properties by invoking associated methods, cache</span>
+    <span class="c1"># results automatically as attributes, e.g.: value/delegate/name</span>
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fn</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;get_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">fn</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">fn</span> <span class="ow">and</span> <span class="n">fn</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>     <span class="c1"># unshadow AttributeError!</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">()</span> <span class="kn">from</span> <span class="nn">e</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+<div class="viewcode-block" id="NodeItem.rowitems"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.NodeItem.rowitems">[docs]</a>    <span class="k">def</span> <span class="nf">rowitems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">cls</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="NodeItem.get_children"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.NodeItem.get_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of child rows (for expandable data).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">NodeItem</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">get_children</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rowitems</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="NodeItem.get_parent"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.NodeItem.get_parent">[docs]</a>    <span class="k">def</span> <span class="nf">get_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">item</span></div>
+
+<div class="viewcode-block" id="NodeItem.get_row"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.NodeItem.get_row">[docs]</a>    <span class="k">def</span> <span class="nf">get_row</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+
+
+<span class="c1"># TODO: add `deleter`</span>
+<div class="viewcode-block" id="TableItem"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem">[docs]</a><span class="k">class</span> <span class="nc">TableItem</span><span class="p">(</span><span class="n">NodeItem</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Cell item data for a tree widget.&quot;&quot;&quot;</span>
+
+    <span class="c1"># QAbstractItemModel queries</span>
+
+<div class="viewcode-block" id="TableItem.get_flags"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_flags">[docs]</a>    <span class="k">def</span> <span class="nf">get_flags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Always editable with ReadOnlyDelegate:</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsSelectable</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEnabled</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEditable</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkable</span><span class="p">:</span>
+            <span class="n">flags</span> <span class="o">|=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsUserCheckable</span>
+        <span class="k">return</span> <span class="n">flags</span></div>
+
+    <span class="c1"># role queries (ROLES)</span>
+
+<div class="viewcode-block" id="TableItem.get_display"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_display">[docs]</a>    <span class="k">def</span> <span class="nf">get_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Render the value as string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui_value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableItem.get_edit"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_edit">[docs]</a>    <span class="k">def</span> <span class="nf">get_edit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Obtain value for the editor.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableItem.get_checkState"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_checkState">[docs]</a>    <span class="k">def</span> <span class="nf">get_checkState</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">checked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checked</span>
+        <span class="k">if</span> <span class="n">checked</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span> <span class="k">if</span> <span class="n">checked</span> <span class="k">else</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Unchecked</span></div>
+
+<div class="viewcode-block" id="TableItem.get_textAlignment"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_textAlignment">[docs]</a>    <span class="k">def</span> <span class="nf">get_textAlignment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">textAlignment</span></div>
+
+    <span class="c1"># intermediate/helper properties</span>
+
+<div class="viewcode-block" id="TableItem.get_editable"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_editable">[docs]</a>    <span class="k">def</span> <span class="nf">get_editable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">,</span> <span class="n">BoolDelegate</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableItem.get_checkable"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_checkable">[docs]</a>    <span class="k">def</span> <span class="nf">get_checkable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutable</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">,</span> <span class="n">BoolDelegate</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableItem.get_delegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_delegate">[docs]</a>    <span class="k">def</span> <span class="nf">get_delegate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">lookupDelegate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui_value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableItem.get_mutable"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_mutable">[docs]</a>    <span class="k">def</span> <span class="nf">get_mutable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableItem.get_value"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="TableItem.get_ui_value"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_ui_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_ui_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">to_ui</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableItem.get_checked"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_checked">[docs]</a>    <span class="k">def</span> <span class="nf">get_checked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">,</span> <span class="n">BoolDelegate</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableItem.set_ui_value"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.set_ui_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_ui_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">from_ui</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TableItem.set_checked"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.set_checked">[docs]</a>    <span class="k">def</span> <span class="nf">set_checked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Implement setting BoolDelegate via checkbox.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+    <span class="c1"># misc</span>
+
+<div class="viewcode-block" id="TableItem.get_row"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_row">[docs]</a>    <span class="k">def</span> <span class="nf">get_row</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span></div>
+
+<div class="viewcode-block" id="TableItem.get_rows"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_rows">[docs]</a>    <span class="k">def</span> <span class="nf">get_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>     <span class="c1"># no children by default</span>
+        <span class="k">return</span> <span class="p">()</span></div>
+
+<div class="viewcode-block" id="TableItem.get_columns"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableItem.get_columns">[docs]</a>    <span class="k">def</span> <span class="nf">get_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="TreeNode"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TreeNode">[docs]</a><span class="k">class</span> <span class="nc">TreeNode</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Proxy class for accessing contents/properties of a table cell. Delegates</span>
+<span class="sd">    data queries to attributes of the associated :class`NodeItem`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">node</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">granny</span> <span class="o">=</span> <span class="n">parent</span> <span class="ow">and</span> <span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">root</span> <span class="k">if</span> <span class="n">parent</span> <span class="k">else</span> <span class="bp">self</span>
+
+    <span class="n">index</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="c1"># row/col should only be used for &quot;cells&quot;, i.e. those nodes that describe</span>
+    <span class="c1"># the visible contents of the treeview:</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">index</span><span class="p">())</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TreeNode.invalidate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TreeNode.invalidate">[docs]</a>    <span class="k">def</span> <span class="nf">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_children&#39;</span><span class="p">):</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_children</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">get_children</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">item</span> <span class="o">=</span> <span class="n">item</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">node</span> <span class="o">=</span> <span class="n">node</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+            <span class="k">del</span> <span class="n">nodes</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">):]</span>
+            <span class="n">nodes</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">):]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">TreeNode</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">):]</span>
+            <span class="p">]</span></div>
+
+    <span class="nd">@cachedproperty</span>
+    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">TreeNode</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">get_children</span><span class="p">()</span>
+        <span class="p">]</span>
+
+<div class="viewcode-block" id="TreeNode.data"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TreeNode.data">[docs]</a>    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="p">,</span> <span class="n">ROLES</span><span class="p">[</span><span class="n">role</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TreeNode.setData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TreeNode.setData">[docs]</a>    <span class="k">def</span> <span class="nf">setData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">role</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">editable</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">set_ui_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">CheckStateRole</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">checkable</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">set_checked</span><span class="p">(</span><span class="n">value</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div></div>
+
+
+<div class="viewcode-block" id="TableModel"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableModel">[docs]</a><span class="k">class</span> <span class="nc">TableModel</span><span class="p">(</span><span class="n">QAbstractItemModel</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Table data model.</span>
+
+<span class="sd">    Column specifications are provided as :class:`TableItem` instances. The</span>
+<span class="sd">    data can be accessed and changed via the list-like :attr:`rows`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">titles</span><span class="p">,</span> <span class="n">rowitems</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">titles</span> <span class="o">=</span> <span class="n">titles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span> <span class="o">=</span> <span class="n">rows</span> <span class="o">=</span> <span class="n">List</span><span class="p">()</span> <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="o">.</span><span class="n">update_finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_refresh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">TreeNode</span><span class="p">(</span><span class="n">NodeItem</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">rowitems</span><span class="o">=</span><span class="n">rowitems</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beginResetModel</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">endResetModel</span><span class="p">()</span>
+
+    <span class="c1"># data accessors</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span>
+
+    <span class="nd">@rows</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">rows</span>
+
+<div class="viewcode-block" id="TableModel.cell"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableModel.cell">[docs]</a>    <span class="k">def</span> <span class="nf">cell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">index</span><span class="o">.</span><span class="n">internalPointer</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span></div>
+
+    <span class="c1"># QAbstractItemModel overrides</span>
+
+    <span class="c1"># TODO: add/implement TreeNode.children</span>
+<div class="viewcode-block" id="TableModel.index"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableModel.index">[docs]</a>    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QModelIndex</span><span class="p">()):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">createIndex</span><span class="p">(</span>
+            <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="n">col</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TableModel.parent"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableModel.parent">[docs]</a>    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="c1"># The parent `Node` of a table cell is the containing row. To get to</span>
+        <span class="c1"># the parent *cell*, we need in fact its grandparent:</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">granny</span>
+        <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">parent</span><span class="o">.</span><span class="n">granny</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">QModelIndex</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">createIndex</span><span class="p">(</span><span class="n">parent</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="n">parent</span><span class="o">.</span><span class="n">col</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableModel.columnCount"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableModel.columnCount">[docs]</a>    <span class="k">def</span> <span class="nf">columnCount</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QModelIndex</span><span class="p">()):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableModel.rowCount"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableModel.rowCount">[docs]</a>    <span class="k">def</span> <span class="nf">rowCount</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QModelIndex</span><span class="p">()):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span><span class="o">.</span><span class="n">children</span> <span class="ow">or</span> <span class="p">())</span></div>
+
+<div class="viewcode-block" id="TableModel.data"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableModel.data">[docs]</a>    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">index</span><span class="o">.</span><span class="n">isValid</span><span class="p">()</span> <span class="ow">and</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">ROLES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">role</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">role</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableModel.flags"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableModel.flags">[docs]</a>    <span class="k">def</span> <span class="nf">flags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">index</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">flags</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">flags</span><span class="p">(</span><span class="n">index</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableModel.headerData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableModel.headerData">[docs]</a>    <span class="k">def</span> <span class="nf">headerData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">orientation</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">orientation</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Horizontal</span> <span class="ow">and</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="p">[</span><span class="n">section</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TableModel.setData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableModel.setData">[docs]</a>    <span class="k">def</span> <span class="nf">setData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">index</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">changed</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">role</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+            <span class="c1"># NOTE: This takes care to update cells after edits that don&#39;t</span>
+            <span class="c1"># trigger an update of the self.rows collection for some reason</span>
+            <span class="c1"># (and hence self._refresh is never called). In fact, we</span>
+            <span class="c1"># we should trigger the update by re-querying self.rows, but right</span>
+            <span class="c1"># now this is not guaranteed in all places...</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">row</span><span class="p">()</span>
+            <span class="n">par</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rowCount</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">beginResetModel</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">endResetModel</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">par</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">columnCount</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">par</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">changed</span></div></div>
+
+
+<div class="viewcode-block" id="ItemView"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView">[docs]</a><span class="k">class</span> <span class="nc">ItemView</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class for shared code of :class:`TableView` and :class:`TreeView`.</span>
+<span class="sd">    Do not use directly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">selectionChangedSignal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">()</span>
+
+    <span class="n">allow_delete</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize with list of :class:`TableItem`.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">monospace</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setItemDelegate</span><span class="p">(</span><span class="n">ItemViewDelegate</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setAlternatingRowColors</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_changed</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ItemView.format_changed"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView.format_changed">[docs]</a>    <span class="k">def</span> <span class="nf">format_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># NOTE: this is only okay as long as there is only a single view for</span>
+        <span class="c1"># each model (otherwise the signals will be emitted multiple times!):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">layoutAboutToBeChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">layoutChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ItemView.set_viewmodel"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView.set_viewmodel">[docs]</a>    <span class="k">def</span> <span class="nf">set_viewmodel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowitems</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="p">(),</span> <span class="n">titles</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">titles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">titles</span> <span class="ow">or</span> <span class="n">rowitems</span><span class="o">.</span><span class="vm">__annotations__</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">titles</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">u</span> <span class="ow">and</span> <span class="n">ui_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
+                <span class="n">titles</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">ui_units</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setModel</span><span class="p">(</span><span class="n">TableModel</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="n">rowitems</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ItemView.resizeEvent"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView.resizeEvent">[docs]</a>    <span class="k">def</span> <span class="nf">resizeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Resize all sections to content and user interactive &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">resizeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">()</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">count</span><span class="p">())</span>
+                   <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isColumnHidden</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span>
+        <span class="n">widths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_columnContentWidth</span><span class="p">,</span> <span class="n">columns</span><span class="p">))</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">widths</span><span class="p">)</span>
+        <span class="n">avail</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">width</span><span class="p">()</span> <span class="o">-</span> <span class="n">total</span>
+
+        <span class="n">part</span> <span class="o">=</span> <span class="n">avail</span> <span class="o">//</span> <span class="nb">len</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+        <span class="n">avail</span> <span class="o">-=</span> <span class="n">part</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">columns</span><span class="p">)):</span>
+            <span class="n">widths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">part</span>
+        <span class="k">if</span> <span class="n">avail</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">widths</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">avail</span>
+
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">width</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">widths</span><span class="p">):</span>
+            <span class="n">header</span><span class="o">.</span><span class="n">resizeSection</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ItemView.selectionChanged"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView.selectionChanged">[docs]</a>    <span class="k">def</span> <span class="nf">selectionChanged</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selected</span><span class="p">,</span> <span class="n">deselected</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">selectionChanged</span><span class="p">(</span><span class="n">selected</span><span class="p">,</span> <span class="n">deselected</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selectionChangedSignal</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List-like access to the data.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">rows</span>
+
+    <span class="nd">@rows</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List-like access to the data.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="n">rows</span>
+
+<div class="viewcode-block" id="ItemView.removeSelectedRows"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView.removeSelectedRows">[docs]</a>    <span class="k">def</span> <span class="nf">removeSelectedRows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">{</span><span class="n">idx</span><span class="o">.</span><span class="n">row</span><span class="p">()</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectedIndexes</span><span class="p">()}</span>
+        <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ranges</span><span class="p">(</span><span class="n">rows</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="c1"># TODO: these should be called from the model…</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">rows</span><span class="p">[</span><span class="n">a</span><span class="p">:</span><span class="n">b</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ItemView.keyPressEvent"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView.keyPressEvent">[docs]</a>    <span class="k">def</span> <span class="nf">keyPressEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">()</span> <span class="o">==</span> <span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">NoState</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Delete</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Key_Backspace</span><span class="p">)</span> \
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_delete</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">removeSelectedRows</span><span class="p">()</span>
+                <span class="n">event</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+                <span class="k">return</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">keyPressEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ItemView.connectRemoveButton"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView.connectRemoveButton">[docs]</a>    <span class="k">def</span> <span class="nf">connectRemoveButton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">button</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_delete</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">_</span><span class="p">:</span> <span class="n">button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedIndexes</span><span class="p">()))</span>
+        <span class="n">button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">removeSelectedRows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selectionChangedSignal</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="o">.</span><span class="n">update_finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
+        <span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ItemView.connectClearButton"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView.connectClearButton">[docs]</a>    <span class="k">def</span> <span class="nf">connectClearButton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">button</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_delete</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">_</span><span class="p">:</span> <span class="n">button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">))</span>
+        <span class="n">button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="o">.</span><span class="n">clear</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="o">.</span><span class="n">update_finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
+        <span class="n">update</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_columnContentWidth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sizeHintForColumn</span><span class="p">(</span><span class="n">column</span><span class="p">),</span>
+                   <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">sectionSizeHint</span><span class="p">(</span><span class="n">column</span><span class="p">))</span>
+
+<div class="viewcode-block" id="ItemView.sizeHint"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView.sizeHint">[docs]</a>    <span class="k">def</span> <span class="nf">sizeHint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># If you are not careful to immediately call set_viewmodel, it is</span>
+        <span class="c1"># possible that we do not yet have a TableModel:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(),</span> <span class="s1">&#39;titles&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">sizeHint</span><span class="p">()</span>
+        <span class="n">content_width</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_columnContentWidth</span><span class="p">,</span>
+                                <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">titles</span><span class="p">))))</span>
+        <span class="n">margins_width</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contentsMargins</span><span class="p">()</span><span class="o">.</span><span class="n">left</span><span class="p">()</span> <span class="o">+</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">contentsMargins</span><span class="p">()</span><span class="o">.</span><span class="n">right</span><span class="p">())</span>
+        <span class="n">scrollbar_width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verticalScrollBar</span><span class="p">()</span><span class="o">.</span><span class="n">width</span><span class="p">()</span>
+        <span class="n">total_width</span> <span class="o">=</span> <span class="p">(</span><span class="n">margins_width</span> <span class="o">+</span>
+                       <span class="n">content_width</span> <span class="o">+</span>
+                       <span class="n">scrollbar_width</span><span class="p">)</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">sizeHint</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">QSize</span><span class="p">(</span><span class="n">total_width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ItemView.sizeHintForColumn"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemView.sizeHintForColumn">[docs]</a>    <span class="k">def</span> <span class="nf">sizeHintForColumn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">sizeHintForColumn</span><span class="p">(</span><span class="n">column</span><span class="p">)</span> <span class="o">+</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="mi">40</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="TableView"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableView">[docs]</a><span class="k">class</span> <span class="nc">TableView</span><span class="p">(</span><span class="n">ItemView</span><span class="p">,</span> <span class="n">QTableView</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A table widget based on Qt&#39;s QTableView for our :class:`TableModel`.</span>
+
+<span class="sd">    - does not support expandable items</span>
+<span class="sd">    - supports vertical header</span>
+<span class="sd">    - currently supports background colors (since we don&#39;t use css for</span>
+<span class="sd">      QTableView)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">setHighlightSections</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">setHighlightSections</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TableView.header"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TableView.header">[docs]</a>    <span class="k">def</span> <span class="nf">header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="TreeView"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TreeView">[docs]</a><span class="k">class</span> <span class="nc">TreeView</span><span class="p">(</span><span class="n">ItemView</span><span class="p">,</span> <span class="n">QTreeView</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A tree widget based on Qt&#39;s QTableView for our :class:`TableModel`.</span>
+
+<span class="sd">    - supports expandable items</span>
+<span class="sd">    - does not show item background color (apparently due to an</span>
+<span class="sd">      incompatibility with css styling).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># Prevent the user from folding since this makes it easier to show</span>
+        <span class="c1"># the same image after refreshing the model:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setRootIsDecorated</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setItemsExpandable</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TreeView.resizeColumnsToContents"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TreeView.resizeColumnsToContents">[docs]</a>    <span class="k">def</span> <span class="nf">resizeColumnsToContents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">columnCount</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">resizeColumnToContents</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TreeView.set_viewmodel"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.TreeView.set_viewmodel">[docs]</a>    <span class="k">def</span> <span class="nf">set_viewmodel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowitems</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="p">(),</span> <span class="n">titles</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_viewmodel</span><span class="p">(</span><span class="n">rowitems</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">titles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">rowsInserted</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span> <span class="o">*</span><span class="n">_</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">expandAll</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">modelReset</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span> <span class="o">*</span><span class="n">_</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">expandAll</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expandAll</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="ItemViewDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemViewDelegate">[docs]</a><span class="k">class</span> <span class="nc">ItemViewDelegate</span><span class="p">(</span><span class="n">QStyledItemDelegate</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ItemViewDelegate.delegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemViewDelegate.delegate">[docs]</a>    <span class="k">def</span> <span class="nf">delegate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">item</span>
+        <span class="k">return</span> <span class="n">cell</span><span class="o">.</span><span class="n">delegate</span> <span class="k">if</span> <span class="n">cell</span><span class="o">.</span><span class="n">editable</span> <span class="k">else</span> <span class="n">ReadOnlyDelegate</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ItemViewDelegate.sizeHint"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemViewDelegate.sizeHint">[docs]</a>    <span class="k">def</span> <span class="nf">sizeHint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">hint</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">sizeHint</span><span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">hint</span><span class="o">.</span><span class="n">setHeight</span><span class="p">(</span><span class="n">hint</span><span class="o">.</span><span class="n">height</span><span class="p">()</span> <span class="o">+</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hint</span></div>
+
+<div class="viewcode-block" id="ItemViewDelegate.createEditor"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemViewDelegate.createEditor">[docs]</a>    <span class="k">def</span> <span class="nf">createEditor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">createEditor</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ItemViewDelegate.setEditorData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemViewDelegate.setEditorData">[docs]</a>    <span class="k">def</span> <span class="nf">setEditorData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">setEditorData</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ItemViewDelegate.setModelData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemViewDelegate.setModelData">[docs]</a>    <span class="k">def</span> <span class="nf">setModelData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">setModelData</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ItemViewDelegate.updateEditorGeometry"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemViewDelegate.updateEditorGeometry">[docs]</a>    <span class="k">def</span> <span class="nf">updateEditorGeometry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">updateEditorGeometry</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># Value types</span>
+
+<div class="viewcode-block" id="ItemDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemDelegate">[docs]</a><span class="k">class</span> <span class="nc">ItemDelegate</span><span class="p">(</span><span class="n">QStyledItemDelegate</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Wrap a value of a specific type for string rendering and editting.&quot;&quot;&quot;</span>
+
+    <span class="n">default</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">fmtspec</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">textAlignment</span> <span class="o">=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignLeft</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignVCenter</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                 <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">fmtspec</span><span class="o">=</span><span class="kc">None</span>
+                 <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Store the value.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="k">if</span> <span class="n">fmtspec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fmtspec</span> <span class="o">=</span> <span class="n">fmtspec</span>
+
+<div class="viewcode-block" id="ItemDelegate.display"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemDelegate.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Render the value as string.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">format</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fmtspec</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ItemDelegate.edit"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ItemDelegate.edit">[docs]</a>    <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="k">if</span> <span class="n">cell</span><span class="o">.</span><span class="n">ui_value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cell</span><span class="o">.</span><span class="n">ui_value</span></div></div>
+
+
+<div class="viewcode-block" id="StringDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.StringDelegate">[docs]</a><span class="k">class</span> <span class="nc">StringDelegate</span><span class="p">(</span><span class="n">ItemDelegate</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Bare string value.&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="IntDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.IntDelegate">[docs]</a><span class="k">class</span> <span class="nc">IntDelegate</span><span class="p">(</span><span class="n">ItemDelegate</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Integer value.&quot;&quot;&quot;</span>
+
+    <span class="n">default</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">textAlignment</span> <span class="o">=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignRight</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignVCenter</span>
+
+    <span class="c1"># NOTE: This class is needed to create a spinbox without</span>
+    <span class="c1"># `editor.setFrame(False)` which causes a display bug: display value is</span>
+    <span class="c1"># still shown, partially covered by the spin buttons.</span>
+
+<div class="viewcode-block" id="IntDelegate.createEditor"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.IntDelegate.createEditor">[docs]</a>    <span class="k">def</span> <span class="nf">createEditor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">editor</span> <span class="o">=</span> <span class="n">QSpinBox</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">30</span><span class="p">),</span> <span class="o">+</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">30</span><span class="p">))</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Alignment</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">TextAlignmentRole</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">editor</span></div>
+
+<div class="viewcode-block" id="IntDelegate.setEditorData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.IntDelegate.setEditorData">[docs]</a>    <span class="k">def</span> <span class="nf">setEditorData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">)</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IntDelegate.setModelData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.IntDelegate.setModelData">[docs]</a>    <span class="k">def</span> <span class="nf">setModelData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">editor</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">parsed</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="BoolDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.BoolDelegate">[docs]</a><span class="k">class</span> <span class="nc">BoolDelegate</span><span class="p">(</span><span class="n">ItemDelegate</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Boolean value.&quot;&quot;&quot;</span>
+
+    <span class="c1"># FIXME: distinguish `None` values, gray out?</span>
+    <span class="n">default</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<span class="c1"># TODO: use UI units</span>
+<div class="viewcode-block" id="QuantityDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.QuantityDelegate">[docs]</a><span class="k">class</span> <span class="nc">QuantityDelegate</span><span class="p">(</span><span class="n">ItemDelegate</span><span class="p">):</span>
+
+    <span class="n">default</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">textAlignment</span> <span class="o">=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignRight</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignVCenter</span>
+
+    <span class="nd">@cachedproperty</span>
+    <span class="k">def</span> <span class="nf">fmtspec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">fmtspec</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span>
+
+<div class="viewcode-block" id="QuantityDelegate.display"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.QuantityDelegate.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">unit</span><span class="o">.</span><span class="n">get_raw_label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">unit</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">unit</span><span class="o">.</span><span class="n">format_quantity</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fmtspec</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+    <span class="c1"># QStyledItemDelegate</span>
+
+<div class="viewcode-block" id="QuantityDelegate.createEditor"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.QuantityDelegate.createEditor">[docs]</a>    <span class="k">def</span> <span class="nf">createEditor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">QuantitySpinBox</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QuantityDelegate.setEditorData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.QuantityDelegate.setEditorData">[docs]</a>    <span class="k">def</span> <span class="nf">setEditorData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">set_quantity_checked</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">))</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">selectAll</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="QuantityDelegate.setModelData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.QuantityDelegate.setModelData">[docs]</a>    <span class="k">def</span> <span class="nf">setModelData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">editor</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ExpressionDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ExpressionDelegate">[docs]</a><span class="k">class</span> <span class="nc">ExpressionDelegate</span><span class="p">(</span><span class="n">QuantityDelegate</span><span class="p">):</span>
+
+    <span class="n">default</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">textAlignment</span> <span class="o">=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignRight</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignVCenter</span>     <span class="c1"># TODO…</span>
+
+<div class="viewcode-block" id="ExpressionDelegate.edit"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ExpressionDelegate.edit">[docs]</a>    <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">):</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">expr</span> <span class="ow">and</span> <span class="n">cell</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">expr</span> <span class="ow">or</span> <span class="n">cell</span><span class="o">.</span><span class="n">ui_value</span></div>
+
+    <span class="c1"># QStyledItemDelegate</span>
+
+<div class="viewcode-block" id="ExpressionDelegate.createEditor"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ExpressionDelegate.createEditor">[docs]</a>    <span class="k">def</span> <span class="nf">createEditor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ExpressionSpinBox</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ExpressionDelegate.setEditorData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ExpressionDelegate.setEditorData">[docs]</a>    <span class="k">def</span> <span class="nf">setEditorData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">))</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">selectAll</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ExpressionDelegate.setModelData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ExpressionDelegate.setModelData">[docs]</a>    <span class="k">def</span> <span class="nf">setModelData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">editor</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ListDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ListDelegate">[docs]</a><span class="k">class</span> <span class="nc">ListDelegate</span><span class="p">(</span><span class="n">ItemDelegate</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;List value.&quot;&quot;&quot;</span>
+
+    <span class="n">textAlignment</span> <span class="o">=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignRight</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignVCenter</span>
+
+<div class="viewcode-block" id="ListDelegate.display"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ListDelegate.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;[</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formatValue</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="ListDelegate.formatValue"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ListDelegate.formatValue">[docs]</a>    <span class="k">def</span> <span class="nf">formatValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">lookupDelegate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+    <span class="c1"># QStyledItemDelegate</span>
+
+    <span class="c1"># TODO: select sections individually, cycle through with &lt;Tab&gt;</span>
+    <span class="c1"># TODO: adjust increase editor size while typing? (so prefix/suffix will</span>
+    <span class="c1"># always be directly after the edit text)</span>
+    <span class="c1"># TODO: use QDoubleSpinBox for current section? Show other parts as</span>
+    <span class="c1"># prefix/suffix</span>
+    <span class="c1"># TODO: intercept and handle &lt;Enter&gt;</span>
+
+<div class="viewcode-block" id="ListDelegate.createEditor"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ListDelegate.createEditor">[docs]</a>    <span class="k">def</span> <span class="nf">createEditor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">editor</span> <span class="o">=</span> <span class="n">AffixLineEdit</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">)</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">editor</span></div>
+
+<div class="viewcode-block" id="ListDelegate.setEditorData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ListDelegate.setEditorData">[docs]</a>    <span class="k">def</span> <span class="nf">setEditorData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">)</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">edit</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">edit</span><span class="o">.</span><span class="n">selectAll</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ListDelegate.setModelData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ListDelegate.setModelData">[docs]</a>    <span class="k">def</span> <span class="nf">setModelData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">editor</span><span class="o">.</span><span class="n">edit</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">unit</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">items</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="EnumDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.EnumDelegate">[docs]</a><span class="k">class</span> <span class="nc">EnumDelegate</span><span class="p">(</span><span class="n">StringDelegate</span><span class="p">):</span>
+
+    <span class="c1"># QStyledItemDelegate</span>
+
+<div class="viewcode-block" id="EnumDelegate.createEditor"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.EnumDelegate.createEditor">[docs]</a>    <span class="k">def</span> <span class="nf">createEditor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">enum</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">))</span>
+        <span class="n">editor</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">setEditable</span><span class="p">(</span><span class="ow">not</span> <span class="n">enum</span><span class="o">.</span><span class="n">_strict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">editor</span></div>
+
+<div class="viewcode-block" id="EnumDelegate.setEditorData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.EnumDelegate.setEditorData">[docs]</a>    <span class="k">def</span> <span class="nf">setEditorData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">enum</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">))</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">editor</span><span class="o">.</span><span class="n">findText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">())))</span></div>
+
+<div class="viewcode-block" id="EnumDelegate.setModelData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.EnumDelegate.setModelData">[docs]</a>    <span class="k">def</span> <span class="nf">setModelData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">enum</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">))</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">editor</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">enum</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div></div>
+
+
+<span class="n">delegates</span> <span class="o">=</span> <span class="p">{</span>                   <span class="c1"># default {type: value proxy} mapping</span>
+    <span class="nb">object</span><span class="p">:</span> <span class="n">ItemDelegate</span><span class="p">(),</span>
+    <span class="nb">float</span><span class="p">:</span> <span class="n">QuantityDelegate</span><span class="p">(),</span>
+    <span class="nb">int</span><span class="p">:</span> <span class="n">IntDelegate</span><span class="p">(),</span>
+    <span class="nb">bool</span><span class="p">:</span> <span class="n">BoolDelegate</span><span class="p">(),</span>
+    <span class="nb">str</span><span class="p">:</span> <span class="n">StringDelegate</span><span class="p">(),</span>
+    <span class="nb">bytes</span><span class="p">:</span> <span class="n">StringDelegate</span><span class="p">(),</span>
+    <span class="nb">list</span><span class="p">:</span> <span class="n">ListDelegate</span><span class="p">(),</span>                       <span class="c1"># TODO: VECTOR vs MATRIX…</span>
+    <span class="n">unit</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">:</span> <span class="n">QuantityDelegate</span><span class="p">(),</span>
+    <span class="n">Enum</span><span class="p">:</span> <span class="n">EnumDelegate</span><span class="p">(),</span>
+<span class="p">}</span>
+
+
+<span class="c1"># lookupDelegate</span>
+
+<div class="viewcode-block" id="lookupDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.lookupDelegate">[docs]</a><span class="k">def</span> <span class="nf">lookupDelegate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="bp">cls</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span>
+    <span class="k">return</span> <span class="n">delegates</span><span class="p">[</span><span class="n">_get_best_base</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">delegates</span><span class="p">)]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_best_base</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bases</span><span class="p">):</span>
+    <span class="n">bases</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">base</span> <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="n">bases</span> <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">base</span><span class="p">))</span>
+    <span class="n">mro</span> <span class="o">=</span> <span class="n">getmro</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">bases</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="p">(</span><span class="n">mro</span> <span class="o">+</span> <span class="n">bases</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+
+<span class="c1"># Editors</span>
+
+<div class="viewcode-block" id="ReadOnlyDelegate"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ReadOnlyDelegate">[docs]</a><span class="k">class</span> <span class="nc">ReadOnlyDelegate</span><span class="p">(</span><span class="n">QStyledItemDelegate</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ReadOnlyDelegate.createEditor"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ReadOnlyDelegate.createEditor">[docs]</a>    <span class="k">def</span> <span class="nf">createEditor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">editor</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">setReadOnly</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Alignment</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">TextAlignmentRole</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">editor</span></div>
+
+<div class="viewcode-block" id="ReadOnlyDelegate.setEditorData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ReadOnlyDelegate.setEditorData">[docs]</a>    <span class="k">def</span> <span class="nf">setEditorData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">))</span>
+        <span class="n">editor</span><span class="o">.</span><span class="n">selectAll</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ReadOnlyDelegate.setModelData"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.ReadOnlyDelegate.setModelData">[docs]</a>    <span class="k">def</span> <span class="nf">setModelData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="AffixLineEdit"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.AffixLineEdit">[docs]</a><span class="k">class</span> <span class="nc">AffixLineEdit</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Single-line edit control with prefix/suffix text.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edit</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edit</span><span class="o">.</span><span class="n">setFrame</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">HBoxLayout</span><span class="p">([</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">edit</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span>
+        <span class="p">],</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setAutoFillBackground</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AffixLineEdit.focusInEvent"><a class="viewcode-back" href="../../../api/madgui.widget.tableview.html#madgui.widget.tableview.AffixLineEdit.focusInEvent">[docs]</a>    <span class="k">def</span> <span class="nf">focusInEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edit</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

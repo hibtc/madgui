@@ -1,0 +1,466 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.qt &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.util.qt</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.util.qt</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Miscellaneous utilities for programming with the Qt framework.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;notifyEvent&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;eventFilter&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;EventFilter&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;present&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;monospace&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bold&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;load_ui&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;load_icon_resource&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SingleWindow&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Queued&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">importlib_resources</span> <span class="kn">import</span> <span class="n">path</span> <span class="k">as</span> <span class="n">resource_filename</span><span class="p">,</span> <span class="n">open_binary</span>
+
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">QEvent</span><span class="p">,</span> <span class="n">QObject</span><span class="p">,</span> <span class="n">QTimer</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="kn">import</span> <span class="n">QFont</span><span class="p">,</span> <span class="n">QFontDatabase</span><span class="p">,</span> <span class="n">QIcon</span><span class="p">,</span> <span class="n">QPixmap</span>
+<span class="kn">from</span> <span class="nn">PyQt5</span> <span class="kn">import</span> <span class="n">uic</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.collections</span> <span class="kn">import</span> <span class="n">Bool</span>
+<span class="kn">from</span> <span class="nn">madgui.util.misc</span> <span class="kn">import</span> <span class="n">cachedproperty</span><span class="p">,</span> <span class="n">memoize</span>
+
+
+<div class="viewcode-block" id="notifyEvent"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.notifyEvent">[docs]</a><span class="k">def</span> <span class="nf">notifyEvent</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Connect the handler function to be called when the widget receives an</span>
+<span class="sd">    event specified by the given name.&quot;&quot;&quot;</span>
+    <span class="c1"># This is implemented using `EventFilter`. The alternative would be to</span>
+    <span class="c1">#   - either overwrite the xxxEvent method on the object, or</span>
+    <span class="c1">#   - for closeEvent specifically, set the WA_DeleteOnClose attribute and</span>
+    <span class="c1">#     connect to the QWidget.destroyed signal.</span>
+    <span class="c1"># However, either method should be avoided due to their disadvantages:</span>
+    <span class="c1">#   - overwriting methods on the object makes it impossible to cleanly</span>
+    <span class="c1">#     remove a handler, and may creates unneeded long-lasting reference</span>
+    <span class="c1">#     cycles on the python side, deepens the call-stack for handlers,</span>
+    <span class="c1">#     and only works with some events. For example the ``event()`` method</span>
+    <span class="c1">#     seems to be unimpressed by attempts to change it on the object.</span>
+    <span class="c1">#   - WA_DeleteOnClose alters the lifetime of the parent widget and can</span>
+    <span class="c1">#     lead to unforseen side-effects, and is of course only available for</span>
+    <span class="c1">#     a single event type (Close) anyway</span>
+    <span class="c1"># Setting a parent is required to prevent the filter from being garbage</span>
+    <span class="c1"># collected immediately:</span>
+    <span class="k">return</span> <span class="n">eventFilter</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="p">{</span>
+        <span class="n">name</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">,</span> <span class="n">evt</span><span class="p">:</span> <span class="n">obj</span> <span class="ow">is</span> <span class="n">widget</span> <span class="ow">and</span> <span class="n">handler</span><span class="p">()</span> <span class="ow">and</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="n">widget</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="eventFilter"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.eventFilter">[docs]</a><span class="k">def</span> <span class="nf">eventFilter</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Subscribe to events from ``object`` and dispatch via ``events`` lookup</span>
+<span class="sd">    table. Callbacks are invoked with two parameters ``(object, event)`` and</span>
+<span class="sd">    should return a false-ish value. A true-ish value will stop the event from</span>
+<span class="sd">    being processed further.</span>
+
+<span class="sd">    Example usage:</span>
+
+<span class="sd">    &gt;&gt;&gt; self.event_filter = eventFilter(window, {</span>
+<span class="sd">    ...     &#39;WindowActivate&#39;: self._on_window_activate,</span>
+<span class="sd">    ...     &#39;Close&#39;: self._on_window_close))</span>
+<span class="sd">    ... })</span>
+
+<span class="sd">    (Note that it is important to store the reference to the event filter</span>
+<span class="sd">    somewhere - otherwise it may be garbage collected.)</span>
+
+<span class="sd">    See ``QEvent`` for possible events.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">filter</span> <span class="o">=</span> <span class="n">EventFilter</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+    <span class="nb">object</span><span class="o">.</span><span class="n">installEventFilter</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">filter</span></div>
+
+
+<div class="viewcode-block" id="EventFilter"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.EventFilter">[docs]</a><span class="k">class</span> <span class="nc">EventFilter</span><span class="p">(</span><span class="n">QObject</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Implements an event filter from a lookup table. It is preferred to use</span>
+<span class="sd">    the :func:`eventFilter` function rather than instanciating this class</span>
+<span class="sd">    directly.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_table</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">QEvent</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span> <span class="n">v</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="EventFilter.eventFilter"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.EventFilter.eventFilter">[docs]</a>    <span class="k">def</span> <span class="nf">eventFilter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">dispatch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_table</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">type</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">dispatch</span> <span class="ow">and</span> <span class="n">dispatch</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">event</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="EventFilter.uninstall"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.EventFilter.uninstall">[docs]</a>    <span class="k">def</span> <span class="nf">uninstall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span><span class="o">.</span><span class="n">removeEventFilter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="present"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.present">[docs]</a><span class="k">def</span> <span class="nf">present</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">raise_</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Activate window and bring to front.&quot;&quot;&quot;</span>
+    <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">window</span><span class="o">.</span><span class="n">activateWindow</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">raise_</span><span class="p">:</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="monospace"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.monospace">[docs]</a><span class="k">def</span> <span class="nf">monospace</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return a fixed-space ``QFont``.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">QFontDatabase</span><span class="o">.</span><span class="n">systemFont</span><span class="p">(</span><span class="n">QFontDatabase</span><span class="o">.</span><span class="n">FixedFont</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="bold"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.bold">[docs]</a><span class="k">def</span> <span class="nf">bold</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return a bold ``QFont``.&quot;&quot;&quot;</span>
+    <span class="n">font</span> <span class="o">=</span> <span class="n">QFont</span><span class="p">()</span>
+    <span class="n">font</span><span class="o">.</span><span class="n">setBold</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">font</span></div>
+
+
+<div class="viewcode-block" id="load_ui"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.load_ui">[docs]</a><span class="k">def</span> <span class="nf">load_ui</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">package</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize widget from ``.uic`` file loaded from the given package.</span>
+
+<span class="sd">    This function is for loading GUIs that were developed using the qt-designer</span>
+<span class="sd">    rapid development tool which creates ``.uic`` description files. These can</span>
+<span class="sd">    be saved in the same package alongside the corresponding python code. Now,</span>
+<span class="sd">    in the class that implements the widget, use this function as follows::</span>
+
+<span class="sd">        class MyWidget(QWidget):</span>
+
+<span class="sd">            def __init__(self):</span>
+<span class="sd">                super().__init__()</span>
+<span class="sd">                load_ui(self, __package__, &#39;mywidget.uic&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">open_binary</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">uic</span><span class="o">.</span><span class="n">loadUi</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_icon_resource"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.load_icon_resource">[docs]</a><span class="k">def</span> <span class="nf">load_icon_resource</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;XPM&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load an icon distributed with the given python package. Returns a</span>
+<span class="sd">     ``QPixmap``.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">resource_filename</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">filename</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">QIcon</span><span class="p">(</span><span class="n">QPixmap</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="nb">format</span><span class="p">))</span></div>
+
+
+<span class="k">class</span> <span class="nc">Property</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;Internal class for cached properties. Should be simplified and</span>
+<span class="sd">    rewritten. Currently only used as base class for ``SingleWindow``. Do not</span>
+<span class="sd">    use for new code.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">construct</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">construct</span> <span class="o">=</span> <span class="n">construct</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">holds_value</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># porcelain</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">factory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cachedproperty</span><span class="p">(</span><span class="n">functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)(</span>
+            <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">cls</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">))))</span>
+
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_new</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span>
+
+    <span class="k">def</span> <span class="nf">destroy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_del</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">toggle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_del</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_new</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_new</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_has</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_val&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span>
+
+    <span class="k">def</span> <span class="nf">_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">holds_value</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_del</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">holds_value</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># use lambdas to enable overriding the _get/_set/_del methods</span>
+    <span class="c1"># without having to redefine the &#39;val&#39; property</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span>      <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">(),</span>
+                   <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="n">val</span><span class="p">),</span>
+                   <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span>      <span class="bp">self</span><span class="o">.</span><span class="n">_del</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="SingleWindow"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.SingleWindow">[docs]</a><span class="k">class</span> <span class="nc">SingleWindow</span><span class="p">(</span><span class="n">Property</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator for widget constructor methods. It manages the lifetime of the</span>
+<span class="sd">    widget to ensure that only one is active at the same time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_del</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_closed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">holds_value</span><span class="p">():</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_del</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_new</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_new</span><span class="p">()</span>
+        <span class="n">present</span><span class="p">(</span><span class="n">window</span><span class="o">.</span><span class="n">window</span><span class="p">())</span>
+        <span class="n">notifyEvent</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="s1">&#39;Close&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">window</span>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">present</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">.</span><span class="n">window</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="Queued"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.Queued">[docs]</a><span class="k">class</span> <span class="nc">Queued</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A queued trigger. Calling the trigger will invoke the handler function</span>
+<span class="sd">    in another mainloop iteration.</span>
+
+<span class="sd">    Calling the trigger multiple times before the handler was invoked (e.g.</span>
+<span class="sd">    within the same mainloop iteration) will result in only a *single* handler</span>
+<span class="sd">    invocation!</span>
+
+<span class="sd">    This can only be used with at least a ``QCoreApplication`` instanciated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span> <span class="o">=</span> <span class="n">QTimer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">setSingleShot</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Schedule the handler invocation for another mainloop iteration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Queued.method"><a class="viewcode-back" href="../../../api/madgui.util.qt.html#madgui.util.qt.Queued.method">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Decorator for a queued method, i.e. a method that when called,</span>
+<span class="sd">        actually runs at a later time.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">property</span><span class="p">(</span><span class="n">memoize</span><span class="p">(</span><span class="n">functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)(</span>
+            <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">cls</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">)))))</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

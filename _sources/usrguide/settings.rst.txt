@@ -1,0 +1,5 @@
+Settings
+========
+
+.. toctree::
+   scaling

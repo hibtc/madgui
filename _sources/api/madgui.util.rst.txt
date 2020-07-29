@@ -1,0 +1,28 @@
+madgui.util package
+===================
+
+.. automodule:: madgui.util
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   madgui.util.collections
+   madgui.util.enum
+   madgui.util.export
+   madgui.util.fit
+   madgui.util.history
+   madgui.util.layout
+   madgui.util.menu
+   madgui.util.misc
+   madgui.util.qt
+   madgui.util.signal
+   madgui.util.table
+   madgui.util.undo
+   madgui.util.unit
+   madgui.util.yaml

@@ -1,0 +1,7 @@
+madgui.online.orm\_measure module
+=================================
+
+.. automodule:: madgui.online.orm_measure
+   :members:
+   :undoc-members:
+   :show-inheritance:

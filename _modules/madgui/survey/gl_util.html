@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.survey.gl_util &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.survey.gl_util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.survey.gl_util</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">textwrap</span>
+
+<span class="kn">from</span> <span class="nn">importlib_resources</span> <span class="kn">import</span> <span class="n">read_binary</span>
+<span class="kn">import</span> <span class="nn">OpenGL.GL</span> <span class="k">as</span> <span class="nn">GL</span>
+
+
+<div class="viewcode-block" id="Object3D"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.Object3D">[docs]</a><span class="k">class</span> <span class="nc">Object3D</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">program</span><span class="p">,</span> <span class="n">transform</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span>
+                 <span class="n">vertices</span><span class="p">,</span> <span class="n">normals</span><span class="p">,</span> <span class="n">triangles</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_TRIANGLES</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">program</span> <span class="o">=</span> <span class="n">program</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">deleted</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="n">ploc</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGetAttribLocation</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="s2">&quot;position&quot;</span><span class="p">)</span>
+        <span class="n">nloc</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGetAttribLocation</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+        <span class="n">vao</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGenVertexArrays</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glBindVertexArray</span><span class="p">(</span><span class="n">vao</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vbo</span> <span class="o">=</span> <span class="n">setup_vertex_buffer</span><span class="p">(</span><span class="n">ploc</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ebo</span> <span class="o">=</span> <span class="n">setup_element_buffer</span><span class="p">(</span><span class="n">triangles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nbo</span> <span class="o">=</span> <span class="n">setup_vertex_buffer</span><span class="p">(</span><span class="n">nloc</span><span class="p">,</span> <span class="n">normals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vao</span> <span class="o">=</span> <span class="n">vao</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num</span> <span class="o">=</span> <span class="n">triangles</span><span class="o">.</span><span class="n">size</span>
+
+<div class="viewcode-block" id="Object3D.draw"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.Object3D.draw">[docs]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glUseProgram</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">program</span><span class="p">)</span>
+        <span class="n">set_uniform_vector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">program</span><span class="p">,</span> <span class="s2">&quot;object_color&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+        <span class="n">set_uniform_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">program</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">)</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glBindVertexArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vao</span><span class="p">)</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glDrawElements</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="n">GL</span><span class="o">.</span><span class="n">GL_UNSIGNED_INT</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Object3D.position"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.Object3D.position">[docs]</a>    <span class="k">def</span> <span class="nf">position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the local coordinate system&#39;s origin point in world</span>
+<span class="sd">        coordinates. The meaning of this coordinate depends on the shape and</span>
+<span class="sd">        transform used, but is usually at the center/start of the object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Object3D.opaque"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.Object3D.opaque">[docs]</a>    <span class="k">def</span> <span class="nf">opaque</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return true if the object is opaque.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Object3D.delete"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.Object3D.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">deleted</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">deleted</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">GL</span><span class="o">.</span><span class="n">glDeleteBuffers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vbo</span><span class="p">])</span>
+            <span class="n">GL</span><span class="o">.</span><span class="n">glDeleteBuffers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nbo</span><span class="p">])</span>
+            <span class="n">GL</span><span class="o">.</span><span class="n">glDeleteBuffers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ebo</span><span class="p">])</span>
+            <span class="n">GL</span><span class="o">.</span><span class="n">glDeleteVertexArrays</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vao</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="compile_shader"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.compile_shader">[docs]</a><span class="k">def</span> <span class="nf">compile_shader</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compile a OpenGL shader, and return its id.&quot;&quot;&quot;</span>
+    <span class="n">shader_id</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glCreateShader</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glShaderSource</span><span class="p">(</span><span class="n">shader_id</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glCompileShader</span><span class="p">(</span><span class="n">shader_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGetShaderiv</span><span class="p">(</span><span class="n">shader_id</span><span class="p">,</span> <span class="n">GL</span><span class="o">.</span><span class="n">GL_COMPILE_STATUS</span><span class="p">):</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGetShaderInfoLog</span><span class="p">(</span><span class="n">shader_id</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;OpenGL </span><span class="si">{}</span><span class="s2"> shader compilation error:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="nb">type</span><span class="p">,</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="s2">&quot;    &quot;</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">shader_id</span></div>
+
+
+<div class="viewcode-block" id="load_shader"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.load_shader">[docs]</a><span class="k">def</span> <span class="nf">load_shader</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">compile_shader</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">read_binary</span><span class="p">(</span><span class="n">__package__</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="create_shader_program"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.create_shader_program">[docs]</a><span class="k">def</span> <span class="nf">create_shader_program</span><span class="p">(</span><span class="n">shaders</span><span class="p">):</span>
+    <span class="n">shader_program</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glCreateProgram</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">shader</span> <span class="ow">in</span> <span class="n">shaders</span><span class="p">:</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glAttachShader</span><span class="p">(</span><span class="n">shader_program</span><span class="p">,</span> <span class="n">shader</span><span class="p">)</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glDeleteShader</span><span class="p">(</span><span class="n">shader</span><span class="p">)</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glLinkProgram</span><span class="p">(</span><span class="n">shader_program</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGetProgramiv</span><span class="p">(</span><span class="n">shader_program</span><span class="p">,</span> <span class="n">GL</span><span class="o">.</span><span class="n">GL_LINK_STATUS</span><span class="p">):</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGetProgramInfoLog</span><span class="p">(</span><span class="n">shader_program</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;OpenGL program link error:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">textwrap</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="s2">&quot;    &quot;</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">shader_program</span></div>
+
+
+<div class="viewcode-block" id="setup_vertex_buffer"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.setup_vertex_buffer">[docs]</a><span class="k">def</span> <span class="nf">setup_vertex_buffer</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set program attribute from vertex buffer.&quot;&quot;&quot;</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">flat</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">vbo</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGenBuffers</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glBindBuffer</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_ARRAY_BUFFER</span><span class="p">,</span> <span class="n">vbo</span><span class="p">)</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glBufferData</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_ARRAY_BUFFER</span><span class="p">,</span> <span class="n">flat</span><span class="o">.</span><span class="n">nbytes</span><span class="p">,</span> <span class="n">flat</span><span class="p">,</span> <span class="n">GL</span><span class="o">.</span><span class="n">GL_STATIC_DRAW</span><span class="p">)</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glVertexAttribPointer</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">GL</span><span class="o">.</span><span class="n">GL_FLOAT</span><span class="p">,</span> <span class="n">GL</span><span class="o">.</span><span class="n">GL_FALSE</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glEnableVertexAttribArray</span><span class="p">(</span><span class="n">loc</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vbo</span></div>
+
+
+<div class="viewcode-block" id="setup_element_buffer"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.setup_element_buffer">[docs]</a><span class="k">def</span> <span class="nf">setup_element_buffer</span><span class="p">(</span><span class="n">indices</span><span class="p">):</span>
+    <span class="n">ebo</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGenBuffers</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glBindBuffer</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_ELEMENT_ARRAY_BUFFER</span><span class="p">,</span> <span class="n">ebo</span><span class="p">)</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glBufferData</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_ELEMENT_ARRAY_BUFFER</span><span class="p">,</span> <span class="n">indices</span><span class="o">.</span><span class="n">nbytes</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span>
+                    <span class="n">GL</span><span class="o">.</span><span class="n">GL_STATIC_DRAW</span><span class="p">)</span>
+    <span class="c1"># don&#39;t unbind EBO with active VAO:</span>
+    <span class="c1"># GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0)</span>
+    <span class="k">return</span> <span class="n">ebo</span></div>
+
+
+<div class="viewcode-block" id="set_uniform_matrix"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.set_uniform_matrix">[docs]</a><span class="k">def</span> <span class="nf">set_uniform_matrix</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">matrix</span><span class="p">):</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glUseProgram</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+    <span class="n">loc</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGetUniformLocation</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glUniformMatrix4fv</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">GL</span><span class="o">.</span><span class="n">GL_FALSE</span><span class="p">,</span> <span class="n">matrix</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="set_uniform_vector"><a class="viewcode-back" href="../../../api/madgui.survey.gl_util.html#madgui.survey.gl_util.set_uniform_vector">[docs]</a><span class="k">def</span> <span class="nf">set_uniform_vector</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">vector</span><span class="p">):</span>
+    <span class="n">GL</span><span class="o">.</span><span class="n">glUseProgram</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+    <span class="n">loc</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGetUniformLocation</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glUniform3fv</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">vector</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glUniform4fv</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">vector</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

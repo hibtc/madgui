@@ -1,0 +1,811 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.model.madx module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.model.match module" href="madgui.model.match.html" />
+    <link rel="prev" title="madgui.model.errors module" href="madgui.model.errors.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.model.html">madgui.model package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.model.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.model.html">madgui.model package</a> &raquo;</li>
+        
+      <li>madgui.model.madx module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.model.madx.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.model.madx">
+<span id="madgui-model-madx-module"></span><h1>madgui.model.madx module<a class="headerlink" href="#module-madgui.model.madx" title="Permalink to this headline">¶</a></h1>
+<p>MAD-X backend for madgui.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model" title="madgui.model.madx.Model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Model</span></code></a>(madx, data, *[, filename, undo_stack, …])</p></td>
+<td><p>Contains the whole global state of a MAD-X instance and (possibly) loaded metadata.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.TwissTable" title="madgui.model.madx.TwissTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TwissTable</span></code></a>(name, libmadx[, _check])</p></td>
+<td><p>Provide the following features on top of <code class="xref py py-class docutils literal notranslate"><span class="pre">cpymad.madx.Table</span></code>:</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Functions</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.reverse_sequence" title="madgui.model.madx.reverse_sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reverse_sequence</span></code></a>(madx, name, elements)</p></td>
+<td><p>Create a direction reversed copy of the sequence.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.reverse_sequence_inplace" title="madgui.model.madx.reverse_sequence_inplace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reverse_sequence_inplace</span></code></a>(madx, seq_name)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.model.madx.Model">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.madx.</code><code class="sig-name descname">Model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">madx</span></em>, <em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">undo_stack</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">interpolate</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Contains the whole global state of a MAD-X instance and (possibly) loaded
+metadata.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#module-madgui.model.madx" title="madgui.model.madx"><strong>madx</strong></a> (<em>Madx</em>) – CPyMAD interpreter</p></li>
+<li><p><strong>Model.data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – loaded model data</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – base folder</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.ELEM_KNOBS" title="madgui.model.madx.Model.ELEM_KNOBS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ELEM_KNOBS</span></code></a></p></td>
+<td><p>dict() -&gt; new empty dictionary</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.beam" title="madgui.model.madx.Model.beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">beam</span></code></a></p></td>
+<td><p>Get the beam parameter dictionary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.continuous_matching" title="madgui.model.madx.Model.continuous_matching"><code class="xref py py-obj docutils literal notranslate"><span class="pre">continuous_matching</span></code></a></p></td>
+<td><p>bool(x) -&gt; bool</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.globals" title="madgui.model.madx.Model.globals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">globals</span></code></a></p></td>
+<td><p>Return dict-like global variables.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.libmadx" title="madgui.model.madx.Model.libmadx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">libmadx</span></code></a></p></td>
+<td><p>Access to the low level cpymad API.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.twiss_args" title="madgui.model.madx.Model.twiss_args"><code class="xref py py-obj docutils literal notranslate"><span class="pre">twiss_args</span></code></a></p></td>
+<td><p>Return the dictionary of parameters for the MAD-X TWISS command.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.twiss_columns" title="madgui.model.madx.Model.twiss_columns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">twiss_columns</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.updated" title="madgui.model.madx.Model.updated"><code class="xref py py-obj docutils literal notranslate"><span class="pre">updated</span></code></a></p></td>
+<td><p>Signal&lt;&gt;</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.adjust_match_pos" title="madgui.model.madx.Model.adjust_match_pos"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adjust_match_pos</span></code></a>(el, pos)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.backtrack" title="madgui.model.madx.Model.backtrack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">backtrack</span></code></a>(**twiss_init)</p></td>
+<td><p>Backtrack final orbit through the reversed sequence.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.call" title="madgui.model.madx.Model.call"><code class="xref py py-obj docutils literal notranslate"><span class="pre">call</span></code></a>(name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.can_match_at" title="madgui.model.madx.Model.can_match_at"><code class="xref py py-obj docutils literal notranslate"><span class="pre">can_match_at</span></code></a>(element)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.contains" title="madgui.model.madx.Model.contains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">contains</span></code></a>(element)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.destroy" title="madgui.model.madx.Model.destroy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">destroy</span></code></a>()</p></td>
+<td><p>Annihilate current model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.el_pos" title="madgui.model.madx.Model.el_pos"><code class="xref py py-obj docutils literal notranslate"><span class="pre">el_pos</span></code></a>(el)</p></td>
+<td><p>Position for matching / output.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.ex" title="madgui.model.madx.Model.ex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ex</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.export_beam" title="madgui.model.madx.Model.export_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_beam</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.export_globals" title="madgui.model.madx.Model.export_globals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_globals</span></code></a>([var_type])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.export_twiss" title="madgui.model.madx.Model.export_twiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_twiss</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.ey" title="madgui.model.madx.Model.ey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ey</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.fetch_beam" title="madgui.model.madx.Model.fetch_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch_beam</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.fetch_twiss" title="madgui.model.madx.Model.fetch_twiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch_twiss</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.get_best_match_pos" title="madgui.model.madx.Model.get_best_match_pos"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_best_match_pos</span></code></a>(pos)</p></td>
+<td><p>Find optics element by longitudinal position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.get_elem_knobs" title="madgui.model.madx.Model.get_elem_knobs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_elem_knobs</span></code></a>(elem)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.get_elem_sigma" title="madgui.model.madx.Model.get_elem_sigma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_elem_sigma</span></code></a>(elem)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.get_elem_twiss" title="madgui.model.madx.Model.get_elem_twiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_elem_twiss</span></code></a>(elem)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.get_element_by_position" title="madgui.model.madx.Model.get_element_by_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_element_by_position</span></code></a>(pos)</p></td>
+<td><p>Find optics element by longitudinal position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.get_knobs" title="madgui.model.madx.Model.get_knobs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_knobs</span></code></a>()</p></td>
+<td><p>Get list of knobs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.get_orbit_response_matrix" title="madgui.model.madx.Model.get_orbit_response_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_orbit_response_matrix</span></code></a>(monitors, knobs[, …])</p></td>
+<td><p>Compute the orbit response matrix Δx/Δφ numerically (by varying knobs) and return as <cite>M×2×K</cite> matrix (monitors × x|y × knobs).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.get_transfer_maps" title="madgui.model.madx.Model.get_transfer_maps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_transfer_maps</span></code></a>(elems[, interval])</p></td>
+<td><p>Get the transfer matrices R(i,j) between the given elements.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.get_twiss" title="madgui.model.madx.Model.get_twiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_twiss</span></code></a>(elem, name, pos)</p></td>
+<td><p>Return beam envelope at element.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.invalidate" title="madgui.model.madx.Model.invalidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">invalidate</span></code></a>()</p></td>
+<td><p>Invalidate twiss and sectormap computations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.load_file" title="madgui.model.madx.Model.load_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_file</span></code></a>(filename[, madx, undo_stack, …])</p></td>
+<td><p>Load model from .madx or .yml file and pass additional arguments to the Model constructor.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.load_strengths" title="madgui.model.madx.Model.load_strengths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_strengths</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.match" title="madgui.model.madx.Model.match"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match</span></code></a>(vary, constraints[, mirror_mode])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.model_data" title="madgui.model.madx.Model.model_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model_data</span></code></a>()</p></td>
+<td><p>Return model data as dictionary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.parse_range" title="madgui.model.madx.Model.parse_range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_range</span></code></a>(range)</p></td>
+<td><p>Convert a range str/tuple to a tuple of <code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.read_monitor" title="madgui.model.madx.Model.read_monitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_monitor</span></code></a>(name)</p></td>
+<td><p>Mitigates read access to a monitor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.read_param" title="madgui.model.madx.Model.read_param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_param</span></code></a>(expr)</p></td>
+<td><p>Read element attribute.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.reverse" title="madgui.model.madx.Model.reverse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reverse</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.save" title="madgui.model.madx.Model.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(filename)</p></td>
+<td><p>Save model to file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.sector" title="madgui.model.madx.Model.sector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sector</span></code></a>()</p></td>
+<td><p>Compute sectormaps of all elements.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.sectormap" title="madgui.model.madx.Model.sectormap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sectormap</span></code></a>(elem_from[, elem_to, interval])</p></td>
+<td><p>Return SECTORMAP|KICKS in the closed range [from,to] as 7x7 matrix.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.set_element_attribute" title="madgui.model.madx.Model.set_element_attribute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_element_attribute</span></code></a>(elem, attr, value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.survey" title="madgui.model.madx.Model.survey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">survey</span></code></a>()</p></td>
+<td><p>Recalculate survey coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.track_one" title="madgui.model.madx.Model.track_one"><code class="xref py py-obj docutils literal notranslate"><span class="pre">track_one</span></code></a>([x, px, y, py, range])</p></td>
+<td><p>Track a particle through the sequence.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.twiss" title="madgui.model.madx.Model.twiss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">twiss</span></code></a>(**kwargs)</p></td>
+<td><p>Recalculate TWISS parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.update_beam" title="madgui.model.madx.Model.update_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_beam</span></code></a>(beam[, text])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.update_element" title="madgui.model.madx.Model.update_element"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_element</span></code></a>(data, elem_index[, text])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.update_globals" title="madgui.model.madx.Model.update_globals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_globals</span></code></a>(globals[, text])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.model.madx.Model.update_twiss_args" title="madgui.model.madx.Model.update_twiss_args"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_twiss_args</span></code></a>(twiss[, text])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.model.madx.Model.write_params" title="madgui.model.madx.Model.write_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_params</span></code></a>(globals[, text])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.model.madx.Model.ELEM_KNOBS">
+<code class="sig-name descname">ELEM_KNOBS</code><em class="property"> = {'hkicker': ['kick'], 'kicker': ['hkick', 'vkick'], 'multipole': ['knl', 'ksl'], 'quadrupole': ['k1', 'k1s'], 'sbend': ['angle', 'k0'], 'solenoid': ['ks'], 'srotation': ['angle'], 'vkicker': ['kick']}</em><a class="headerlink" href="#madgui.model.madx.Model.ELEM_KNOBS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.adjust_match_pos">
+<code class="sig-name descname">adjust_match_pos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">el</span></em>, <em class="sig-param"><span class="n">pos</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.adjust_match_pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.adjust_match_pos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.model.madx.Model.backseq">
+<code class="sig-name descname">backseq</code><em class="property"> = None</em><a class="headerlink" href="#madgui.model.madx.Model.backseq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.backtrack">
+<code class="sig-name descname">backtrack</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">twiss_init</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.backtrack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.backtrack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backtrack final orbit through the reversed sequence.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.beam">
+<em class="property">property </em><code class="sig-name descname">beam</code><a class="headerlink" href="#madgui.model.madx.Model.beam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the beam parameter dictionary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.call" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.can_match_at">
+<code class="sig-name descname">can_match_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.can_match_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.can_match_at" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.contains">
+<code class="sig-name descname">contains</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.contains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.contains" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.model.madx.Model.continuous_matching">
+<code class="sig-name descname">continuous_matching</code><em class="property"> = False</em><a class="headerlink" href="#madgui.model.madx.Model.continuous_matching" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.destroy">
+<code class="sig-name descname">destroy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.destroy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.destroy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Annihilate current model. Stop interpreter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.el_pos">
+<code class="sig-name descname">el_pos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">el</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.el_pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.el_pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Position for matching / output.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.ex">
+<code class="sig-name descname">ex</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.ex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.ex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.export_beam">
+<code class="sig-name descname">export_beam</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.export_beam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.export_beam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.export_globals">
+<code class="sig-name descname">export_globals</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">var_type</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.export_globals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.export_globals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.export_twiss">
+<code class="sig-name descname">export_twiss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.export_twiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.export_twiss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.ey">
+<code class="sig-name descname">ey</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.ey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.ey" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.fetch_beam">
+<code class="sig-name descname">fetch_beam</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.fetch_beam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.fetch_beam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.fetch_twiss">
+<code class="sig-name descname">fetch_twiss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.fetch_twiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.fetch_twiss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.get_best_match_pos">
+<code class="sig-name descname">get_best_match_pos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.get_best_match_pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.get_best_match_pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find optics element by longitudinal position.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.get_elem_knobs">
+<code class="sig-name descname">get_elem_knobs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.get_elem_knobs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.get_elem_knobs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.get_elem_sigma">
+<code class="sig-name descname">get_elem_sigma</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.get_elem_sigma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.get_elem_sigma" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.get_elem_twiss">
+<code class="sig-name descname">get_elem_twiss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.get_elem_twiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.get_elem_twiss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.get_element_by_position">
+<code class="sig-name descname">get_element_by_position</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.get_element_by_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.get_element_by_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find optics element by longitudinal position.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.get_knobs">
+<code class="sig-name descname">get_knobs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.get_knobs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.get_knobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of knobs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.get_orbit_response_matrix">
+<code class="sig-name descname">get_orbit_response_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitors</span></em>, <em class="sig-param"><span class="n">knobs</span></em>, <em class="sig-param"><span class="n">errors</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">values</span><span class="o">=</span><span class="default_value">()</span></em><span class="sig-paren">)</span> &#x2192; numpy.array<a class="reference internal" href="../_modules/madgui/model/madx.html#Model.get_orbit_response_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.get_orbit_response_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the orbit response matrix Δx/Δφ numerically (by varying knobs)
+and return as <cite>M×2×K</cite> matrix (monitors × x|y × knobs).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.get_transfer_maps">
+<code class="sig-name descname">get_transfer_maps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elems</span></em>, <em class="sig-param"><span class="n">interval</span><span class="o">=</span><span class="default_value">1, 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.get_transfer_maps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.get_transfer_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the transfer matrices R(i,j) between the given elements.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">interval</span></code> parameter can be used to select open/closedness of
+the individual intervals between the elements by adding offsets to the
+first and second element in every interval, counted from the entry
+end of the element.</p>
+<p>For example, by setting the <code class="docutils literal notranslate"><span class="pre">interval</span></code> parameter, the call
+<code class="docutils literal notranslate"><span class="pre">get_transfer_maps([e0,</span> <span class="pre">e1,</span> <span class="pre">e2],</span> <span class="pre">interval)</span></code> will retrieve the
+transfer maps in the following intervals:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">interval=(0,</span> <span class="pre">0)</span></code>  retrieves <code class="docutils literal notranslate"><span class="pre">[e0,</span> <span class="pre">e1)</span></code> and <code class="docutils literal notranslate"><span class="pre">[e1,</span> <span class="pre">e2)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interval=(0,</span> <span class="pre">1)</span></code>  retrieves <code class="docutils literal notranslate"><span class="pre">[e0,</span> <span class="pre">e1]</span></code> and <code class="docutils literal notranslate"><span class="pre">[e1,</span> <span class="pre">e2]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interval=(1,</span> <span class="pre">0)</span></code>  retrieves <code class="docutils literal notranslate"><span class="pre">(e0,</span> <span class="pre">e1)</span></code> and <code class="docutils literal notranslate"><span class="pre">(e1,</span> <span class="pre">e2)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interval=(1,</span> <span class="pre">1)</span></code>  retrieves <code class="docutils literal notranslate"><span class="pre">(e0,</span> <span class="pre">e1]</span></code> and <code class="docutils literal notranslate"><span class="pre">(e1,</span> <span class="pre">e2]</span></code></p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.get_twiss">
+<code class="sig-name descname">get_twiss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elem</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">pos</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.get_twiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.get_twiss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return beam envelope at element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.globals">
+<em class="property">property </em><code class="sig-name descname">globals</code><a class="headerlink" href="#madgui.model.madx.Model.globals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return dict-like global variables.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.invalidate">
+<code class="sig-name descname">invalidate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.invalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.invalidate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invalidate twiss and sectormap computations. Initiate
+recomputation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.libmadx">
+<em class="property">property </em><code class="sig-name descname">libmadx</code><a class="headerlink" href="#madgui.model.madx.Model.libmadx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access to the low level cpymad API.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.load_file">
+<em class="property">classmethod </em><code class="sig-name descname">load_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">madx</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">undo_stack</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">interpolate</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">madx_kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.load_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.load_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load model from .madx or .yml file and pass additional arguments
+to the Model constructor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.load_strengths">
+<code class="sig-name descname">load_strengths</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.load_strengths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.load_strengths" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.match">
+<code class="sig-name descname">match</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vary</span></em>, <em class="sig-param"><span class="n">constraints</span></em>, <em class="sig-param"><span class="n">mirror_mode</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.match" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.model_data">
+<code class="sig-name descname">model_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.model_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.model_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return model data as dictionary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.parse_range">
+<code class="sig-name descname">parse_range</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">range</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.parse_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.parse_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a range str/tuple to a tuple of <code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.read_monitor">
+<code class="sig-name descname">read_monitor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.read_monitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.read_monitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mitigates read access to a monitor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.read_param">
+<code class="sig-name descname">read_param</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.read_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.read_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read element attribute. Return numeric value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.reverse">
+<code class="sig-name descname">reverse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.reverse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.reverse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save model to file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.sector">
+<code class="sig-name descname">sector</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.sector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.sector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute sectormaps of all elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.sectormap">
+<code class="sig-name descname">sectormap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elem_from</span></em>, <em class="sig-param"><span class="n">elem_to</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">interval</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.sectormap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.sectormap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return SECTORMAP|KICKS in the closed range [from,to] as 7x7 matrix.</p>
+<p>If only one parameter is given, return its transfer map.</p>
+<p>Elements can be specified by name or index.</p>
+<p>For a description of the <code class="docutils literal notranslate"><span class="pre">interval</span></code> parameter, see
+<a class="reference internal" href="#madgui.model.madx.Model.get_transfer_maps" title="madgui.model.madx.Model.get_transfer_maps"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_transfer_maps()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.set_element_attribute">
+<code class="sig-name descname">set_element_attribute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elem</span></em>, <em class="sig-param"><span class="n">attr</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.set_element_attribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.set_element_attribute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.survey">
+<code class="sig-name descname">survey</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.survey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.survey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recalculate survey coordinates.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.track_one">
+<code class="sig-name descname">track_one</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">px</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">py</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">range</span><span class="o">=</span><span class="default_value">'#s/#e'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.track_one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.track_one" title="Permalink to this definition">¶</a></dt>
+<dd><p>Track a particle through the sequence. Handles backward tracking (sort
+of) by specifying a negative range.</p>
+<p>Currently uses TWISS for tracking internally (to allow tracking
+through thick sequences). This might change.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.twiss">
+<code class="sig-name descname">twiss</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.twiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.twiss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recalculate TWISS parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.twiss_args">
+<em class="property">property </em><code class="sig-name descname">twiss_args</code><a class="headerlink" href="#madgui.model.madx.Model.twiss_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dictionary of parameters for the MAD-X TWISS command.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.model.madx.Model.twiss_columns">
+<code class="sig-name descname">twiss_columns</code><em class="property"> = ['alfx', 'alfy', 'betx', 'bety', 'gamx', 'gamy', 'ex', 'ey', 'x', 'y', 'px', 'py', 'envx', 'envy']</em><a class="headerlink" href="#madgui.model.madx.Model.twiss_columns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.update_beam">
+<code class="sig-name descname">update_beam</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">beam</span></em>, <em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">'Change beam: {}'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.update_beam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.update_beam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.update_element">
+<code class="sig-name descname">update_element</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">elem_index</span></em>, <em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.update_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.update_element" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.update_globals">
+<code class="sig-name descname">update_globals</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">globals</span></em>, <em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">'Change knobs: {}'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.update_globals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.update_globals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.update_twiss_args">
+<code class="sig-name descname">update_twiss_args</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">twiss</span></em>, <em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">'Change twiss args: {}'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#Model.update_twiss_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.Model.update_twiss_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.model.madx.Model.updated">
+<code class="sig-name descname">updated</code><a class="headerlink" href="#madgui.model.madx.Model.updated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.model.madx.Model.write_params">
+<code class="sig-name descname">write_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">globals</span></em>, <em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">'Change knobs: {}'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.model.madx.Model.write_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.model.madx.TwissTable">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.model.madx.</code><code class="sig-name descname">TwissTable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">libmadx</span></em>, <em class="sig-param"><span class="n">_check</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#TwissTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.TwissTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cpymad.madx.Table</span></code></p>
+<p>Provide the following features on top of <code class="xref py py-class docutils literal notranslate"><span class="pre">cpymad.madx.Table</span></code>:</p>
+<ul class="simple">
+<li><p>add columns for one-sigma beam envelopes: envx, envy</p></li>
+<li><p>add columns for gamma optical function: gamx, gamy</p></li>
+<li><p>add aliases for beam position: posx, posy</p></li>
+<li><p>override twiss alfa/beta parameters and emittances from the sigma matrix,
+i.e. in the local reference rather than normal coordinates.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.model.madx.reverse_sequence">
+<code class="sig-prename descclassname">madgui.model.madx.</code><code class="sig-name descname">reverse_sequence</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">madx</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">elements</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#reverse_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.reverse_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a direction reversed copy of the sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>madx</strong> (<em>Madx</em>) – </p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – name of the reversed sequence</p></li>
+<li><p><strong>elements</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of elements</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="madgui.model.madx.reverse_sequence_inplace">
+<code class="sig-prename descclassname">madgui.model.madx.</code><code class="sig-name descname">reverse_sequence_inplace</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">madx</span></em>, <em class="sig-param"><span class="n">seq_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/model/madx.html#reverse_sequence_inplace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.model.madx.reverse_sequence_inplace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.model.match.html" class="btn btn-neutral float-right" title="madgui.model.match module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.model.errors.html" class="btn btn-neutral float-left" title="madgui.model.errors module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

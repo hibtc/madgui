@@ -1,0 +1,1191 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.twisswidget module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="madgui.widget.tableview module" href="madgui.widget.tableview.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.twisswidget module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.twisswidget.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.twisswidget">
+<span id="madgui-widget-twisswidget-module"></span><h1>madgui.widget.twisswidget module<a class="headerlink" href="#module-madgui.widget.twisswidget" title="Permalink to this headline">¶</a></h1>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissWidget" title="madgui.widget.twisswidget.TwissWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TwissWidget</span></code></a>(session, model[, name, …])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure" title="madgui.widget.twisswidget.TwissFigure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TwissFigure</span></code></a>(figure, session, matcher)</p></td>
+<td><p>A figure containing some X/Y twiss parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CaptureTool" title="madgui.widget.twisswidget.CaptureTool"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CaptureTool</span></code></a>(plot)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool" title="madgui.widget.twisswidget.MatchTool"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatchTool</span></code></a>(plot, scene, matcher)</p></td>
+<td><p>This toolbar item performs (when checked) simple interactive matching via mouse clicks into the plot window.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.InfoTool" title="madgui.widget.twisswidget.InfoTool"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InfoTool</span></code></a>(plot, scene)</p></td>
+<td><p>Opens info boxes when clicking on an element.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CompareTool" title="madgui.widget.twisswidget.CompareTool"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CompareTool</span></code></a>(plot, scene)</p></td>
+<td><p>Display a precomputed reference curve for comparison.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.PlotInfo" title="madgui.widget.twisswidget.PlotInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PlotInfo</span></code></a>(name, title, curves)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CurveInfo" title="madgui.widget.twisswidget.CurveInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CurveInfo</span></code></a>(table, xname, name, label, style)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.UserData" title="madgui.widget.twisswidget.UserData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UserData</span></code></a>(name, data, style)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MouseEvent" title="madgui.widget.twisswidget.MouseEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MouseEvent</span></code></a>(button, x, y, axes, elem, guiEvent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.KeyboardEvent" title="madgui.widget.twisswidget.KeyboardEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KeyboardEvent</span></code></a>(key, guiEvent)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.CaptureTool">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">CaptureTool</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">plot</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#CaptureTool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.CaptureTool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CaptureTool.action" title="madgui.widget.twisswidget.CaptureTool.action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">action</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CaptureTool.onToggle" title="madgui.widget.twisswidget.CaptureTool.onToggle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">onToggle</span></code></a>(active)</p></td>
+<td><p>Update enabled state to match the UI.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CaptureTool.setChecked" title="madgui.widget.twisswidget.CaptureTool.setChecked"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setChecked</span></code></a>(checked)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CaptureTool.active" title="madgui.widget.twisswidget.CaptureTool.active"><code class="xref py py-obj docutils literal notranslate"><span class="pre">active</span></code></a></p></td>
+<td><p>bool(x) -&gt; bool</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.CaptureTool.action">
+<code class="sig-name descname">action</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#CaptureTool.action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.CaptureTool.action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.CaptureTool.active">
+<code class="sig-name descname">active</code><em class="property"> = False</em><a class="headerlink" href="#madgui.widget.twisswidget.CaptureTool.active" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.CaptureTool.onToggle">
+<code class="sig-name descname">onToggle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">active</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#CaptureTool.onToggle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.CaptureTool.onToggle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update enabled state to match the UI.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.CaptureTool.setChecked">
+<code class="sig-name descname">setChecked</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">checked</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#CaptureTool.setChecked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.CaptureTool.setChecked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.CompareTool">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">CompareTool</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">plot</span></em>, <em class="sig-param"><span class="n">scene</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#CompareTool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.CompareTool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Display a precomputed reference curve for comparison.</p>
+<p>The reference curve is NOT visible by default.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CompareTool.action" title="madgui.widget.twisswidget.CompareTool.action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">action</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CompareTool.activate" title="madgui.widget.twisswidget.CompareTool.activate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">activate</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CompareTool.short" title="madgui.widget.twisswidget.CompareTool.short"><code class="xref py py-obj docutils literal notranslate"><span class="pre">short</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CompareTool.text" title="madgui.widget.twisswidget.CompareTool.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.CompareTool.action">
+<code class="sig-name descname">action</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#CompareTool.action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.CompareTool.action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.CompareTool.activate">
+<code class="sig-name descname">activate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#CompareTool.activate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.CompareTool.activate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.CompareTool.icon">
+<code class="sig-name descname">icon</code><em class="property"> = 23</em><a class="headerlink" href="#madgui.widget.twisswidget.CompareTool.icon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.CompareTool.short">
+<code class="sig-name descname">short</code><em class="property"> = 'Show reference curve'</em><a class="headerlink" href="#madgui.widget.twisswidget.CompareTool.short" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.CompareTool.text">
+<code class="sig-name descname">text</code><em class="property"> = 'Load data file for comparison.'</em><a class="headerlink" href="#madgui.widget.twisswidget.CompareTool.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.CurveInfo">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">CurveInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">table</span></em>, <em class="sig-param"><span class="n">xname</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">label</span></em>, <em class="sig-param"><span class="n">style</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.widget.twisswidget.CurveInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CurveInfo.label" title="madgui.widget.twisswidget.CurveInfo.label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">label</span></code></a></p></td>
+<td><p>Alias for field number 3</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CurveInfo.name" title="madgui.widget.twisswidget.CurveInfo.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
+<td><p>Alias for field number 2</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CurveInfo.style" title="madgui.widget.twisswidget.CurveInfo.style"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></a></p></td>
+<td><p>Alias for field number 4</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CurveInfo.table" title="madgui.widget.twisswidget.CurveInfo.table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">table</span></code></a></p></td>
+<td><p>Alias for field number 0</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.CurveInfo.xname" title="madgui.widget.twisswidget.CurveInfo.xname"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xname</span></code></a></p></td>
+<td><p>Alias for field number 1</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.CurveInfo.label">
+<em class="property">property </em><code class="sig-name descname">label</code><a class="headerlink" href="#madgui.widget.twisswidget.CurveInfo.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.CurveInfo.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#madgui.widget.twisswidget.CurveInfo.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.CurveInfo.style">
+<em class="property">property </em><code class="sig-name descname">style</code><a class="headerlink" href="#madgui.widget.twisswidget.CurveInfo.style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.CurveInfo.table">
+<em class="property">property </em><code class="sig-name descname">table</code><a class="headerlink" href="#madgui.widget.twisswidget.CurveInfo.table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.CurveInfo.xname">
+<em class="property">property </em><code class="sig-name descname">xname</code><a class="headerlink" href="#madgui.widget.twisswidget.CurveInfo.xname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.InfoTool">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">InfoTool</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">plot</span></em>, <em class="sig-param"><span class="n">scene</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#InfoTool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.twisswidget.CaptureTool" title="madgui.widget.twisswidget.CaptureTool"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.twisswidget.CaptureTool</span></code></a></p>
+<p>Opens info boxes when clicking on an element.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.InfoTool.activate" title="madgui.widget.twisswidget.InfoTool.activate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">activate</span></code></a>()</p></td>
+<td><p>Start select mode.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.InfoTool.advance_selection" title="madgui.widget.twisswidget.InfoTool.advance_selection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">advance_selection</span></code></a>(move_step)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.InfoTool.deactivate" title="madgui.widget.twisswidget.InfoTool.deactivate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">deactivate</span></code></a>()</p></td>
+<td><p>Stop select mode.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.InfoTool.onClick" title="madgui.widget.twisswidget.InfoTool.onClick"><code class="xref py py-obj docutils literal notranslate"><span class="pre">onClick</span></code></a>(event)</p></td>
+<td><p>Display a popup window with info about the selected element.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.InfoTool.onKey" title="madgui.widget.twisswidget.InfoTool.onKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">onKey</span></code></a>(event)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.InfoTool.onMotion" title="madgui.widget.twisswidget.InfoTool.onMotion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">onMotion</span></code></a>(event)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.InfoTool.mode" title="madgui.widget.twisswidget.InfoTool.mode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mode</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.InfoTool.short" title="madgui.widget.twisswidget.InfoTool.short"><code class="xref py py-obj docutils literal notranslate"><span class="pre">short</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.InfoTool.text" title="madgui.widget.twisswidget.InfoTool.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.InfoTool.activate">
+<code class="sig-name descname">activate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#InfoTool.activate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool.activate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start select mode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.InfoTool.advance_selection">
+<code class="sig-name descname">advance_selection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">move_step</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#InfoTool.advance_selection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool.advance_selection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.InfoTool.deactivate">
+<code class="sig-name descname">deactivate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#InfoTool.deactivate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool.deactivate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop select mode.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.InfoTool.icon">
+<code class="sig-name descname">icon</code><em class="property"> = 9</em><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool.icon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.InfoTool.mode">
+<code class="sig-name descname">mode</code><em class="property"> = 'INFO'</em><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool.mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.InfoTool.onClick">
+<code class="sig-name descname">onClick</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#InfoTool.onClick"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool.onClick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a popup window with info about the selected element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.InfoTool.onKey">
+<code class="sig-name descname">onKey</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#InfoTool.onKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool.onKey" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.InfoTool.onMotion">
+<code class="sig-name descname">onMotion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#InfoTool.onMotion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool.onMotion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.InfoTool.short">
+<code class="sig-name descname">short</code><em class="property"> = 'element info'</em><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool.short" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.InfoTool.text">
+<code class="sig-name descname">text</code><em class="property"> = 'Show element info boxes'</em><a class="headerlink" href="#madgui.widget.twisswidget.InfoTool.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.KeyboardEvent">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">KeyboardEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">guiEvent</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.widget.twisswidget.KeyboardEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.KeyboardEvent.guiEvent" title="madgui.widget.twisswidget.KeyboardEvent.guiEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">guiEvent</span></code></a></p></td>
+<td><p>Alias for field number 1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.KeyboardEvent.key" title="madgui.widget.twisswidget.KeyboardEvent.key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">key</span></code></a></p></td>
+<td><p>Alias for field number 0</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.KeyboardEvent.guiEvent">
+<em class="property">property </em><code class="sig-name descname">guiEvent</code><a class="headerlink" href="#madgui.widget.twisswidget.KeyboardEvent.guiEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.KeyboardEvent.key">
+<em class="property">property </em><code class="sig-name descname">key</code><a class="headerlink" href="#madgui.widget.twisswidget.KeyboardEvent.key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.MatchTool">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">MatchTool</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">plot</span></em>, <em class="sig-param"><span class="n">scene</span></em>, <em class="sig-param"><span class="n">matcher</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#MatchTool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#madgui.widget.twisswidget.CaptureTool" title="madgui.widget.twisswidget.CaptureTool"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.widget.twisswidget.CaptureTool</span></code></a></p>
+<p>This toolbar item performs (when checked) simple interactive matching
+via mouse clicks into the plot window.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.activate" title="madgui.widget.twisswidget.MatchTool.activate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">activate</span></code></a>()</p></td>
+<td><p>Start matching mode.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.addConstraints" title="madgui.widget.twisswidget.MatchTool.addConstraints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">addConstraints</span></code></a>(constraints)</p></td>
+<td><p>Add constraint and perform matching.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.add_constraint" title="madgui.widget.twisswidget.MatchTool.add_constraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_constraint</span></code></a>(event, name)</p></td>
+<td><p>Add constraint at cursor location.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.clearConstraints" title="madgui.widget.twisswidget.MatchTool.clearConstraints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clearConstraints</span></code></a>()</p></td>
+<td><p>Remove all constraints.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.deactivate" title="madgui.widget.twisswidget.MatchTool.deactivate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">deactivate</span></code></a>()</p></td>
+<td><p>Stop matching mode.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.onClick" title="madgui.widget.twisswidget.MatchTool.onClick"><code class="xref py py-obj docutils literal notranslate"><span class="pre">onClick</span></code></a>(event)</p></td>
+<td><p>Handle clicks into the figure in matching mode.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.removeConstraint" title="madgui.widget.twisswidget.MatchTool.removeConstraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">removeConstraint</span></code></a>(elem, axis)</p></td>
+<td><p>Remove the constraint for elem.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.remove_constraint" title="madgui.widget.twisswidget.MatchTool.remove_constraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_constraint</span></code></a>(event, name)</p></td>
+<td><p>Remove constraint nearest to cursor location.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.icon" title="madgui.widget.twisswidget.MatchTool.icon"><code class="xref py py-obj docutils literal notranslate"><span class="pre">icon</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.mode" title="madgui.widget.twisswidget.MatchTool.mode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mode</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.short" title="madgui.widget.twisswidget.MatchTool.short"><code class="xref py py-obj docutils literal notranslate"><span class="pre">short</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MatchTool.text" title="madgui.widget.twisswidget.MatchTool.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MatchTool.activate">
+<code class="sig-name descname">activate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#MatchTool.activate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.activate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start matching mode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MatchTool.addConstraints">
+<code class="sig-name descname">addConstraints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">constraints</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#MatchTool.addConstraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.addConstraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add constraint and perform matching.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MatchTool.add_constraint">
+<code class="sig-name descname">add_constraint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em>, <em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#MatchTool.add_constraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.add_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add constraint at cursor location.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MatchTool.clearConstraints">
+<code class="sig-name descname">clearConstraints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#MatchTool.clearConstraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.clearConstraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all constraints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MatchTool.deactivate">
+<code class="sig-name descname">deactivate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#MatchTool.deactivate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.deactivate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop matching mode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MatchTool.icon">
+<em class="property">property </em><code class="sig-name descname">icon</code><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.icon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.MatchTool.mode">
+<code class="sig-name descname">mode</code><em class="property"> = 'MATCH'</em><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MatchTool.onClick">
+<code class="sig-name descname">onClick</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#MatchTool.onClick"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.onClick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle clicks into the figure in matching mode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MatchTool.removeConstraint">
+<code class="sig-name descname">removeConstraint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elem</span></em>, <em class="sig-param"><span class="n">axis</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#MatchTool.removeConstraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.removeConstraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the constraint for elem.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MatchTool.remove_constraint">
+<code class="sig-name descname">remove_constraint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em>, <em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#MatchTool.remove_constraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.remove_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove constraint nearest to cursor location.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.MatchTool.short">
+<code class="sig-name descname">short</code><em class="property"> = 'match constraints'</em><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.short" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.MatchTool.text">
+<code class="sig-name descname">text</code><em class="property"> = 'Match for desired target value'</em><a class="headerlink" href="#madgui.widget.twisswidget.MatchTool.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.MouseEvent">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">MouseEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">button</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">axes</span></em>, <em class="sig-param"><span class="n">elem</span></em>, <em class="sig-param"><span class="n">guiEvent</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.widget.twisswidget.MouseEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MouseEvent.axes" title="madgui.widget.twisswidget.MouseEvent.axes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">axes</span></code></a></p></td>
+<td><p>Alias for field number 3</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MouseEvent.button" title="madgui.widget.twisswidget.MouseEvent.button"><code class="xref py py-obj docutils literal notranslate"><span class="pre">button</span></code></a></p></td>
+<td><p>Alias for field number 0</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MouseEvent.elem" title="madgui.widget.twisswidget.MouseEvent.elem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">elem</span></code></a></p></td>
+<td><p>Alias for field number 4</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MouseEvent.guiEvent" title="madgui.widget.twisswidget.MouseEvent.guiEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">guiEvent</span></code></a></p></td>
+<td><p>Alias for field number 5</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MouseEvent.x" title="madgui.widget.twisswidget.MouseEvent.x"><code class="xref py py-obj docutils literal notranslate"><span class="pre">x</span></code></a></p></td>
+<td><p>Alias for field number 1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.MouseEvent.y" title="madgui.widget.twisswidget.MouseEvent.y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">y</span></code></a></p></td>
+<td><p>Alias for field number 2</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MouseEvent.axes">
+<em class="property">property </em><code class="sig-name descname">axes</code><a class="headerlink" href="#madgui.widget.twisswidget.MouseEvent.axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MouseEvent.button">
+<em class="property">property </em><code class="sig-name descname">button</code><a class="headerlink" href="#madgui.widget.twisswidget.MouseEvent.button" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MouseEvent.elem">
+<em class="property">property </em><code class="sig-name descname">elem</code><a class="headerlink" href="#madgui.widget.twisswidget.MouseEvent.elem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MouseEvent.guiEvent">
+<em class="property">property </em><code class="sig-name descname">guiEvent</code><a class="headerlink" href="#madgui.widget.twisswidget.MouseEvent.guiEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MouseEvent.x">
+<em class="property">property </em><code class="sig-name descname">x</code><a class="headerlink" href="#madgui.widget.twisswidget.MouseEvent.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.MouseEvent.y">
+<em class="property">property </em><code class="sig-name descname">y</code><a class="headerlink" href="#madgui.widget.twisswidget.MouseEvent.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.PlotInfo">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">PlotInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">title</span></em>, <em class="sig-param"><span class="n">curves</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.widget.twisswidget.PlotInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.PlotInfo.curves" title="madgui.widget.twisswidget.PlotInfo.curves"><code class="xref py py-obj docutils literal notranslate"><span class="pre">curves</span></code></a></p></td>
+<td><p>Alias for field number 2</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.PlotInfo.name" title="madgui.widget.twisswidget.PlotInfo.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
+<td><p>Alias for field number 0</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.PlotInfo.title" title="madgui.widget.twisswidget.PlotInfo.title"><code class="xref py py-obj docutils literal notranslate"><span class="pre">title</span></code></a></p></td>
+<td><p>Alias for field number 1</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.PlotInfo.curves">
+<em class="property">property </em><code class="sig-name descname">curves</code><a class="headerlink" href="#madgui.widget.twisswidget.PlotInfo.curves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.PlotInfo.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#madgui.widget.twisswidget.PlotInfo.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.PlotInfo.title">
+<em class="property">property </em><code class="sig-name descname">title</code><a class="headerlink" href="#madgui.widget.twisswidget.PlotInfo.title" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.TwissFigure">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">TwissFigure</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">figure</span></em>, <em class="sig-param"><span class="n">session</span></em>, <em class="sig-param"><span class="n">matcher</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A figure containing some X/Y twiss parameters.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.add_curve" title="madgui.widget.twisswidget.TwissFigure.add_curve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_curve</span></code></a>(name, data, style)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.attach" title="madgui.widget.twisswidget.TwissFigure.attach"><code class="xref py py-obj docutils literal notranslate"><span class="pre">attach</span></code></a>(plot)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.del_curve" title="madgui.widget.twisswidget.TwissFigure.del_curve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">del_curve</span></code></a>(name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.destroy" title="madgui.widget.twisswidget.TwissFigure.destroy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">destroy</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.draw_idle" title="madgui.widget.twisswidget.TwissFigure.draw_idle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">draw_idle</span></code></a>()</p></td>
+<td><p>Draw the figure on its canvas.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.format_coord" title="madgui.widget.twisswidget.TwissFigure.format_coord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_coord</span></code></a>(ax, x, y)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.get_curve_by_name" title="madgui.widget.twisswidget.TwissFigure.get_curve_by_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_curve_by_name</span></code></a>(name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.get_element_by_mouse_position" title="madgui.widget.twisswidget.TwissFigure.get_element_by_mouse_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_element_by_mouse_position</span></code></a>(axes, pos)</p></td>
+<td><p>Find an element close to the mouse cursor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.get_graph_columns" title="madgui.widget.twisswidget.TwissFigure.get_graph_columns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_graph_columns</span></code></a>()</p></td>
+<td><p>Get a set of all columns used in any graph.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.get_graph_info" title="madgui.widget.twisswidget.TwissFigure.get_graph_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_graph_info</span></code></a>(name, xlim)</p></td>
+<td><p>Get the data for a particular graph.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.get_graphs" title="madgui.widget.twisswidget.TwissFigure.get_graphs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_graphs</span></code></a>()</p></td>
+<td><p>Get a list of graph names.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.hide_monitor_readouts" title="madgui.widget.twisswidget.TwissFigure.hide_monitor_readouts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hide_monitor_readouts</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.on_model_updated" title="madgui.widget.twisswidget.TwissFigure.on_model_updated"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_model_updated</span></code></a>()</p></td>
+<td><p>Update existing plot after TWISS recomputation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.on_readouts_updated" title="madgui.widget.twisswidget.TwissFigure.on_readouts_updated"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_readouts_updated</span></code></a>(*_)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.plot_twiss_curve" title="madgui.widget.twisswidget.TwissFigure.plot_twiss_curve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_twiss_curve</span></code></a>(ax, info)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.plot_user_curve" title="madgui.widget.twisswidget.TwissFigure.plot_user_curve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_user_curve</span></code></a>(ax, info)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.reset" title="madgui.widget.twisswidget.TwissFigure.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>()</p></td>
+<td><p>Reset figure and plot.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.set_graph" title="madgui.widget.twisswidget.TwissFigure.set_graph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_graph</span></code></a>(graph_name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.show_monitor_readouts" title="madgui.widget.twisswidget.TwissFigure.show_monitor_readouts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_monitor_readouts</span></code></a>(monitors)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.buttonPress" title="madgui.widget.twisswidget.TwissFigure.buttonPress"><code class="xref py py-obj docutils literal notranslate"><span class="pre">buttonPress</span></code></a></p></td>
+<td><p>Signal&lt;&lt;class ‘madgui.widget.twisswidget.MouseEvent’&gt;&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.graph_changed" title="madgui.widget.twisswidget.TwissFigure.graph_changed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">graph_changed</span></code></a></p></td>
+<td><p>Signal&lt;&gt;</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.keyPress" title="madgui.widget.twisswidget.TwissFigure.keyPress"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keyPress</span></code></a></p></td>
+<td><p>Signal&lt;&lt;class ‘madgui.widget.twisswidget.KeyboardEvent’&gt;&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.mouseMotion" title="madgui.widget.twisswidget.TwissFigure.mouseMotion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouseMotion</span></code></a></p></td>
+<td><p>Signal&lt;&lt;class ‘madgui.widget.twisswidget.MouseEvent’&gt;&gt;</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.show_indicators" title="madgui.widget.twisswidget.TwissFigure.show_indicators"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_indicators</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissFigure.snapshot_num" title="madgui.widget.twisswidget.TwissFigure.snapshot_num"><code class="xref py py-obj docutils literal notranslate"><span class="pre">snapshot_num</span></code></a></p></td>
+<td><p>int(x=0) -&gt; integer</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.add_curve">
+<code class="sig-name descname">add_curve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">style</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.add_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.add_curve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.attach">
+<code class="sig-name descname">attach</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">plot</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.attach"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.attach" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.TwissFigure.buttonPress">
+<code class="sig-name descname">buttonPress</code><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.buttonPress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&lt;class ‘madgui.widget.twisswidget.MouseEvent’&gt;&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.del_curve">
+<code class="sig-name descname">del_curve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.del_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.del_curve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.destroy">
+<code class="sig-name descname">destroy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.destroy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.destroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.draw_idle">
+<code class="sig-name descname">draw_idle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.draw_idle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.draw_idle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw the figure on its canvas.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.format_coord">
+<code class="sig-name descname">format_coord</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.format_coord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.format_coord" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.get_curve_by_name">
+<code class="sig-name descname">get_curve_by_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.get_curve_by_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.get_curve_by_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.get_element_by_mouse_position">
+<code class="sig-name descname">get_element_by_mouse_position</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">axes</span></em>, <em class="sig-param"><span class="n">pos</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.get_element_by_mouse_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.get_element_by_mouse_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find an element close to the mouse cursor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.get_graph_columns">
+<code class="sig-name descname">get_graph_columns</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.get_graph_columns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.get_graph_columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a set of all columns used in any graph.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.get_graph_info">
+<code class="sig-name descname">get_graph_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">xlim</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.get_graph_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.get_graph_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the data for a particular graph.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.get_graphs">
+<code class="sig-name descname">get_graphs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.get_graphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.get_graphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of graph names.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.TwissFigure.graph_changed">
+<code class="sig-name descname">graph_changed</code><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.graph_changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&gt;</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.TwissFigure.graph_name">
+<code class="sig-name descname">graph_name</code><em class="property"> = None</em><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.graph_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.hide_monitor_readouts">
+<code class="sig-name descname">hide_monitor_readouts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.hide_monitor_readouts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.hide_monitor_readouts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.TwissFigure.keyPress">
+<code class="sig-name descname">keyPress</code><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.keyPress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&lt;class ‘madgui.widget.twisswidget.KeyboardEvent’&gt;&gt;</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.TwissFigure.mouseMotion">
+<code class="sig-name descname">mouseMotion</code><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.mouseMotion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&lt;class ‘madgui.widget.twisswidget.MouseEvent’&gt;&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.on_model_updated">
+<code class="sig-name descname">on_model_updated</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.on_model_updated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.on_model_updated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update existing plot after TWISS recomputation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.on_readouts_updated">
+<code class="sig-name descname">on_readouts_updated</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">_</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.on_readouts_updated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.on_readouts_updated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.plot_twiss_curve">
+<code class="sig-name descname">plot_twiss_curve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">info</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.plot_twiss_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.plot_twiss_curve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.plot_user_curve">
+<code class="sig-name descname">plot_user_curve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">info</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.plot_user_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.plot_user_curve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset figure and plot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.set_graph">
+<code class="sig-name descname">set_graph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">graph_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.set_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.set_graph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.show_indicators">
+<em class="property">property </em><code class="sig-name descname">show_indicators</code><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.show_indicators" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissFigure.show_monitor_readouts">
+<code class="sig-name descname">show_monitor_readouts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitors</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissFigure.show_monitor_readouts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.show_monitor_readouts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.TwissFigure.snapshot_num">
+<code class="sig-name descname">snapshot_num</code><em class="property"> = 0</em><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.snapshot_num" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.twisswidget.TwissFigure.xlim">
+<code class="sig-name descname">xlim</code><em class="property"> = None</em><a class="headerlink" href="#madgui.widget.twisswidget.TwissFigure.xlim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.TwissWidget">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">TwissWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_indicators</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">settings</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissWidget.change_figure" title="madgui.widget.twisswidget.TwissWidget.change_figure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_figure</span></code></a>(index)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissWidget.create_menu" title="madgui.widget.twisswidget.TwissWidget.create_menu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_menu</span></code></a>(menubar)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissWidget.from_session" title="madgui.widget.twisswidget.TwissWidget.from_session"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_session</span></code></a>(session, name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissWidget.toggleIndicators" title="madgui.widget.twisswidget.TwissWidget.toggleIndicators"><code class="xref py py-obj docutils literal notranslate"><span class="pre">toggleIndicators</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissWidget.toggleShareAxes" title="madgui.widget.twisswidget.TwissWidget.toggleShareAxes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">toggleShareAxes</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.TwissWidget.update_window_title" title="madgui.widget.twisswidget.TwissWidget.update_window_title"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_window_title</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissWidget.change_figure">
+<code class="sig-name descname">change_figure</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissWidget.change_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissWidget.change_figure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissWidget.create_menu">
+<code class="sig-name descname">create_menu</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">menubar</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissWidget.create_menu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissWidget.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissWidget.from_session">
+<em class="property">classmethod </em><code class="sig-name descname">from_session</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em>, <em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissWidget.from_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissWidget.from_session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissWidget.toggleIndicators">
+<code class="sig-name descname">toggleIndicators</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissWidget.toggleIndicators"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissWidget.toggleIndicators" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissWidget.toggleShareAxes">
+<code class="sig-name descname">toggleShareAxes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissWidget.toggleShareAxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissWidget.toggleShareAxes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.TwissWidget.update_window_title">
+<code class="sig-name descname">update_window_title</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/twisswidget.html#TwissWidget.update_window_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.twisswidget.TwissWidget.update_window_title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.widget.twisswidget.UserData">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.twisswidget.</code><code class="sig-name descname">UserData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">style</span></em><span class="sig-paren">)</span><a class="headerlink" href="#madgui.widget.twisswidget.UserData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.UserData.data" title="madgui.widget.twisswidget.UserData.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a></p></td>
+<td><p>Alias for field number 1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.UserData.name" title="madgui.widget.twisswidget.UserData.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
+<td><p>Alias for field number 0</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.twisswidget.UserData.style" title="madgui.widget.twisswidget.UserData.style"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></a></p></td>
+<td><p>Alias for field number 2</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.UserData.data">
+<em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#madgui.widget.twisswidget.UserData.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.UserData.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#madgui.widget.twisswidget.UserData.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.twisswidget.UserData.style">
+<em class="property">property </em><code class="sig-name descname">style</code><a class="headerlink" href="#madgui.widget.twisswidget.UserData.style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="madgui.widget.tableview.html" class="btn btn-neutral float-left" title="madgui.widget.tableview module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

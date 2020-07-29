@@ -1,0 +1,502 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.survey.gl_widget &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.survey.gl_widget</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.survey.gl_widget</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Contains a OpenGL widget to display a static scene.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;GLWidget&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QSize</span><span class="p">,</span> <span class="n">QTimer</span><span class="p">,</span> <span class="n">QTime</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QOpenGLWidget</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="kn">import</span> <span class="n">QOffscreenSurface</span><span class="p">,</span> <span class="n">QOpenGLContext</span><span class="p">,</span> <span class="n">QSurfaceFormat</span>
+
+<span class="kn">import</span> <span class="nn">OpenGL.GL</span> <span class="k">as</span> <span class="nn">GL</span>
+
+<span class="kn">from</span> <span class="nn">.transform</span> <span class="kn">import</span> <span class="n">gl_array</span>
+<span class="kn">from</span> <span class="nn">.camera</span> <span class="kn">import</span> <span class="n">Camera</span>
+<span class="kn">from</span> <span class="nn">.gl_util</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">load_shader</span><span class="p">,</span> <span class="n">create_shader_program</span><span class="p">,</span>
+    <span class="n">set_uniform_matrix</span><span class="p">,</span> <span class="n">set_uniform_vector</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="GLWidget"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget">[docs]</a><span class="k">class</span> <span class="nc">GLWidget</span><span class="p">(</span><span class="n">QOpenGLWidget</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    OpenGL widget that shows a static 3D scene, allowing the observer to</span>
+<span class="sd">    freely move and look around.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">background_color</span> <span class="o">=</span> <span class="n">gl_array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mf">0.6</span>
+    <span class="n">ambient_color</span> <span class="o">=</span> <span class="n">gl_array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mf">0.1</span>
+    <span class="n">diffuse_color</span> <span class="o">=</span> <span class="n">gl_array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">camera_speed</span> <span class="o">=</span> <span class="mi">1</span>            <span class="c1"># [m/s]</span>
+    <span class="n">zoom_speed</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">10</span>           <span class="c1"># [1/deg]</span>
+    <span class="n">mouse_sensitivity</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">100</span>   <span class="c1"># [rad/px]</span>
+    <span class="n">update_interval</span> <span class="o">=</span> <span class="mi">25</span>        <span class="c1"># [ms]</span>
+
+    <span class="n">shader_program</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">update_timer</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">create_items</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create from a callable ``create_items: Camera -&gt; [Object3D]``.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_items</span> <span class="o">=</span> <span class="n">create_items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_key_state</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_time</span> <span class="o">=</span> <span class="n">QTime</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">updated</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">)</span>
+        <span class="n">surface_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+        <span class="c1"># Enable multisampling (for antialiasing):</span>
+        <span class="c1"># (must be set before initializeGL)</span>
+        <span class="n">surface_format</span><span class="o">.</span><span class="n">setSamples</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+        <span class="c1"># Technically, we require only 3.0, but we request 3.2 because that</span>
+        <span class="c1"># allows enforcing CoreProfile. Note that there is no guarantee that</span>
+        <span class="c1"># we get the requested version, but let&#39;s at least improve our chances:</span>
+        <span class="n">surface_format</span><span class="o">.</span><span class="n">setVersion</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">surface_format</span><span class="o">.</span><span class="n">setProfile</span><span class="p">(</span><span class="n">QSurfaceFormat</span><span class="o">.</span><span class="n">CoreProfile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFormat</span><span class="p">(</span><span class="n">surface_format</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GLWidget.free"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.free">[docs]</a>    <span class="k">def</span> <span class="nf">free</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Free all items.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">:</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GLWidget.closeEvent"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.closeEvent">[docs]</a>    <span class="k">def</span> <span class="nf">closeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Free items.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">free</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">closeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GLWidget.showEvent"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.showEvent">[docs]</a>    <span class="k">def</span> <span class="nf">showEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Start scene updates (camera movement).&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">showEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_timer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_timer</span> <span class="o">=</span> <span class="n">QTimer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_timer</span><span class="o">.</span><span class="n">setInterval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_interval</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_timer</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_event</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_time</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GLWidget.hideEvent"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.hideEvent">[docs]</a>    <span class="k">def</span> <span class="nf">hideEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stop scene updates (camera movement).&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">hideEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_timer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_timer</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_event</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_timer</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_timer</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+    <span class="c1"># def GL(self):</span>
+    <span class="c1">#     from PyQt5.QtGui import QOpenGLVersionProfile</span>
+    <span class="c1">#     version = QOpenGLVersionProfile()</span>
+    <span class="c1">#     version.setVersion(2, 0)</span>
+    <span class="c1">#     return self.context().versionFunctions(version)</span>
+
+<div class="viewcode-block" id="GLWidget.initializeGL"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.initializeGL">[docs]</a>    <span class="k">def</span> <span class="nf">initializeGL</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called after first creating a valid OpenGL context. Creates shader</span>
+<span class="sd">        program, sets up camera and creates an initial scene.&quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Initializing OpenGL&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_gl_info</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_VERSION</span><span class="p">,</span>  <span class="s1">&#39;  version:  &#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_gl_info</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_VENDOR</span><span class="p">,</span>   <span class="s1">&#39;  vendor:   &#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_gl_info</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_RENDERER</span><span class="p">,</span> <span class="s1">&#39;  renderer: &#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_gl_info</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_SHADING_LANGUAGE_VERSION</span><span class="p">,</span> <span class="s1">&#39;  shader:   &#39;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  context:  </span><span class="si">{}</span><span class="s1">.</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">()</span><span class="o">.</span><span class="n">format</span><span class="p">()</span><span class="o">.</span><span class="n">version</span><span class="p">()))</span>
+        <span class="c1"># We currently require modern OpenGL API for use of shaders etc. We</span>
+        <span class="c1"># could ship a fallback implementation based on the deprecated API</span>
+        <span class="c1"># (glBegin, etc) to be compatible with older devices, but that&#39;s</span>
+        <span class="c1"># probably overkill.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_opengl_context</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">(),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Cannot create shader with this version of OpenGL.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;This implementation uses the modern OpenGL API (&gt;=3.0).&quot;</span><span class="p">)</span>
+            <span class="n">QTimer</span><span class="o">.</span><span class="n">singleShot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">())</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_shader_program</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_scene</span><span class="p">()</span>
+        <span class="c1"># Activate wireframe:</span>
+        <span class="c1"># GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)</span>
+        <span class="n">camera</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">look_from</span><span class="p">(</span><span class="n">camera</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">camera</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="n">camera</span><span class="o">.</span><span class="n">psi</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GLWidget.show_gl_info"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.show_gl_info">[docs]</a>    <span class="k">def</span> <span class="nf">show_gl_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show GL version info.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGetString</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">GL</span><span class="o">.</span><span class="n">GLError</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">string</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">text</span> <span class="o">+</span> <span class="n">string</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">text</span> <span class="o">+</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">string</span></div>
+
+<div class="viewcode-block" id="GLWidget.create_scene"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.create_scene">[docs]</a>    <span class="k">def</span> <span class="nf">create_scene</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fetch new items from the given callable.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">free</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shader_program</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_items</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GLWidget.paintGL"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.paintGL">[docs]</a>    <span class="k">def</span> <span class="nf">paintGL</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle paint event by drawing the items returned by the creator</span>
+<span class="sd">        function.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_opengl_context</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">(),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+            <span class="k">return</span>
+        <span class="n">program</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shader_program</span>
+        <span class="n">projection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">projection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">())</span>
+        <span class="n">set_uniform_matrix</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="s2">&quot;view&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">view_matrix</span><span class="p">)</span>
+        <span class="n">set_uniform_matrix</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="s2">&quot;projection&quot;</span><span class="p">,</span> <span class="n">projection</span><span class="p">)</span>
+
+        <span class="n">set_uniform_vector</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="s2">&quot;ambient_color&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ambient_color</span><span class="p">)</span>
+        <span class="n">set_uniform_vector</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="s2">&quot;diffuse_color&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffuse_color</span><span class="p">)</span>
+        <span class="n">set_uniform_vector</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="s2">&quot;diffuse_position&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+
+        <span class="n">GL</span><span class="o">.</span><span class="n">glClearColor</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">background_color</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glEnable</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_DEPTH_TEST</span><span class="p">)</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glEnable</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_MULTISAMPLE</span><span class="p">)</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glEnable</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_BLEND</span><span class="p">)</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glBlendFunc</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_SRC_ALPHA</span><span class="p">,</span> <span class="n">GL</span><span class="o">.</span><span class="n">GL_ONE_MINUS_SRC_ALPHA</span><span class="p">)</span>
+        <span class="n">GL</span><span class="o">.</span><span class="n">glClear</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_COLOR_BUFFER_BIT</span> <span class="o">|</span> <span class="n">GL</span><span class="o">.</span><span class="n">GL_DEPTH_BUFFER_BIT</span><span class="p">)</span>
+
+        <span class="c1"># Draw transparent items after opaque ones, and sorted by distance to</span>
+        <span class="c1"># the observer (far to near). Note that this is only an approximation</span>
+        <span class="c1"># that is correct only for point-like items; a 100% correct blending</span>
+        <span class="c1"># order would have to be decided on the level of fragments (based on</span>
+        <span class="c1"># the interpolated depth value).</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">opaque</span><span class="p">(),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="n">item</span><span class="o">.</span><span class="n">position</span><span class="p">()),</span>
+        <span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GLWidget.create_shader_program"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.create_shader_program">[docs]</a>    <span class="k">def</span> <span class="nf">create_shader_program</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create simple program with generic fragment/vertex shaders used to</span>
+<span class="sd">        render objects with a simple ambient+diffuse lighting model.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shader_program</span> <span class="o">=</span> <span class="n">create_shader_program</span><span class="p">([</span>
+            <span class="n">load_shader</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_VERTEX_SHADER</span><span class="p">,</span> <span class="s1">&#39;shader_vertex.glsl&#39;</span><span class="p">),</span>
+            <span class="n">load_shader</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_FRAGMENT_SHADER</span><span class="p">,</span> <span class="s1">&#39;shader_fragment.glsl&#39;</span><span class="p">),</span>
+        <span class="p">])</span></div>
+
+<div class="viewcode-block" id="GLWidget.minimumSizeHint"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.minimumSizeHint">[docs]</a>    <span class="k">def</span> <span class="nf">minimumSizeHint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">QSize</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GLWidget.sizeHint"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.sizeHint">[docs]</a>    <span class="k">def</span> <span class="nf">sizeHint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">QSize</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GLWidget.wheelEvent"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.wheelEvent">[docs]</a>    <span class="k">def</span> <span class="nf">wheelEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle mouse wheel as zoom.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom_speed</span> <span class="o">*</span> <span class="n">event</span><span class="o">.</span><span class="n">angleDelta</span><span class="p">()</span><span class="o">.</span><span class="n">y</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="GLWidget.mousePressEvent"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.mousePressEvent">[docs]</a>    <span class="k">def</span> <span class="nf">mousePressEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle camera look around.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_mouse_position</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">mousePressEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GLWidget.mouseMoveEvent"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.mouseMoveEvent">[docs]</a>    <span class="k">def</span> <span class="nf">mouseMoveEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle camera look around.&quot;&quot;&quot;</span>
+        <span class="n">camera</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_mouse_position</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">buttons</span><span class="p">()</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">RightButton</span><span class="p">:</span>
+            <span class="n">dx</span> <span class="o">=</span> <span class="n">delta</span><span class="o">.</span><span class="n">x</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mouse_sensitivity</span>
+            <span class="n">dy</span> <span class="o">=</span> <span class="n">delta</span><span class="o">.</span><span class="n">y</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mouse_sensitivity</span>
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">modifiers</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ShiftModifier</span><span class="p">:</span>
+                <span class="n">camera</span><span class="o">.</span><span class="n">look_from</span><span class="p">(</span><span class="n">camera</span><span class="o">.</span><span class="n">theta</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">camera</span><span class="o">.</span><span class="n">phi</span> <span class="o">-</span> <span class="n">dy</span><span class="p">,</span> <span class="n">camera</span><span class="o">.</span><span class="n">psi</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">camera</span><span class="o">.</span><span class="n">look_toward</span><span class="p">(</span><span class="n">camera</span><span class="o">.</span><span class="n">theta</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">camera</span><span class="o">.</span><span class="n">phi</span> <span class="o">-</span> <span class="n">dy</span><span class="p">,</span> <span class="n">camera</span><span class="o">.</span><span class="n">psi</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">buttons</span><span class="p">()</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">RightButton</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">LeftButton</span><span class="p">:</span>
+            <span class="n">camera</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><span class="o">-</span><span class="n">delta</span><span class="o">.</span><span class="n">y</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">mouseMoveEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_mouse_position</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GLWidget.keyPressEvent"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.keyPressEvent">[docs]</a>    <span class="k">def</span> <span class="nf">keyPressEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maintain a list of pressed keys for camera movement.&quot;&quot;&quot;</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Escape</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Key_Q</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">event</span><span class="o">.</span><span class="n">isAutoRepeat</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_key_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">keyPressEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GLWidget.keyReleaseEvent"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.keyReleaseEvent">[docs]</a>    <span class="k">def</span> <span class="nf">keyReleaseEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maintain a list of pressed keys for camera movement.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">event</span><span class="o">.</span><span class="n">isAutoRepeat</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_key_state</span><span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()]</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="GLWidget.update_event"><a class="viewcode-back" href="../../../api/madgui.survey.gl_widget.html#madgui.survey.gl_widget.GLWidget.update_event">[docs]</a>    <span class="k">def</span> <span class="nf">update_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Implement camera movement. Called regularly.&quot;&quot;&quot;</span>
+        <span class="n">pressed</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">upward</span> <span class="o">=</span> <span class="n">pressed</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Space</span><span class="p">)</span> <span class="o">-</span> <span class="n">pressed</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Control</span><span class="p">)</span>
+        <span class="n">forward</span> <span class="o">=</span> <span class="p">((</span><span class="n">pressed</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Up</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pressed</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_W</span><span class="p">))</span> <span class="o">-</span>
+                   <span class="p">(</span><span class="n">pressed</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Down</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pressed</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_S</span><span class="p">)))</span>
+        <span class="n">leftward</span> <span class="o">=</span> <span class="p">((</span><span class="n">pressed</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Left</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pressed</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_A</span><span class="p">))</span> <span class="o">-</span>
+                    <span class="p">(</span><span class="n">pressed</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Right</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pressed</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_D</span><span class="p">)))</span>
+
+        <span class="c1"># we use this &quot;update time&quot; (a.k.a. &quot;game time&quot;) to maintain a</span>
+        <span class="c1"># somewhat framerate independent movement speed:</span>
+        <span class="n">ms_elapsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_time</span><span class="o">.</span><span class="n">elapsed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_time</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">forward</span> <span class="ow">or</span> <span class="n">upward</span> <span class="ow">or</span> <span class="n">leftward</span><span class="p">:</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">leftward</span><span class="p">,</span> <span class="n">upward</span><span class="p">,</span> <span class="o">-</span><span class="n">forward</span><span class="p">])</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+            <span class="n">translate</span> <span class="o">=</span> <span class="n">direction</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera_speed</span> <span class="o">*</span> <span class="p">(</span><span class="n">ms_elapsed</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="o">*</span><span class="n">translate</span><span class="p">)</span></div></div>
+
+
+<span class="nd">@contextmanager</span>
+<span class="k">def</span> <span class="nf">offscreen_context</span><span class="p">(</span><span class="nb">format</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Provide a temporary QOpenGLContext with the given QSurfaceFormat on an</span>
+<span class="sd">    QOffscreenSurface.&quot;&quot;&quot;</span>
+    <span class="n">surface</span> <span class="o">=</span> <span class="n">QOffscreenSurface</span><span class="p">()</span>
+    <span class="n">surface</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">QOpenGLContext</span><span class="p">()</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">setFormat</span><span class="p">(</span><span class="nb">format</span><span class="p">)</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">makeCurrent</span><span class="p">(</span><span class="n">surface</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">context</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">doneCurrent</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">check_opengl_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check whether the active OpenGL context suffices our requirements.&quot;&quot;&quot;</span>
+    <span class="c1"># Note that in some cases `context.format().version()` is not updated to</span>
+    <span class="c1"># hold the actual OpenGL version, which is why we need additional checks</span>
+    <span class="c1"># like the availability of glCreateShader and the glGetString based</span>
+    <span class="c1"># version detection:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">context</span> <span class="ow">and</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">isValid</span><span class="p">()</span> <span class="ow">and</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">format</span><span class="p">()</span><span class="o">.</span><span class="n">version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">version</span> <span class="ow">and</span>
+        <span class="nb">bool</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">glCreateShader</span><span class="p">)</span> <span class="ow">and</span>
+        <span class="n">gl_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">version</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">gl_version</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return active OpenGL version as determined by glGetString.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">version_string</span> <span class="o">=</span> <span class="n">GL</span><span class="o">.</span><span class="n">glGetString</span><span class="p">(</span><span class="n">GL</span><span class="o">.</span><span class="n">GL_VERSION</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">GL</span><span class="o">.</span><span class="n">GLError</span><span class="p">:</span>
+        <span class="c1"># This fails on control system PCs:</span>
+        <span class="n">version_string</span> <span class="o">=</span> <span class="s1">&#39;0.0&#39;</span>
+    <span class="n">major</span><span class="p">,</span> <span class="n">minor</span> <span class="o">=</span> <span class="n">version_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">major</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">minor</span><span class="p">))</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

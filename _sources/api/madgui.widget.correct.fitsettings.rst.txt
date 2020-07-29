@@ -1,0 +1,7 @@
+madgui.widget.correct.fitsettings module
+========================================
+
+.. automodule:: madgui.widget.correct.fitsettings
+   :members:
+   :undoc-members:
+   :show-inheritance:

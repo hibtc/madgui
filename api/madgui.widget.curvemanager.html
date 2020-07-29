@@ -1,0 +1,360 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.curvemanager module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.widget.dialog module" href="madgui.widget.dialog.html" />
+    <link rel="prev" title="madgui.widget.about module" href="madgui.widget.about.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.online.html">madgui.online package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="madgui.widget.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.widget.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.widget.html">madgui.widget package</a> &raquo;</li>
+        
+      <li>madgui.widget.curvemanager module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.widget.curvemanager.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.widget.curvemanager">
+<span id="madgui-widget-curvemanager-module"></span><h1>madgui.widget.curvemanager module<a class="headerlink" href="#module-madgui.widget.curvemanager" title="Permalink to this headline">¶</a></h1>
+<p>Dialog for managing curves in a <code class="xref py py-class docutils literal notranslate"><span class="pre">TwissFigure</span></code>.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager" title="madgui.widget.curvemanager.CurveManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CurveManager</span></code></a>(scene)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.widget.curvemanager.CurveManager">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.widget.curvemanager.</code><code class="sig-name descname">CurveManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scene</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/curvemanager.html#CurveManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager.accept" title="madgui.widget.curvemanager.CurveManager.accept"><code class="xref py py-obj docutils literal notranslate"><span class="pre">accept</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager.connect_signals" title="madgui.widget.curvemanager.CurveManager.connect_signals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connect_signals</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager.init_controls" title="madgui.widget.curvemanager.CurveManager.init_controls"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_controls</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager.load_file" title="madgui.widget.curvemanager.CurveManager.load_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_file</span></code></a>(filename)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager.on_btn_load" title="madgui.widget.curvemanager.CurveManager.on_btn_load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_btn_load</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager.on_btn_save" title="madgui.widget.curvemanager.CurveManager.on_btn_save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_btn_save</span></code></a>()</p></td>
+<td><p>Add a Snapshot of the current twiss figure</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager.show_curve" title="madgui.widget.curvemanager.CurveManager.show_curve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_curve</span></code></a>(i, c)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager.data" title="madgui.widget.curvemanager.CurveManager.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager.dataFileFilters" title="madgui.widget.curvemanager.CurveManager.dataFileFilters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataFileFilters</span></code></a></p></td>
+<td><p>list() -&gt; new empty list</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.widget.curvemanager.CurveManager.ui_file" title="madgui.widget.curvemanager.CurveManager.ui_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ui_file</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.widget.curvemanager.CurveManager.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/curvemanager.html#CurveManager.accept"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager.accept" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.curvemanager.CurveManager.connect_signals">
+<code class="sig-name descname">connect_signals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/curvemanager.html#CurveManager.connect_signals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager.connect_signals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.curvemanager.CurveManager.data">
+<em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.curvemanager.CurveManager.dataFileFilters">
+<code class="sig-name descname">dataFileFilters</code><em class="property"> = [('Text files', '*.txt', '*.dat'), ('TFS tables', '*.tfs', '*.twiss')]</em><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager.dataFileFilters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.curvemanager.CurveManager.init_controls">
+<code class="sig-name descname">init_controls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/curvemanager.html#CurveManager.init_controls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager.init_controls" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.curvemanager.CurveManager.load_file">
+<code class="sig-name descname">load_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/curvemanager.html#CurveManager.load_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager.load_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.curvemanager.CurveManager.on_btn_load">
+<code class="sig-name descname">on_btn_load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/curvemanager.html#CurveManager.on_btn_load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager.on_btn_load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.curvemanager.CurveManager.on_btn_save">
+<code class="sig-name descname">on_btn_save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/curvemanager.html#CurveManager.on_btn_save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager.on_btn_save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a Snapshot of the current twiss figure</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.widget.curvemanager.CurveManager.show_curve">
+<code class="sig-name descname">show_curve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">c</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/widget/curvemanager.html#CurveManager.show_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager.show_curve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.widget.curvemanager.CurveManager.ui_file">
+<code class="sig-name descname">ui_file</code><em class="property"> = 'curvemanager.ui'</em><a class="headerlink" href="#madgui.widget.curvemanager.CurveManager.ui_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.widget.dialog.html" class="btn btn-neutral float-right" title="madgui.widget.dialog module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.widget.about.html" class="btn btn-neutral float-left" title="madgui.widget.about module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

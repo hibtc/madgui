@@ -1,0 +1,795 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>yaml.parser &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>yaml.parser</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for yaml.parser</h1><div class="highlight"><pre>
+<span></span>
+<span class="c1"># The following YAML grammar is LL(1) and is parsed by a recursive descent</span>
+<span class="c1"># parser.</span>
+<span class="c1">#</span>
+<span class="c1"># stream            ::= STREAM-START implicit_document? explicit_document* STREAM-END</span>
+<span class="c1"># implicit_document ::= block_node DOCUMENT-END*</span>
+<span class="c1"># explicit_document ::= DIRECTIVE* DOCUMENT-START block_node? DOCUMENT-END*</span>
+<span class="c1"># block_node_or_indentless_sequence ::=</span>
+<span class="c1">#                       ALIAS</span>
+<span class="c1">#                       | properties (block_content | indentless_block_sequence)?</span>
+<span class="c1">#                       | block_content</span>
+<span class="c1">#                       | indentless_block_sequence</span>
+<span class="c1"># block_node        ::= ALIAS</span>
+<span class="c1">#                       | properties block_content?</span>
+<span class="c1">#                       | block_content</span>
+<span class="c1"># flow_node         ::= ALIAS</span>
+<span class="c1">#                       | properties flow_content?</span>
+<span class="c1">#                       | flow_content</span>
+<span class="c1"># properties        ::= TAG ANCHOR? | ANCHOR TAG?</span>
+<span class="c1"># block_content     ::= block_collection | flow_collection | SCALAR</span>
+<span class="c1"># flow_content      ::= flow_collection | SCALAR</span>
+<span class="c1"># block_collection  ::= block_sequence | block_mapping</span>
+<span class="c1"># flow_collection   ::= flow_sequence | flow_mapping</span>
+<span class="c1"># block_sequence    ::= BLOCK-SEQUENCE-START (BLOCK-ENTRY block_node?)* BLOCK-END</span>
+<span class="c1"># indentless_sequence   ::= (BLOCK-ENTRY block_node?)+</span>
+<span class="c1"># block_mapping     ::= BLOCK-MAPPING_START</span>
+<span class="c1">#                       ((KEY block_node_or_indentless_sequence?)?</span>
+<span class="c1">#                       (VALUE block_node_or_indentless_sequence?)?)*</span>
+<span class="c1">#                       BLOCK-END</span>
+<span class="c1"># flow_sequence     ::= FLOW-SEQUENCE-START</span>
+<span class="c1">#                       (flow_sequence_entry FLOW-ENTRY)*</span>
+<span class="c1">#                       flow_sequence_entry?</span>
+<span class="c1">#                       FLOW-SEQUENCE-END</span>
+<span class="c1"># flow_sequence_entry   ::= flow_node | KEY flow_node? (VALUE flow_node?)?</span>
+<span class="c1"># flow_mapping      ::= FLOW-MAPPING-START</span>
+<span class="c1">#                       (flow_mapping_entry FLOW-ENTRY)*</span>
+<span class="c1">#                       flow_mapping_entry?</span>
+<span class="c1">#                       FLOW-MAPPING-END</span>
+<span class="c1"># flow_mapping_entry    ::= flow_node | KEY flow_node? (VALUE flow_node?)?</span>
+<span class="c1">#</span>
+<span class="c1"># FIRST sets:</span>
+<span class="c1">#</span>
+<span class="c1"># stream: { STREAM-START }</span>
+<span class="c1"># explicit_document: { DIRECTIVE DOCUMENT-START }</span>
+<span class="c1"># implicit_document: FIRST(block_node)</span>
+<span class="c1"># block_node: { ALIAS TAG ANCHOR SCALAR BLOCK-SEQUENCE-START BLOCK-MAPPING-START FLOW-SEQUENCE-START FLOW-MAPPING-START }</span>
+<span class="c1"># flow_node: { ALIAS ANCHOR TAG SCALAR FLOW-SEQUENCE-START FLOW-MAPPING-START }</span>
+<span class="c1"># block_content: { BLOCK-SEQUENCE-START BLOCK-MAPPING-START FLOW-SEQUENCE-START FLOW-MAPPING-START SCALAR }</span>
+<span class="c1"># flow_content: { FLOW-SEQUENCE-START FLOW-MAPPING-START SCALAR }</span>
+<span class="c1"># block_collection: { BLOCK-SEQUENCE-START BLOCK-MAPPING-START }</span>
+<span class="c1"># flow_collection: { FLOW-SEQUENCE-START FLOW-MAPPING-START }</span>
+<span class="c1"># block_sequence: { BLOCK-SEQUENCE-START }</span>
+<span class="c1"># block_mapping: { BLOCK-MAPPING-START }</span>
+<span class="c1"># block_node_or_indentless_sequence: { ALIAS ANCHOR TAG SCALAR BLOCK-SEQUENCE-START BLOCK-MAPPING-START FLOW-SEQUENCE-START FLOW-MAPPING-START BLOCK-ENTRY }</span>
+<span class="c1"># indentless_sequence: { ENTRY }</span>
+<span class="c1"># flow_collection: { FLOW-SEQUENCE-START FLOW-MAPPING-START }</span>
+<span class="c1"># flow_sequence: { FLOW-SEQUENCE-START }</span>
+<span class="c1"># flow_mapping: { FLOW-MAPPING-START }</span>
+<span class="c1"># flow_sequence_entry: { ALIAS ANCHOR TAG SCALAR FLOW-SEQUENCE-START FLOW-MAPPING-START KEY }</span>
+<span class="c1"># flow_mapping_entry: { ALIAS ANCHOR TAG SCALAR FLOW-SEQUENCE-START FLOW-MAPPING-START KEY }</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Parser&#39;</span><span class="p">,</span> <span class="s1">&#39;ParserError&#39;</span><span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">.error</span> <span class="kn">import</span> <span class="n">MarkedYAMLError</span>
+<span class="kn">from</span> <span class="nn">.tokens</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.events</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.scanner</span> <span class="kn">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="ParserError"><a class="viewcode-back" href="../../api/madgui.util.yaml.html#madgui.util.yaml.ParserError">[docs]</a><span class="k">class</span> <span class="nc">ParserError</span><span class="p">(</span><span class="n">MarkedYAMLError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+<span class="k">class</span> <span class="nc">Parser</span><span class="p">:</span>
+    <span class="c1"># Since writing a recursive-descendant parser is a straightforward task, we</span>
+    <span class="c1"># do not give many comments here.</span>
+
+    <span class="n">DEFAULT_TAGS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;!&#39;</span><span class="p">:</span>   <span class="s1">&#39;!&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;!!&#39;</span><span class="p">:</span>  <span class="s1">&#39;tag:yaml.org,2002:&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yaml_version</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_stream_start</span>
+
+    <span class="k">def</span> <span class="nf">dispose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Reset the state attributes (to clear self-references)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">check_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">choices</span><span class="p">):</span>
+        <span class="c1"># Check the type of the next event.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">choices</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="p">,</span> <span class="n">choice</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">peek_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Get the next event.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span>
+
+    <span class="k">def</span> <span class="nf">get_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Get the next event and proceed further.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="c1"># stream    ::= STREAM-START implicit_document? explicit_document* STREAM-END</span>
+    <span class="c1"># implicit_document ::= block_node DOCUMENT-END*</span>
+    <span class="c1"># explicit_document ::= DIRECTIVE* DOCUMENT-START block_node? DOCUMENT-END*</span>
+
+    <span class="k">def</span> <span class="nf">parse_stream_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Parse the stream start.</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">StreamStartEvent</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">,</span>
+                <span class="n">encoding</span><span class="o">=</span><span class="n">token</span><span class="o">.</span><span class="n">encoding</span><span class="p">)</span>
+
+        <span class="c1"># Prepare the next state.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_implicit_document_start</span>
+
+        <span class="k">return</span> <span class="n">event</span>
+
+    <span class="k">def</span> <span class="nf">parse_implicit_document_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Parse an implicit document.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">DirectiveToken</span><span class="p">,</span> <span class="n">DocumentStartToken</span><span class="p">,</span>
+                <span class="n">StreamEndToken</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_TAGS</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+            <span class="n">start_mark</span> <span class="o">=</span> <span class="n">end_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">DocumentStartEvent</span><span class="p">(</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span>
+                    <span class="n">explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="c1"># Prepare the next state.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_document_end</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_node</span>
+
+            <span class="k">return</span> <span class="n">event</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_document_start</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">parse_document_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Parse any extra document end indicators.</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">DocumentEndToken</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+
+        <span class="c1"># Parse an explicit document.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">StreamEndToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+            <span class="n">start_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span>
+            <span class="n">version</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_directives</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">DocumentStartToken</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">ParserError</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">&quot;expected &#39;&lt;document start&gt;&#39;, but found </span><span class="si">%r</span><span class="s2">&quot;</span>
+                        <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="n">end_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">DocumentStartEvent</span><span class="p">(</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span>
+                    <span class="n">explicit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_document_end</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_document_content</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Parse the end of the stream.</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">StreamEndEvent</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">marks</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">event</span>
+
+    <span class="k">def</span> <span class="nf">parse_document_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Parse the document end.</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+        <span class="n">start_mark</span> <span class="o">=</span> <span class="n">end_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span>
+        <span class="n">explicit</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">DocumentEndToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="n">end_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span>
+            <span class="n">explicit</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">DocumentEndEvent</span><span class="p">(</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span>
+                <span class="n">explicit</span><span class="o">=</span><span class="n">explicit</span><span class="p">)</span>
+
+        <span class="c1"># Prepare the next state.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_document_start</span>
+
+        <span class="k">return</span> <span class="n">event</span>
+
+    <span class="k">def</span> <span class="nf">parse_document_content</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">DirectiveToken</span><span class="p">,</span>
+                <span class="n">DocumentStartToken</span><span class="p">,</span> <span class="n">DocumentEndToken</span><span class="p">,</span> <span class="n">StreamEndToken</span><span class="p">):</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">event</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_node</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">process_directives</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yaml_version</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">DirectiveToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;YAML&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaml_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ParserError</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="s2">&quot;found duplicate YAML directive&quot;</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+                <span class="n">major</span><span class="p">,</span> <span class="n">minor</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">if</span> <span class="n">major</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ParserError</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="s2">&quot;found incompatible YAML document (version 1.* is required)&quot;</span><span class="p">,</span>
+                            <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">yaml_version</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">elif</span> <span class="n">token</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span><span class="p">:</span>
+                <span class="n">handle</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">if</span> <span class="n">handle</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ParserError</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="s2">&quot;duplicate tag handle </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">handle</span><span class="p">,</span>
+                            <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span><span class="p">[</span><span class="n">handle</span><span class="p">]</span> <span class="o">=</span> <span class="n">prefix</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaml_version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaml_version</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_TAGS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_TAGS</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="c1"># block_node_or_indentless_sequence ::= ALIAS</span>
+    <span class="c1">#               | properties (block_content | indentless_block_sequence)?</span>
+    <span class="c1">#               | block_content</span>
+    <span class="c1">#               | indentless_block_sequence</span>
+    <span class="c1"># block_node    ::= ALIAS</span>
+    <span class="c1">#                   | properties block_content?</span>
+    <span class="c1">#                   | block_content</span>
+    <span class="c1"># flow_node     ::= ALIAS</span>
+    <span class="c1">#                   | properties flow_content?</span>
+    <span class="c1">#                   | flow_content</span>
+    <span class="c1"># properties    ::= TAG ANCHOR? | ANCHOR TAG?</span>
+    <span class="c1"># block_content     ::= block_collection | flow_collection | SCALAR</span>
+    <span class="c1"># flow_content      ::= flow_collection | SCALAR</span>
+    <span class="c1"># block_collection  ::= block_sequence | block_mapping</span>
+    <span class="c1"># flow_collection   ::= flow_sequence | flow_mapping</span>
+
+    <span class="k">def</span> <span class="nf">parse_block_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">parse_flow_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">parse_block_node_or_indentless_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indentless_sequence</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">parse_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">indentless_sequence</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">AliasToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">AliasEvent</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">anchor</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">tag</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">start_mark</span> <span class="o">=</span> <span class="n">end_mark</span> <span class="o">=</span> <span class="n">tag_mark</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">AnchorToken</span><span class="p">):</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+                <span class="n">start_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span>
+                <span class="n">end_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span>
+                <span class="n">anchor</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">TagToken</span><span class="p">):</span>
+                    <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+                    <span class="n">tag_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span>
+                    <span class="n">end_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span>
+                    <span class="n">tag</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">TagToken</span><span class="p">):</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+                <span class="n">start_mark</span> <span class="o">=</span> <span class="n">tag_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span>
+                <span class="n">end_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span>
+                <span class="n">tag</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">AnchorToken</span><span class="p">):</span>
+                    <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+                    <span class="n">end_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span>
+                    <span class="n">anchor</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">handle</span><span class="p">,</span> <span class="n">suffix</span> <span class="o">=</span> <span class="n">tag</span>
+                <span class="k">if</span> <span class="n">handle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">handle</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ParserError</span><span class="p">(</span><span class="s2">&quot;while parsing a node&quot;</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                                <span class="s2">&quot;found undefined tag handle </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">handle</span><span class="p">,</span>
+                                <span class="n">tag_mark</span><span class="p">)</span>
+                    <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag_handles</span><span class="p">[</span><span class="n">handle</span><span class="p">]</span><span class="o">+</span><span class="n">suffix</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tag</span> <span class="o">=</span> <span class="n">suffix</span>
+            <span class="c1">#if tag == &#39;!&#39;:</span>
+            <span class="c1">#    raise ParserError(&quot;while parsing a node&quot;, start_mark,</span>
+            <span class="c1">#            &quot;found non-specific tag &#39;!&#39;&quot;, tag_mark,</span>
+            <span class="c1">#            &quot;Please check &#39;http://pyyaml.org/wiki/YAMLNonSpecificTag&#39; and share your opinion.&quot;)</span>
+            <span class="k">if</span> <span class="n">start_mark</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">start_mark</span> <span class="o">=</span> <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span><span class="o">.</span><span class="n">start_mark</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">implicit</span> <span class="o">=</span> <span class="p">(</span><span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;!&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">indentless_sequence</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">BlockEntryToken</span><span class="p">):</span>
+                <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span><span class="o">.</span><span class="n">end_mark</span>
+                <span class="n">event</span> <span class="o">=</span> <span class="n">SequenceStartEvent</span><span class="p">(</span><span class="n">anchor</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">implicit</span><span class="p">,</span>
+                        <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_indentless_sequence_entry</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">ScalarToken</span><span class="p">):</span>
+                    <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+                    <span class="n">end_mark</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">plain</span> <span class="ow">and</span> <span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;!&#39;</span><span class="p">:</span>
+                        <span class="n">implicit</span> <span class="o">=</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">implicit</span> <span class="o">=</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">implicit</span> <span class="o">=</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                    <span class="n">event</span> <span class="o">=</span> <span class="n">ScalarEvent</span><span class="p">(</span><span class="n">anchor</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">implicit</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                            <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">token</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">FlowSequenceStartToken</span><span class="p">):</span>
+                    <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span><span class="o">.</span><span class="n">end_mark</span>
+                    <span class="n">event</span> <span class="o">=</span> <span class="n">SequenceStartEvent</span><span class="p">(</span><span class="n">anchor</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">implicit</span><span class="p">,</span>
+                            <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span> <span class="n">flow_style</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_sequence_first_entry</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">FlowMappingStartToken</span><span class="p">):</span>
+                    <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span><span class="o">.</span><span class="n">end_mark</span>
+                    <span class="n">event</span> <span class="o">=</span> <span class="n">MappingStartEvent</span><span class="p">(</span><span class="n">anchor</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">implicit</span><span class="p">,</span>
+                            <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span> <span class="n">flow_style</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_mapping_first_key</span>
+                <span class="k">elif</span> <span class="n">block</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">BlockSequenceStartToken</span><span class="p">):</span>
+                    <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span><span class="o">.</span><span class="n">start_mark</span>
+                    <span class="n">event</span> <span class="o">=</span> <span class="n">SequenceStartEvent</span><span class="p">(</span><span class="n">anchor</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">implicit</span><span class="p">,</span>
+                            <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span> <span class="n">flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_sequence_first_entry</span>
+                <span class="k">elif</span> <span class="n">block</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">BlockMappingStartToken</span><span class="p">):</span>
+                    <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span><span class="o">.</span><span class="n">start_mark</span>
+                    <span class="n">event</span> <span class="o">=</span> <span class="n">MappingStartEvent</span><span class="p">(</span><span class="n">anchor</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">implicit</span><span class="p">,</span>
+                            <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span> <span class="n">flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_mapping_first_key</span>
+                <span class="k">elif</span> <span class="n">anchor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Empty scalars are allowed even if a tag or an anchor is</span>
+                    <span class="c1"># specified.</span>
+                    <span class="n">event</span> <span class="o">=</span> <span class="n">ScalarEvent</span><span class="p">(</span><span class="n">anchor</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="p">(</span><span class="n">implicit</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                            <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">block</span><span class="p">:</span>
+                        <span class="n">node</span> <span class="o">=</span> <span class="s1">&#39;block&#39;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">node</span> <span class="o">=</span> <span class="s1">&#39;flow&#39;</span>
+                    <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+                    <span class="k">raise</span> <span class="n">ParserError</span><span class="p">(</span><span class="s2">&quot;while parsing a </span><span class="si">%s</span><span class="s2"> node&quot;</span> <span class="o">%</span> <span class="n">node</span><span class="p">,</span> <span class="n">start_mark</span><span class="p">,</span>
+                            <span class="s2">&quot;expected the node content, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">token</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                            <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">event</span>
+
+    <span class="c1"># block_sequence ::= BLOCK-SEQUENCE-START (BLOCK-ENTRY block_node?)* BLOCK-END</span>
+
+    <span class="k">def</span> <span class="nf">parse_block_sequence_first_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_sequence_entry</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">parse_block_sequence_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">BlockEntryToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">BlockEntryToken</span><span class="p">,</span> <span class="n">BlockEndToken</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_block_sequence_entry</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_node</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_sequence_entry</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">BlockEndToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">ParserError</span><span class="p">(</span><span class="s2">&quot;while parsing a block collection&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">&quot;expected &lt;block end&gt;, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">token</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">SequenceEndEvent</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">event</span>
+
+    <span class="c1"># indentless_sequence ::= (BLOCK-ENTRY block_node?)+</span>
+
+    <span class="k">def</span> <span class="nf">parse_indentless_sequence_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">BlockEntryToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">BlockEntryToken</span><span class="p">,</span>
+                    <span class="n">KeyToken</span><span class="p">,</span> <span class="n">ValueToken</span><span class="p">,</span> <span class="n">BlockEndToken</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_indentless_sequence_entry</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_node</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_indentless_sequence_entry</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">SequenceEndEvent</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">event</span>
+
+    <span class="c1"># block_mapping     ::= BLOCK-MAPPING_START</span>
+    <span class="c1">#                       ((KEY block_node_or_indentless_sequence?)?</span>
+    <span class="c1">#                       (VALUE block_node_or_indentless_sequence?)?)*</span>
+    <span class="c1">#                       BLOCK-END</span>
+
+    <span class="k">def</span> <span class="nf">parse_block_mapping_first_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_mapping_key</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">parse_block_mapping_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">KeyToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">KeyToken</span><span class="p">,</span> <span class="n">ValueToken</span><span class="p">,</span> <span class="n">BlockEndToken</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_block_mapping_value</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_node_or_indentless_sequence</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_mapping_value</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">BlockEndToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">ParserError</span><span class="p">(</span><span class="s2">&quot;while parsing a block mapping&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">&quot;expected &lt;block end&gt;, but found </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">token</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">MappingEndEvent</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">event</span>
+
+    <span class="k">def</span> <span class="nf">parse_block_mapping_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">ValueToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">KeyToken</span><span class="p">,</span> <span class="n">ValueToken</span><span class="p">,</span> <span class="n">BlockEndToken</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_block_mapping_key</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_node_or_indentless_sequence</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_mapping_key</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_block_mapping_key</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+
+    <span class="c1"># flow_sequence     ::= FLOW-SEQUENCE-START</span>
+    <span class="c1">#                       (flow_sequence_entry FLOW-ENTRY)*</span>
+    <span class="c1">#                       flow_sequence_entry?</span>
+    <span class="c1">#                       FLOW-SEQUENCE-END</span>
+    <span class="c1"># flow_sequence_entry   ::= flow_node | KEY flow_node? (VALUE flow_node?)?</span>
+    <span class="c1">#</span>
+    <span class="c1"># Note that while production rules for both flow_sequence_entry and</span>
+    <span class="c1"># flow_mapping_entry are equal, their interpretations are different.</span>
+    <span class="c1"># For `flow_sequence_entry`, the part `KEY flow_node? (VALUE flow_node?)?`</span>
+    <span class="c1"># generate an inline mapping (set syntax).</span>
+
+    <span class="k">def</span> <span class="nf">parse_flow_sequence_first_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_sequence_entry</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">parse_flow_sequence_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">FlowSequenceEndToken</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">first</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">FlowEntryToken</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+                    <span class="k">raise</span> <span class="n">ParserError</span><span class="p">(</span><span class="s2">&quot;while parsing a flow sequence&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="s2">&quot;expected &#39;,&#39; or &#39;]&#39;, but got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">token</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">KeyToken</span><span class="p">):</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+                <span class="n">event</span> <span class="o">=</span> <span class="n">MappingStartEvent</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">,</span>
+                        <span class="n">flow_style</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_sequence_entry_mapping_key</span>
+                <span class="k">return</span> <span class="n">event</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">FlowSequenceEndToken</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_sequence_entry</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_node</span><span class="p">()</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">SequenceEndEvent</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">event</span>
+
+    <span class="k">def</span> <span class="nf">parse_flow_sequence_entry_mapping_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">ValueToken</span><span class="p">,</span>
+                <span class="n">FlowEntryToken</span><span class="p">,</span> <span class="n">FlowSequenceEndToken</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_sequence_entry_mapping_value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_node</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_sequence_entry_mapping_value</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">parse_flow_sequence_entry_mapping_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">ValueToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">FlowEntryToken</span><span class="p">,</span> <span class="n">FlowSequenceEndToken</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_sequence_entry_mapping_end</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_node</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_sequence_entry_mapping_end</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_sequence_entry_mapping_end</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">parse_flow_sequence_entry_mapping_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_sequence_entry</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">MappingEndEvent</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+
+    <span class="c1"># flow_mapping  ::= FLOW-MAPPING-START</span>
+    <span class="c1">#                   (flow_mapping_entry FLOW-ENTRY)*</span>
+    <span class="c1">#                   flow_mapping_entry?</span>
+    <span class="c1">#                   FLOW-MAPPING-END</span>
+    <span class="c1"># flow_mapping_entry    ::= flow_node | KEY flow_node? (VALUE flow_node?)?</span>
+
+    <span class="k">def</span> <span class="nf">parse_flow_mapping_first_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_mapping_key</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">parse_flow_mapping_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">FlowMappingEndToken</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">first</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">FlowEntryToken</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+                    <span class="k">raise</span> <span class="n">ParserError</span><span class="p">(</span><span class="s2">&quot;while parsing a flow mapping&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="s2">&quot;expected &#39;,&#39; or &#39;}&#39;, but got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">token</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">KeyToken</span><span class="p">):</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">ValueToken</span><span class="p">,</span>
+                        <span class="n">FlowEntryToken</span><span class="p">,</span> <span class="n">FlowMappingEndToken</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_mapping_value</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_node</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_mapping_value</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">FlowMappingEndToken</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_mapping_empty_value</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_node</span><span class="p">()</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">MappingEndEvent</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marks</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">event</span>
+
+    <span class="k">def</span> <span class="nf">parse_flow_mapping_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">ValueToken</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">FlowEntryToken</span><span class="p">,</span> <span class="n">FlowMappingEndToken</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_mapping_key</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_node</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_mapping_key</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">end_mark</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_mapping_key</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">parse_flow_mapping_empty_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_flow_mapping_key</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_empty_scalar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">peek_token</span><span class="p">()</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">process_empty_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mark</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ScalarEvent</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">mark</span><span class="p">,</span> <span class="n">mark</span><span class="p">)</span>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

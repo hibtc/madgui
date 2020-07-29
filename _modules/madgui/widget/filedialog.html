@@ -1,0 +1,350 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.filedialog &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.filedialog</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.filedialog</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utility functions for use with QFileDialog.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;getOpenFileName&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;getSaveFileName&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;getSaveFolderName&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;getFileName&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;FileWidget&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QDialog</span><span class="p">,</span> <span class="n">QFileDialog</span><span class="p">,</span> <span class="n">QLineEdit</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.signal</span> <span class="kn">import</span> <span class="n">Signal</span>
+
+
+<span class="n">MODE_OPEN</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">MODE_SAVE</span> <span class="o">=</span> <span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">make_filters</span><span class="p">(</span><span class="n">wildcards</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create wildcard string from multiple wildcard tuples.</span>
+
+<span class="sd">    For example:</span>
+
+<span class="sd">        &gt;&gt;&gt; make_filters([</span>
+<span class="sd">        ...     (&#39;All files&#39;, &#39;*&#39;),</span>
+<span class="sd">        ...     (&#39;Text files&#39;, &#39;*.txt&#39;, &#39;*.log&#39;),</span>
+<span class="sd">        ... ])</span>
+<span class="sd">        [&#39;All files (*)&#39;, &#39;Text files (*.txt *.log)&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> (</span><span class="si">{1}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+            <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wildcards</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_fileDialog</span><span class="p">(</span><span class="n">acceptMode</span><span class="p">,</span> <span class="n">fileMode</span><span class="p">,</span>
+                <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="p">(),</span>
+                <span class="n">selectedFilter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+
+    <span class="n">nameFilters</span> <span class="o">=</span> <span class="n">make_filters</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span>
+
+    <span class="n">dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">caption</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+    <span class="n">dialog</span><span class="o">.</span><span class="n">setNameFilters</span><span class="p">(</span><span class="n">nameFilters</span><span class="p">)</span>
+    <span class="n">dialog</span><span class="o">.</span><span class="n">setAcceptMode</span><span class="p">(</span><span class="n">acceptMode</span><span class="p">)</span>
+    <span class="n">dialog</span><span class="o">.</span><span class="n">setFileMode</span><span class="p">(</span><span class="n">fileMode</span><span class="p">)</span>
+    <span class="n">dialog</span><span class="o">.</span><span class="n">setOptions</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">Options</span><span class="p">(</span><span class="n">options</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">selectedFilter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">selectNameFilter</span><span class="p">(</span><span class="n">nameFilters</span><span class="p">[</span><span class="n">selectedFilter</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span> <span class="o">!=</span> <span class="n">QDialog</span><span class="o">.</span><span class="n">Accepted</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">selectedFiles</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">fileMode</span> <span class="o">!=</span> <span class="n">QFileDialog</span><span class="o">.</span><span class="n">Directory</span><span class="p">:</span>
+        <span class="n">selectedFilter</span> <span class="o">=</span> <span class="n">nameFilters</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">dialog</span><span class="o">.</span><span class="n">selectedNameFilter</span><span class="p">())</span>
+
+        <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ext</span><span class="p">:</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="n">filters</span><span class="p">[</span><span class="n">selectedFilter</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>    <span class="c1"># use first extension</span>
+            <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;*.&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ext</span> <span class="o">!=</span> <span class="s1">&#39;*.*&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">filename</span> <span class="o">+</span> <span class="n">ext</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>       <span class="c1"># remove leading &#39;*&#39;</span>
+    <span class="k">return</span> <span class="n">filename</span>
+
+
+<div class="viewcode-block" id="getOpenFileName"><a class="viewcode-back" href="../../../api/madgui.widget.filedialog.html#madgui.widget.filedialog.getOpenFileName">[docs]</a><span class="k">def</span> <span class="nf">getOpenFileName</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Imitates ``QFileDialog.getOpenFileName``, except that ``filter``</span>
+<span class="sd">    is now ``filters`` that must be specified as a list.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_fileDialog</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">AcceptOpen</span><span class="p">,</span>
+                       <span class="n">QFileDialog</span><span class="o">.</span><span class="n">ExistingFile</span><span class="p">,</span>
+                       <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getSaveFileName"><a class="viewcode-back" href="../../../api/madgui.widget.filedialog.html#madgui.widget.filedialog.getSaveFileName">[docs]</a><span class="k">def</span> <span class="nf">getSaveFileName</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_fileDialog</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">AcceptSave</span><span class="p">,</span>
+                       <span class="n">QFileDialog</span><span class="o">.</span><span class="n">AnyFile</span><span class="p">,</span>
+                       <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getSaveFolderName"><a class="viewcode-back" href="../../../api/madgui.widget.filedialog.html#madgui.widget.filedialog.getSaveFolderName">[docs]</a><span class="k">def</span> <span class="nf">getSaveFolderName</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_fileDialog</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">AcceptSave</span><span class="p">,</span>
+                       <span class="n">QFileDialog</span><span class="o">.</span><span class="n">Directory</span><span class="p">,</span>
+                       <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">ShowDirsOnly</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getFileName"><a class="viewcode-back" href="../../../api/madgui.widget.filedialog.html#madgui.widget.filedialog.getFileName">[docs]</a><span class="k">def</span> <span class="nf">getFileName</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">MODE_OPEN</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">getOpenFileName</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">getSaveFileName</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FileWidget"><a class="viewcode-back" href="../../../api/madgui.widget.filedialog.html#madgui.widget.filedialog.FileWidget">[docs]</a><span class="k">class</span> <span class="nc">FileWidget</span><span class="p">(</span><span class="n">QLineEdit</span><span class="p">):</span>
+
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">MODE_OPEN</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Open file&#39;</span>
+    <span class="n">filters</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">folder</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">file_changed</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setReadOnly</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FileWidget.keyPressEvent"><a class="viewcode-back" href="../../../api/madgui.widget.filedialog.html#madgui.widget.filedialog.FileWidget.keyPressEvent">[docs]</a>    <span class="k">def</span> <span class="nf">keyPressEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Enter</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Key_Return</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Key_Space</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_open_dialog</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">keyPressEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileWidget.mousePressEvent"><a class="viewcode-back" href="../../../api/madgui.widget.filedialog.html#madgui.widget.filedialog.FileWidget.mousePressEvent">[docs]</a>    <span class="k">def</span> <span class="nf">mousePressEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">()</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">LeftButton</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_open_dialog</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">mousePressEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileWidget.set_filename"><a class="viewcode-back" href="../../../api/madgui.widget.filedialog.html#madgui.widget.filedialog.FileWidget.set_filename">[docs]</a>    <span class="k">def</span> <span class="nf">set_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">changed</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_changed</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileWidget.show_open_dialog"><a class="viewcode-back" href="../../../api/madgui.widget.filedialog.html#madgui.widget.filedialog.FileWidget.show_open_dialog">[docs]</a>    <span class="k">def</span> <span class="nf">show_open_dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">getFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

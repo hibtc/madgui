@@ -1,0 +1,408 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.widget.match &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.widget.match</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.widget.match</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">UI for matching.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;parse_knob&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MatchWidget&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QAbstractItemView</span><span class="p">,</span> <span class="n">QDialogButtonBox</span><span class="p">,</span>
+                             <span class="n">QWidget</span><span class="p">,</span> <span class="n">QPushButton</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">madgui.util.qt</span> <span class="kn">import</span> <span class="n">load_ui</span>
+<span class="kn">from</span> <span class="nn">madgui.util.unit</span> <span class="kn">import</span> <span class="n">ui_units</span>
+<span class="kn">from</span> <span class="nn">madgui.widget.tableview</span> <span class="kn">import</span> <span class="n">TableItem</span><span class="p">,</span> <span class="n">delegates</span>
+<span class="kn">from</span> <span class="nn">madgui.model.match</span> <span class="kn">import</span> <span class="n">Constraint</span>
+<span class="kn">from</span> <span class="nn">madgui.util.enum</span> <span class="kn">import</span> <span class="n">make_enum</span>
+
+<span class="kn">from</span> <span class="nn">cpymad.util</span> <span class="kn">import</span> <span class="n">PARAM_TYPE_CONSTRAINT</span>
+
+
+<span class="n">Button</span> <span class="o">=</span> <span class="n">QDialogButtonBox</span>
+
+
+<div class="viewcode-block" id="parse_knob"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.parse_knob">[docs]</a><span class="k">def</span> <span class="nf">parse_knob</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">elem</span><span class="p">,</span> <span class="n">attr</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s1">&#39;-&gt;&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">elem</span><span class="p">,</span> <span class="n">attr</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&gt;&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">globals</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">text</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Ignoring invalid knob: </span><span class="si">{!r}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">elem</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">knobs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_knobs</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">elem</span><span class="p">],</span> <span class="n">attr</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>    <span class="c1"># missing attribute</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;Ignoring invalid knob (unknown element attribute): </span><span class="si">{!r}</span><span class="s2">&quot;</span>
+            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">knobs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">knobs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+        <span class="s2">&quot;Ignoring invalid knob (not backed by knob): </span><span class="si">{!r}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="MatchWidget"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget">[docs]</a><span class="k">class</span> <span class="nc">MatchWidget</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+
+    <span class="n">ui_file</span> <span class="o">=</span> <span class="s1">&#39;match.ui&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matcher</span><span class="p">,</span> <span class="n">control</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">load_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__package__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span> <span class="o">=</span> <span class="n">matcher</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span> <span class="o">=</span> <span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span> <span class="o">=</span> <span class="n">matcher</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">local_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;envx&#39;</span><span class="p">,</span> <span class="s1">&#39;envy&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="n">cmdpar</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">for</span> <span class="n">cmdpar</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">cmdpar</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">cmdpar</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">PARAM_TYPE_CONSTRAINT</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elem_enum</span> <span class="o">=</span> <span class="n">make_enum</span><span class="p">(</span><span class="s1">&#39;Elem&#39;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lcon_enum</span> <span class="o">=</span> <span class="n">make_enum</span><span class="p">(</span><span class="s1">&#39;Local&#39;</span><span class="p">,</span> <span class="n">local_constraints</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">knob_enum</span> <span class="o">=</span> <span class="n">make_enum</span><span class="p">(</span><span class="s1">&#39;Knobs&#39;</span><span class="p">,</span> <span class="n">matcher</span><span class="o">.</span><span class="n">knobs</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_controls</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_initial_values</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_signals</span><span class="p">()</span>
+
+    <span class="c1"># columns</span>
+
+<div class="viewcode-block" id="MatchWidget.cons_items"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.cons_items">[docs]</a>    <span class="k">def</span> <span class="nf">cons_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s2">&quot;Element&quot;</span><span class="p">,</span> <span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Target&quot;</span><span class="p">,</span> <span class="s2">&quot;Unit&quot;</span><span class="p">):</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elem_enum</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">elem</span><span class="o">.</span><span class="n">node_name</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">elem</span> <span class="k">else</span> <span class="s2">&quot;(global)&quot;</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lcon_enum</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">axis</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">ui_units</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">set_elem</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">Constraint</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">position</span><span class="o">+</span><span class="n">el</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">set_name</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_twiss</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">elem</span><span class="o">.</span><span class="n">node_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span> <span class="n">c</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">Constraint</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">elem</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">Constraint</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">elem</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">set_value</span><span class="o">=</span><span class="n">set_elem</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">set_value</span><span class="o">=</span><span class="n">set_name</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">set_value</span><span class="o">=</span><span class="n">set_value</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span>
+                      <span class="n">delegate</span><span class="o">=</span><span class="n">delegates</span><span class="p">[</span><span class="nb">float</span><span class="p">]),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="MatchWidget.var_items"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.var_items">[docs]</a>    <span class="k">def</span> <span class="nf">var_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s2">&quot;Knob&quot;</span><span class="p">,</span> <span class="s2">&quot;Initial&quot;</span><span class="p">,</span> <span class="s2">&quot;Final&quot;</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">set_knob</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">knob</span> <span class="o">=</span> <span class="n">parse_knob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">knob</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">knob</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">knob_enum</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">set_value</span><span class="o">=</span><span class="n">set_knob</span><span class="p">),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">design_values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">())),</span>
+            <span class="n">TableItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">match_results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">())),</span>
+        <span class="p">]</span></div>
+
+    <span class="c1"># The three steps of UI initialization</span>
+
+<div class="viewcode-block" id="MatchWidget.init_controls"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.init_controls">[docs]</a>    <span class="k">def</span> <span class="nf">init_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">targetsTable</span><span class="o">.</span><span class="n">setSelectionBehavior</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">SelectRows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resultsTable</span><span class="o">.</span><span class="n">setSelectionBehavior</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">SelectRows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">targetsTable</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">ExtendedSelection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resultsTable</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">ExtendedSelection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">targetsTable</span><span class="o">.</span><span class="n">set_viewmodel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cons_items</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resultsTable</span><span class="o">.</span><span class="n">set_viewmodel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_items</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MatchWidget.set_initial_values"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.set_initial_values">[docs]</a>    <span class="k">def</span> <span class="nf">set_initial_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mirrorConstraintsCheckBox</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">mirror_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_buttons</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MatchWidget.connect_signals"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.connect_signals">[docs]</a>    <span class="k">def</span> <span class="nf">connect_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">targetsTable</span><span class="o">.</span><span class="n">connectRemoveButton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">removeConstraintButton</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">targetsTable</span><span class="o">.</span><span class="n">connectClearButton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clearConstraintsButton</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resultsTable</span><span class="o">.</span><span class="n">connectRemoveButton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">removeKnobButton</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resultsTable</span><span class="o">.</span><span class="n">connectClearButton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clearKnobsButton</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addConstraintButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addKnobButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_variable</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">constraints</span><span class="o">.</span><span class="n">update_finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_update_constraints</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">update_finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_update_variables</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonBox</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonBox</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Reset</span><span class="p">)</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">reset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matchButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">match</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mirrorConstraintsCheckBox</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_change_mirror</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_execute_button</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MatchWidget.connect_execute_button"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.connect_execute_button">[docs]</a>    <span class="k">def</span> <span class="nf">connect_execute_button</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Enables the execute button if madgui has an online backend</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">execButton</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QPushButton</span><span class="p">,</span> <span class="s1">&#39;ExecuteButton&#39;</span><span class="p">)</span>
+        <span class="n">execButton</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">is_connected</span><span class="p">())</span>
+        <span class="n">execButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">on_write_all</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MatchWidget.on_update_constraints"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.on_update_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">on_update_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">targetsTable</span><span class="o">.</span><span class="n">resizeColumnToContents</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">targetsTable</span><span class="o">.</span><span class="n">resizeColumnToContents</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_buttons</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MatchWidget.on_update_variables"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.on_update_variables">[docs]</a>    <span class="k">def</span> <span class="nf">on_update_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resultsTable</span><span class="o">.</span><span class="n">resizeColumnToContents</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resultsTable</span><span class="o">.</span><span class="n">resizeColumnToContents</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_buttons</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MatchWidget.update_buttons"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.update_buttons">[docs]</a>    <span class="k">def</span> <span class="nf">update_buttons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">num_vars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+        <span class="n">num_cons</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+        <span class="c1"># TODO: the last condition should be relaxed when we support methods</span>
+        <span class="c1"># other than LMDIF:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matchButton</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span>
+            <span class="n">num_vars</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span>
+            <span class="n">num_cons</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span>
+            <span class="n">num_vars</span> <span class="o">==</span> <span class="n">num_cons</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MatchWidget.showEvent"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.showEvent">[docs]</a>    <span class="k">def</span> <span class="nf">showEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MatchWidget.hideEvent"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.hideEvent">[docs]</a>    <span class="k">def</span> <span class="nf">hideEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MatchWidget.accept"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.accept">[docs]</a>    <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">apply</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">()</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MatchWidget.add_constraint"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.add_constraint">[docs]</a>    <span class="k">def</span> <span class="nf">add_constraint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elem_enum</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lcon_enum</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># TODO: -&gt; curve.y_name?</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">position</span> <span class="o">+</span> <span class="n">elem</span><span class="o">.</span><span class="n">length</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_twiss</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Constraint</span><span class="p">(</span>
+            <span class="n">elem</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="MatchWidget.add_variable"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.add_variable">[docs]</a>    <span class="k">def</span> <span class="nf">add_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">next_best_variable</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="MatchWidget.on_change_mirror"><a class="viewcode-back" href="../../../api/madgui.widget.match.html#madgui.widget.match.MatchWidget.on_change_mirror">[docs]</a>    <span class="k">def</span> <span class="nf">on_change_mirror</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checked</span><span class="p">):</span>
+        <span class="c1"># TODO: add/remove mirrored constraints (if untouched by the user)?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">mirror_mode</span> <span class="o">=</span> <span class="n">checked</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

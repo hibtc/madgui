@@ -1,0 +1,490 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.util.unit &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.util.unit</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.util.unit</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for converting between units of physical quantities, e.g. meters to</span>
+<span class="sd">millimeters, etc. This is done using the Pint_ library.</span>
+
+<span class="sd">Note that we do not use pint to wrap quantities that are passed around within</span>
+<span class="sd">madgui internally, as it would be the idiomatic approach: add units on input,</span>
+<span class="sd">internally work with quantities with units attached, remove units on output.</span>
+
+<span class="sd">Instead, we convert units usually only on input and then assume everything is</span>
+<span class="sd">in `MAD-X units`_. The reason is that using quantities internally infects the</span>
+<span class="sd">whole applications and requires unpack/repack operations in hundreds of</span>
+<span class="sd">places. This amount of book-keeping is not justified in a space, where we can</span>
+<span class="sd">almost exclusively rely on MAD-X units being used anyway.</span>
+
+<span class="sd">Furthermore, we pass around strings internally and not ``Unit`` objects. This</span>
+<span class="sd">simplifies interoperability with external packages and the performance cost</span>
+<span class="sd">for parsing the unit multiple times is negligible (since it rarely needs to be</span>
+<span class="sd">done now anyway).</span>
+
+<span class="sd">The most frequent usage of this module is to convert a number between internal</span>
+<span class="sd">(MAD-X) and UI display units. This works as follows:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    in_madx_units = from_ui({&#39;energy&#39;: textcontrol_energy.text()})</span>
+
+<span class="sd">    in_ui_units = to_ui({&#39;energy&#39;: 450})</span>
+
+<span class="sd">.. _Pint: https://pint.readthedocs.io/</span>
+<span class="sd">.. _MAD-X units: https://mad.web.cern.ch/mad/webguide/manual.html#Ch1.S8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;units&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;get_unit&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;add_unit&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;strip_unit&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;change_unit&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;toquantity&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;tounit&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;format_quantity&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;get_raw_label&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;from_config&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;UnitConverter&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;madx_units&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ui_units&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;convert&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;from_ui&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;to_ui&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pint</span>
+
+<span class="kn">import</span> <span class="nn">madgui.util.yaml</span> <span class="k">as</span> <span class="nn">yaml</span>
+
+
+<span class="c1"># Global registry of units known to us:</span>
+<span class="n">units</span> <span class="o">=</span> <span class="n">pint</span><span class="o">.</span><span class="n">UnitRegistry</span><span class="p">(</span><span class="n">on_redefinition</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+<span class="n">units</span><span class="o">.</span><span class="n">default_format</span> <span class="o">=</span> <span class="s1">&#39;P~&#39;</span>     <span class="c1"># make `str(quantity)` slightly nicer</span>
+<span class="n">units</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">&#39;ratio = []&#39;</span><span class="p">)</span>
+<span class="n">units</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">&#39;percent = 0.01 ratio = %&#39;</span><span class="p">)</span>
+<span class="n">units</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">&#39;permille = 0.001 ratio = ‰&#39;</span><span class="p">)</span>
+<span class="n">units</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">&#39;degree = pi / 180 * radian = °&#39;</span>
+             <span class="s1">&#39;= deg = arcdeg = arcdegree = angular_degree&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_unit"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.get_unit">[docs]</a><span class="k">def</span> <span class="nf">get_unit</span><span class="p">(</span><span class="n">quantity</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a ``Quantity`` object with the same unit as ``quantity``, but</span>
+<span class="sd">    magnitude 1 (one). Returns ``None`` if ``quantity`` does not have a unit.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">quantity</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="add_unit"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.add_unit">[docs]</a><span class="k">def</span> <span class="nf">add_unit</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add a unit to the number ``quantity``. If ``quantity`` already has a</span>
+<span class="sd">    unit, it will perform unit conversion.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">quantity</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">quantity</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">quantity</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">toquantity</span><span class="p">(</span><span class="n">unit</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">quantity</span> <span class="o">*</span> <span class="n">unit</span></div>
+
+
+<div class="viewcode-block" id="strip_unit"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.strip_unit">[docs]</a><span class="k">def</span> <span class="nf">strip_unit</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert the quantity to a plain float.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">quantity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">quantity</span><span class="o">.</span><span class="n">magnitude</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">quantity</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="c1"># FIXME: &#39;zip&#39; truncates without warning if not enough units</span>
+        <span class="c1"># are defined</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">q</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span> <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">unit</span><span class="p">)]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">quantity</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">quantity</span></div>
+
+
+<div class="viewcode-block" id="change_unit"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.change_unit">[docs]</a><span class="k">def</span> <span class="nf">change_unit</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">from_unit</span><span class="p">,</span> <span class="n">to_unit</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">strip_unit</span><span class="p">(</span>
+        <span class="n">add_unit</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">from_config</span><span class="p">(</span><span class="n">from_unit</span><span class="p">)),</span> <span class="n">from_config</span><span class="p">(</span><span class="n">to_unit</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="toquantity"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.toquantity">[docs]</a><span class="k">def</span> <span class="nf">toquantity</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tounit"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.tounit">[docs]</a><span class="k">def</span> <span class="nf">tounit</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Cast the quantity to a specific unit.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">quantity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">toquantity</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">toquantity</span><span class="p">(</span><span class="n">unit</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="format_quantity"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.format_quantity">[docs]</a><span class="k">def</span> <span class="nf">format_quantity</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">num_spec</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get a nice display string for the quantity.&quot;&quot;&quot;</span>
+    <span class="n">num_fmt</span> <span class="o">=</span> <span class="s1">&#39;{:&#39;</span> <span class="o">+</span> <span class="n">num_spec</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">):</span>
+        <span class="n">magn</span> <span class="o">=</span> <span class="n">num_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">quantity</span><span class="o">.</span><span class="n">magnitude</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">get_raw_label</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">magn</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">unit</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">num_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_raw_label"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.get_raw_label">[docs]</a><span class="k">def</span> <span class="nf">get_raw_label</span><span class="p">(</span><span class="n">quantity</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get the name of the unit, without enclosing brackets.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">quantity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;[</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">get_raw_label</span><span class="p">,</span> <span class="n">quantity</span><span class="p">)))</span>
+    <span class="n">quantity</span> <span class="o">=</span> <span class="n">from_config</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">short</span> <span class="o">=</span> <span class="n">pint</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">UnitsContainer</span><span class="p">(</span>
+        <span class="p">{</span><span class="n">units</span><span class="o">.</span><span class="n">_get_symbol</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">value</span>
+         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">quantity</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">_units</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+    <span class="n">as_ratio</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">exp</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">exp</span> <span class="ow">in</span> <span class="n">short</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">pint</span><span class="o">.</span><span class="n">formatting</span><span class="o">.</span><span class="n">formatter</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
+        <span class="n">as_ratio</span><span class="o">=</span><span class="n">as_ratio</span><span class="p">,</span>
+        <span class="n">single_denominator</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">product_fmt</span><span class="o">=</span><span class="s1">&#39;·&#39;</span><span class="p">,</span>
+        <span class="n">division_fmt</span><span class="o">=</span><span class="s1">&#39;/&#39;</span><span class="p">,</span>
+        <span class="n">power_fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{0}{1}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">parentheses_fmt</span><span class="o">=</span><span class="s1">&#39;(</span><span class="si">{0}</span><span class="s1">)&#39;</span><span class="p">,</span>
+        <span class="n">exp_call</span><span class="o">=</span><span class="n">pint</span><span class="o">.</span><span class="n">formatting</span><span class="o">.</span><span class="n">_pretty_fmt_exponent</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="from_config"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.from_config">[docs]</a><span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a config entry for a unit to a :class:`pint.unit.Quantity` instance.</span>
+
+<span class="sd">    The pint parser is quite powerful. Valid examples are:</span>
+
+<span class="sd">        s / m²</span>
+<span class="sd">        microsecond</span>
+<span class="sd">        10 rad</span>
+<span class="sd">        m^-2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">Unit</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">unit</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">unit</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">from_config</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">unit</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+    <span class="c1"># as of pint-0.8.1 the following symbols fail to be parsed:</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;percent&#39;</span><span class="p">)</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;‰&#39;</span><span class="p">,</span> <span class="s1">&#39;permille&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">units</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="UnitConverter"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.UnitConverter">[docs]</a><span class="k">class</span> <span class="nc">UnitConverter</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Quantity converter.</span>
+
+<span class="sd">    Used to add and remove units from quanitities and evaluate expressions.</span>
+
+<span class="sd">    :ivar dict _units: unit dictionary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">units</span>
+
+<div class="viewcode-block" id="UnitConverter.from_config_dict"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.UnitConverter.from_config_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_config_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">conf_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert a config dict of units to their in-memory representation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">({</span>
+            <span class="n">k</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">from_config</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">conf_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">})</span></div>
+
+<div class="viewcode-block" id="UnitConverter.get"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.UnitConverter.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">name</span></div>
+
+<div class="viewcode-block" id="UnitConverter.label"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.UnitConverter.label">[docs]</a>    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the name of the unit for the specified parameter name.&quot;&quot;&quot;</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">get_raw_label</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_raw_label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_add_unit</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="UnitConverter.add_unit"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.UnitConverter.add_unit">[docs]</a>    <span class="k">def</span> <span class="nf">add_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add units to a single number.&quot;&quot;&quot;</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">unit</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                <span class="c1"># FIXME: &#39;zip&#39; truncates without warning if not enough units</span>
+                <span class="c1"># are defined</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_add_unit</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_unit</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span></div>
+
+    <span class="k">def</span> <span class="nf">_add_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_add_unit</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">Quantity</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">tounit</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="n">Number</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">unit</span> <span class="o">*</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="UnitConverter.strip_unit"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.UnitConverter.strip_unit">[docs]</a>    <span class="k">def</span> <span class="nf">strip_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert to MAD-X units.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">strip_unit</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="UnitConverter.dict_add_unit"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.UnitConverter.dict_add_unit">[docs]</a>    <span class="k">def</span> <span class="nf">dict_add_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add units to all elements in a dictionary.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_unit</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">obj</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UnitConverter.dict_strip_unit"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.UnitConverter.dict_strip_unit">[docs]</a>    <span class="k">def</span> <span class="nf">dict_strip_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove units from all elements in a dictionary.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">strip_unit</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">obj</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">)</span></div></div>
+
+
+<span class="n">madx_units</span> <span class="o">=</span> <span class="n">UnitConverter</span><span class="o">.</span><span class="n">from_config_dict</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">load_resource</span><span class="p">(</span>
+    <span class="s1">&#39;madgui.data&#39;</span><span class="p">,</span> <span class="s1">&#39;madx_units.yml&#39;</span><span class="p">))</span>
+
+<span class="n">ui_units</span> <span class="o">=</span> <span class="n">UnitConverter</span><span class="o">.</span><span class="n">from_config_dict</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">load_resource</span><span class="p">(</span>
+    <span class="s1">&#39;madgui.data&#39;</span><span class="p">,</span> <span class="s1">&#39;ui_units.yml&#39;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">from_</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">to</span><span class="o">.</span><span class="n">dict_strip_unit</span><span class="p">(</span><span class="n">from_</span><span class="o">.</span><span class="n">dict_add_unit</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">to</span><span class="o">.</span><span class="n">strip_unit</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">from_</span><span class="o">.</span><span class="n">add_unit</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">to</span><span class="o">.</span><span class="n">strip_unit</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">from_</span><span class="o">.</span><span class="n">add_unit</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;convert can only be called with one or two arguments.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="from_ui"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.from_ui">[docs]</a><span class="k">def</span> <span class="nf">from_ui</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">convert</span><span class="p">(</span><span class="n">ui_units</span><span class="p">,</span> <span class="n">madx_units</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="to_ui"><a class="viewcode-back" href="../../../api/madgui.util.unit.html#madgui.util.unit.to_ui">[docs]</a><span class="k">def</span> <span class="nf">to_ui</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">convert</span><span class="p">(</span><span class="n">madx_units</span><span class="p">,</span> <span class="n">ui_units</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,480 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.model.errors &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../madgui.html">madgui</a> &raquo;</li>
+        
+      <li>madgui.model.errors</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for madgui.model.errors</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module defines functions and classes to load and represent MAD-X model</span>
+<span class="sd">errors, such as alignment errors or field errors.</span>
+
+<span class="sd">Errors are represented as strings such as::</span>
+
+<span class="sd">    &#39;Δax_b3mu1&#39;         # absolute error in parameter</span>
+<span class="sd">    &#39;δax_b3mu1&#39;         # relative error in parameter</span>
+<span class="sd">    &#39;Δb3mu1v-&gt;kick&#39;     # absolute error in element attribute</span>
+<span class="sd">    &#39;g3mu1&lt;dx&gt;&#39;         # alignment error</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;import_errors&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;apply_errors&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;parse_error&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Param&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Ealign&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Efcomp&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ElemAttr&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;InitTwiss&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ScaleAttr&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ScaleParam&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BaseError&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;RelativeError&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">ExitStack</span>
+
+<span class="kn">from</span> <span class="nn">cpymad.util</span> <span class="kn">import</span> <span class="n">is_identifier</span>
+
+
+<div class="viewcode-block" id="import_errors"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.import_errors">[docs]</a><span class="k">def</span> <span class="nf">import_errors</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply errors to a model defined by a dictionary ``{error: value}`` with</span>
+<span class="sd">    types ``{str: float}``. The error keys are parsed by ``parse_error``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">apply_errors</span><span class="p">(</span>
+        <span class="n">model</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">parse_error</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">spec</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="apply_errors"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.apply_errors">[docs]</a><span class="k">def</span> <span class="nf">apply_errors</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply list of errors and list of corresponding values to a given model.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">ExitStack</span><span class="p">()</span> <span class="k">as</span> <span class="n">stack</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">error</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+            <span class="n">stack</span><span class="o">.</span><span class="n">enter_context</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">vary</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">stack</span><span class="o">.</span><span class="n">pop_all</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="parse_error"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.parse_error">[docs]</a><span class="k">def</span> <span class="nf">parse_error</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Instanciate a subtype of :class:`BaseError`, depending on the format of</span>
+<span class="sd">    ``name``. We currently understand the following formats::</span>
+
+<span class="sd">        x               -&gt; InitTwiss</span>
+<span class="sd">        Δax_b3mu1       -&gt; ElemAttr</span>
+<span class="sd">        δax_b3mu1       -&gt; ScaleAttr</span>
+<span class="sd">        Δg3mu1-&gt;angle   -&gt; Param</span>
+<span class="sd">        δg3mu1-&gt;angle   -&gt; ScaleParam</span>
+<span class="sd">        g3mu1&lt;dx&gt;       -&gt; Ealign</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mult</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;δ&#39;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;δΔ </span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;px&#39;</span><span class="p">,</span> <span class="s1">&#39;py&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">InitTwiss</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;-&gt;&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+        <span class="n">elem</span><span class="p">,</span> <span class="n">attr</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&gt;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mult</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ScaleAttr</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ElemAttr</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;&lt;&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+        <span class="n">elem</span><span class="p">,</span> <span class="n">attr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(.*)\&lt;(.*)\&gt;&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Ealign</span><span class="p">({</span><span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="n">elem</span><span class="p">},</span> <span class="n">attr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_identifier</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">mult</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ScaleParam</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Param</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="c1"># TODO: efcomp field errors!</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{!r}</span><span class="s2"> is not a valid error specification!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="BaseError"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.BaseError">[docs]</a><span class="k">class</span> <span class="nc">BaseError</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for model errors.</span>
+
+<span class="sd">    Subclasses must implement ``get``, ``set``, and ``tinker``.</span>
+
+<span class="sd">    In the simplest case, ``get`` returns the current value of the error,</span>
+<span class="sd">    ``tinker`` returns the given step, and ``set`` sets a variable. However,</span>
+<span class="sd">    this logic is not always available. In general, the following protocol</span>
+<span class="sd">    must be implemented:</span>
+
+<span class="sd">    - :meth:`get`: return a backup value that will be later used to restore</span>
+<span class="sd">      the current error value</span>
+<span class="sd">    - :meth:`tinker` returns a value that should be used to update the current</span>
+<span class="sd">      value</span>
+<span class="sd">    - :meth:`set` is called with the return value of :meth:`tinker` to change</span>
+<span class="sd">      the value of the error, and later with the return value of :meth:`get`</span>
+<span class="sd">      to restore to the original state.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">leader</span> <span class="o">=</span> <span class="s1">&#39;Δ&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+<div class="viewcode-block" id="BaseError.vary"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.BaseError.vary">[docs]</a>    <span class="k">def</span> <span class="nf">vary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Applies the error and returns a context manager that restores the</span>
+<span class="sd">        error to its original value on exit.&quot;&quot;&quot;</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tinker</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">ExitStack</span><span class="p">()</span> <span class="k">as</span> <span class="n">stack</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">new</span> <span class="o">!=</span> <span class="n">old</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+                <span class="n">stack</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">old</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">stack</span><span class="o">.</span><span class="n">pop_all</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BaseError.get"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.BaseError.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a &quot;backup&quot; value that represents with what :meth:`set` should</span>
+<span class="sd">        be called to restore the current value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">0.0</span></div>
+
+<div class="viewcode-block" id="BaseError.set"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.BaseError.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the error value.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BaseError.tinker"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.BaseError.tinker">[docs]</a>    <span class="k">def</span> <span class="nf">tinker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the value that should be passed to :meth:`set` in order to</span>
+<span class="sd">        increment the error by ``step``. ``value`` is provided as the return</span>
+<span class="sd">        value of :meth:`get`.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">{}</span><span class="s2">) + (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">step</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span> <span class="o">+</span> <span class="n">step</span></div>
+
+<div class="viewcode-block" id="BaseError.is_defined_for"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.BaseError.is_defined_for">[docs]</a>    <span class="k">def</span> <span class="nf">is_defined_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check whether this error is relevant for the given model.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
+
+
+<div class="viewcode-block" id="Param"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Param">[docs]</a><span class="k">class</span> <span class="nc">Param</span><span class="p">(</span><span class="n">BaseError</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Error on a global variable (knob).&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Param.get"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Param.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">globals</span><span class="o">.</span><span class="n">cmdpar</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span></div>
+
+<div class="viewcode-block" id="Param.set"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Param.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">globals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="Param.is_defined_for"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Param.is_defined_for">[docs]</a>    <span class="k">def</span> <span class="nf">is_defined_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">globals</span></div></div>
+
+
+<div class="viewcode-block" id="Ealign"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Ealign">[docs]</a><span class="k">class</span> <span class="nc">Ealign</span><span class="p">(</span><span class="n">BaseError</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Alignment error.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select</span> <span class="o">=</span> <span class="n">select</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&lt;</span><span class="si">{}</span><span class="s1">&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">select</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;range&#39;</span><span class="p">),</span> <span class="n">attr</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Ealign.set"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Ealign.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">ealign</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span></div>
+
+<div class="viewcode-block" id="Ealign.get"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Ealign.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">step</span></div>
+
+<div class="viewcode-block" id="Ealign.tinker"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Ealign.tinker">[docs]</a>    <span class="k">def</span> <span class="nf">tinker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">value</span></div>
+
+<div class="viewcode-block" id="Ealign.is_defined_for"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Ealign.is_defined_for">[docs]</a>    <span class="k">def</span> <span class="nf">is_defined_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;range&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">elem</span> <span class="ow">and</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span></div></div>
+
+
+<div class="viewcode-block" id="Efcomp"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Efcomp">[docs]</a><span class="k">class</span> <span class="nc">Efcomp</span><span class="p">(</span><span class="n">BaseError</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Field error.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select</span> <span class="o">=</span> <span class="n">select</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="n">order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="n">radius</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">+</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">select</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">],</span> <span class="n">attr</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Efcomp.set"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Efcomp.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">madx</span><span class="o">.</span><span class="n">command</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">efcomp</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
+            <span class="s1">&#39;order&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">,</span>
+            <span class="s1">&#39;radius&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">:</span> <span class="p">[</span><span class="n">v</span> <span class="o">*</span> <span class="n">value</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">],</span>
+        <span class="p">})</span></div>
+
+<div class="viewcode-block" id="Efcomp.get"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Efcomp.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">step</span></div>
+
+<div class="viewcode-block" id="Efcomp.tinker"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Efcomp.tinker">[docs]</a>    <span class="k">def</span> <span class="nf">tinker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">value</span></div>
+
+<div class="viewcode-block" id="Efcomp.is_defined_for"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.Efcomp.is_defined_for">[docs]</a>    <span class="k">def</span> <span class="nf">is_defined_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;range&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">elem</span> <span class="ow">and</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span></div></div>
+
+
+<div class="viewcode-block" id="ElemAttr"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.ElemAttr">[docs]</a><span class="k">class</span> <span class="nc">ElemAttr</span><span class="p">(</span><span class="n">BaseError</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Element attribute error.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elem</span> <span class="o">=</span> <span class="n">elem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">-&gt;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ElemAttr.get"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.ElemAttr.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">elem</span><span class="p">]</span><span class="o">.</span><span class="n">cmdpar</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span></div>
+
+<div class="viewcode-block" id="ElemAttr.set"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.ElemAttr.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">elem</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="ElemAttr.is_defined_for"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.ElemAttr.is_defined_for">[docs]</a>    <span class="k">def</span> <span class="nf">is_defined_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">elem</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span></div></div>
+
+
+<div class="viewcode-block" id="InitTwiss"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.InitTwiss">[docs]</a><span class="k">class</span> <span class="nc">InitTwiss</span><span class="p">(</span><span class="n">BaseError</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Error in twiss initial condition (x, px, y, py).&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="InitTwiss.get"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.InitTwiss.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">twiss_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="InitTwiss.set"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.InitTwiss.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">update_twiss_args</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span></div></div>
+
+
+<div class="viewcode-block" id="RelativeError"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.RelativeError">[docs]</a><span class="k">class</span> <span class="nc">RelativeError</span><span class="p">(</span><span class="n">BaseError</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Base class for relative errors.&quot;&quot;&quot;</span>
+
+    <span class="n">leader</span> <span class="o">=</span> <span class="s1">&#39;δ&#39;</span>
+
+<div class="viewcode-block" id="RelativeError.tinker"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.RelativeError.tinker">[docs]</a>    <span class="k">def</span> <span class="nf">tinker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">{}</span><span class="s2">) * (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">step</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">step</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ScaleAttr"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.ScaleAttr">[docs]</a><span class="k">class</span> <span class="nc">ScaleAttr</span><span class="p">(</span><span class="n">RelativeError</span><span class="p">,</span> <span class="n">ElemAttr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Relative element attribute error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="ScaleParam"><a class="viewcode-back" href="../../../api/madgui.model.errors.html#madgui.model.errors.ScaleParam">[docs]</a><span class="k">class</span> <span class="nc">ScaleParam</span><span class="p">(</span><span class="n">RelativeError</span><span class="p">,</span> <span class="n">Param</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Relative global variable error.&quot;&quot;&quot;</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,533 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.control module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.online.diagnostic module" href="madgui.online.diagnostic.html" />
+    <link rel="prev" title="madgui.online.api module" href="madgui.online.api.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.online.html">madgui.online package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.online.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.online.html">madgui.online package</a> &raquo;</li>
+        
+      <li>madgui.online.control module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.online.control.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.online.control">
+<span id="madgui-online-control-module"></span><h1>madgui.online.control module<a class="headerlink" href="#module-madgui.online.control" title="Permalink to this headline">¶</a></h1>
+<p>Plugin that integrates a beamoptikdll UI into MadGUI.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control" title="madgui.online.control.Control"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Control</span></code></a>(session)</p></td>
+<td><p>Plugin class for MadGUI.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.BeamSampler" title="madgui.online.control.BeamSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BeamSampler</span></code></a>(control[, monitors])</p></td>
+<td><p>Beam surveillance utility.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.MonitorReadout" title="madgui.online.control.MonitorReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MonitorReadout</span></code></a>(name, values)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.online.control.BeamSampler">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.control.</code><code class="sig-name descname">BeamSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">control</span></em>, <em class="sig-param"><span class="n">monitors</span><span class="o">=</span><span class="default_value">()</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#BeamSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.BeamSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Beam surveillance utility.</p>
+<p>Keeps track of BPMs and broadcasts new readouts.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.BeamSampler.fetch" title="madgui.online.control.BeamSampler.fetch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch</span></code></a>(monitors)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.BeamSampler.readouts" title="madgui.online.control.BeamSampler.readouts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">readouts</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.BeamSampler.timestamp" title="madgui.online.control.BeamSampler.timestamp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timestamp</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.BeamSampler.updated" title="madgui.online.control.BeamSampler.updated"><code class="xref py py-obj docutils literal notranslate"><span class="pre">updated</span></code></a></p></td>
+<td><p>Signal&lt;[&lt;class ‘int’&gt;, &lt;class ‘dict’&gt;]&gt;</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.control.BeamSampler.fetch">
+<code class="sig-name descname">fetch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitors</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#BeamSampler.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.BeamSampler.fetch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.BeamSampler.readouts">
+<em class="property">property </em><code class="sig-name descname">readouts</code><a class="headerlink" href="#madgui.online.control.BeamSampler.readouts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.BeamSampler.timestamp">
+<em class="property">property </em><code class="sig-name descname">timestamp</code><a class="headerlink" href="#madgui.online.control.BeamSampler.timestamp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.control.BeamSampler.updated">
+<code class="sig-name descname">updated</code><a class="headerlink" href="#madgui.online.control.BeamSampler.updated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;[&lt;class ‘int’&gt;, &lt;class ‘dict’&gt;]&gt;</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.control.Control">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.control.</code><code class="sig-name descname">Control</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Plugin class for MadGUI.</p>
+<p>When connected, the plugin can be used to access parameters in the online
+database. This works only if the corresponding parameters were named
+exactly as in the database and are assigned with the “:=” operator.</p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.connect" title="madgui.online.control.Control.connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connect</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.Control.disconnect" title="madgui.online.control.Control.disconnect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disconnect</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.export_settings" title="madgui.online.control.Control.export_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_settings</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.Control.get_knobs" title="madgui.online.control.Control.get_knobs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_knobs</span></code></a>()</p></td>
+<td><p>Get dict of lowercase name → <code class="xref py py-class docutils literal notranslate"><span class="pre">ParamInfo</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.on_correct_measured_response_method" title="madgui.online.control.Control.on_correct_measured_response_method"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_correct_measured_response_method</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.Control.on_correct_multi_grid_method" title="madgui.online.control.Control.on_correct_multi_grid_method"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_correct_multi_grid_method</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.on_correct_optic_variation_method" title="madgui.online.control.Control.on_correct_optic_variation_method"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_correct_optic_variation_method</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.Control.on_read_all" title="madgui.online.control.Control.on_read_all"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_read_all</span></code></a>()</p></td>
+<td><p>Read all parameters from the online database.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.on_read_beam" title="madgui.online.control.Control.on_read_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_read_beam</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.Control.on_write_all" title="madgui.online.control.Control.on_write_all"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_write_all</span></code></a>()</p></td>
+<td><p>Write all parameters to the online database.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.read_all" title="madgui.online.control.Control.read_all"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_all</span></code></a>([knobs])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.Control.read_beam" title="madgui.online.control.Control.read_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_beam</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.read_monitor" title="madgui.online.control.Control.read_monitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_monitor</span></code></a>(name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.Control.read_param" title="madgui.online.control.Control.read_param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_param</span></code></a>(name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.set_backend" title="madgui.online.control.Control.set_backend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_backend</span></code></a>(qualname)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.Control.write_all" title="madgui.online.control.Control.write_all"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_all</span></code></a>([knobs])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.write_params" title="madgui.online.control.Control.write_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_params</span></code></a>(params)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.monitor_widget" title="madgui.online.control.Control.monitor_widget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monitor_widget</span></code></a></p></td>
+<td><p>Read out SD values (beam position/envelope).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.control.Control.orm_measure_widget" title="madgui.online.control.Control.orm_measure_widget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">orm_measure_widget</span></code></a></p></td>
+<td><p>Measure ORM for later analysis.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.control.Control.on_sync_model" title="madgui.online.control.Control.on_sync_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_sync_model</span></code></a>(parent, widget)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.control.Control.connect">
+<code class="sig-name descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.disconnect">
+<code class="sig-name descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.export_settings">
+<code class="sig-name descname">export_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.export_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.export_settings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.get_knobs">
+<code class="sig-name descname">get_knobs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.get_knobs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.get_knobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get dict of lowercase name → <code class="xref py py-class docutils literal notranslate"><span class="pre">ParamInfo</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.monitor_widget">
+<em class="property">property </em><code class="sig-name descname">monitor_widget</code><a class="headerlink" href="#madgui.online.control.Control.monitor_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read out SD values (beam position/envelope).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.on_correct_measured_response_method">
+<code class="sig-name descname">on_correct_measured_response_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.on_correct_measured_response_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.on_correct_measured_response_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.on_correct_multi_grid_method">
+<code class="sig-name descname">on_correct_multi_grid_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.on_correct_multi_grid_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.on_correct_multi_grid_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.on_correct_optic_variation_method">
+<code class="sig-name descname">on_correct_optic_variation_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.on_correct_optic_variation_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.on_correct_optic_variation_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.on_read_all">
+<code class="sig-name descname">on_read_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.on_read_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.on_read_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read all parameters from the online database.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.on_read_beam">
+<code class="sig-name descname">on_read_beam</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.on_read_beam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.on_read_beam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.control.Control.on_sync_model">
+<em class="property">class </em><code class="sig-name descname">on_sync_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em>, <em class="sig-param"><span class="n">widget</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.on_sync_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.on_sync_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt id="madgui.online.control.Control.on_sync_model.onSyncModel">
+<code class="sig-name descname">onSyncModel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.on_sync_model.onSyncModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.on_sync_model.onSyncModel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.on_write_all">
+<code class="sig-name descname">on_write_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.on_write_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.on_write_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write all parameters to the online database.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.orm_measure_widget">
+<em class="property">property </em><code class="sig-name descname">orm_measure_widget</code><a class="headerlink" href="#madgui.online.control.Control.orm_measure_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measure ORM for later analysis.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.read_all">
+<code class="sig-name descname">read_all</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">knobs</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.read_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.read_all" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.read_beam">
+<code class="sig-name descname">read_beam</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.read_beam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.read_beam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.read_monitor">
+<code class="sig-name descname">read_monitor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.read_monitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.read_monitor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.read_param">
+<code class="sig-name descname">read_param</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.read_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.read_param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.set_backend">
+<code class="sig-name descname">set_backend</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">qualname</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.set_backend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.set_backend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.write_all">
+<code class="sig-name descname">write_all</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">knobs</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.write_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.write_all" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.control.Control.write_params">
+<code class="sig-name descname">write_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#Control.write_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.Control.write_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.control.MonitorReadout">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.control.</code><code class="sig-name descname">MonitorReadout</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">values</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/control.html#MonitorReadout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.control.MonitorReadout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.online.diagnostic.html" class="btn btn-neutral float-right" title="madgui.online.diagnostic module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.online.api.html" class="btn btn-neutral float-left" title="madgui.online.api module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

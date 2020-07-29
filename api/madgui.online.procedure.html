@@ -1,0 +1,523 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>madgui.online.procedure module &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="madgui.plot package" href="madgui.plot.html" />
+    <link rel="prev" title="madgui.online.orm_measure module" href="madgui.online.orm_measure.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devguide/index.html">Developer’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="madgui.html">madgui package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="madgui.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="madgui.core.html">madgui.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.data.html">madgui.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.model.html">madgui.model package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="madgui.online.html">madgui.online package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="madgui.online.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.plot.html">madgui.plot package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.survey.html">madgui.survey package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.util.html">madgui.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="madgui.widget.html">madgui.widget package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="madgui.html">madgui package</a> &raquo;</li>
+        
+          <li><a href="madgui.online.html">madgui.online package</a> &raquo;</li>
+        
+      <li>madgui.online.procedure module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/madgui.online.procedure.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-madgui.online.procedure">
+<span id="madgui-online-procedure-module"></span><h1>madgui.online.procedure module<a class="headerlink" href="#module-madgui.online.procedure" title="Permalink to this headline">¶</a></h1>
+<p>Contains classes to work with an automated measurement procedure that changes
+element parameters and records values whenever a new set of monitor readouts
+is received.</p>
+<p><strong>Classes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.OrbitRecord" title="madgui.online.procedure.OrbitRecord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OrbitRecord</span></code></a>(monitor, readout, optics, tm)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Target" title="madgui.online.procedure.Target"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Target</span></code></a>(elem, x, y[, px, py])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector" title="madgui.online.procedure.Corrector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Corrector</span></code></a>(session[, direct])</p></td>
+<td><p>Class for orbit correction procedure.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.ProcBot" title="madgui.online.procedure.ProcBot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProcBot</span></code></a>(widget, corrector)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="madgui.online.procedure.Corrector">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.procedure.</code><code class="sig-name descname">Corrector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session</span></em>, <em class="sig-param"><span class="n">direct</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="madgui.model.match.html#madgui.model.match.Matcher" title="madgui.model.match.Matcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">madgui.model.match.Matcher</span></code></a></p>
+<p>Class for orbit correction procedure.</p>
+<p><strong>Attributes</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.mode" title="madgui.online.procedure.Corrector.mode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mode</span></code></a></p></td>
+<td><p>str(object=’’) -&gt; str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.setup_changed" title="madgui.online.procedure.Corrector.setup_changed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_changed</span></code></a></p></td>
+<td><p>Signal&lt;&gt;</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.add_record" title="madgui.online.procedure.Corrector.add_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_record</span></code></a>(step, shot[, time])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.apply" title="madgui.online.procedure.Corrector.apply"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.can_fit" title="madgui.online.procedure.Corrector.can_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">can_fit</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.close_export" title="madgui.online.procedure.Corrector.close_export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close_export</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.compute_orbit_response_matrix" title="madgui.online.procedure.Corrector.compute_orbit_response_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_orbit_response_matrix</span></code></a>([knowsReadouts])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.compute_sectormap" title="madgui.online.procedure.Corrector.compute_sectormap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_sectormap</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.compute_steerer_corrections" title="madgui.online.procedure.Corrector.compute_steerer_corrections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_steerer_corrections</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.current_orbit_records" title="madgui.online.procedure.Corrector.current_orbit_records"><code class="xref py py-obj docutils literal notranslate"><span class="pre">current_orbit_records</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.fit_particle_orbit" title="madgui.online.procedure.Corrector.fit_particle_orbit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_particle_orbit</span></code></a>(records)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.knows_targets_readouts" title="madgui.online.procedure.Corrector.knows_targets_readouts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">knows_targets_readouts</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.open_export" title="madgui.online.procedure.Corrector.open_export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open_export</span></code></a>(fname)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.set_optic" title="madgui.online.procedure.Corrector.set_optic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_optic</span></code></a>(i)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.set_optics_delta" title="madgui.online.procedure.Corrector.set_optics_delta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_optics_delta</span></code></a>(deltas, default)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.setup" title="madgui.online.procedure.Corrector.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>(config[, dirs])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.update_fit" title="madgui.online.procedure.Corrector.update_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_fit</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.update_records" title="madgui.online.procedure.Corrector.update_records"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_records</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.update_vars" title="madgui.online.procedure.Corrector.update_vars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_vars</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.write_data" title="madgui.online.procedure.Corrector.write_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_data</span></code></a>(data[, indent])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.Corrector.write_shot" title="madgui.online.procedure.Corrector.write_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_shot</span></code></a>(step, shot, records[, time])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt id="madgui.online.procedure.Corrector.active_optic">
+<code class="sig-name descname">active_optic</code><em class="property"> = None</em><a class="headerlink" href="#madgui.online.procedure.Corrector.active_optic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.add_record">
+<code class="sig-name descname">add_record</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">step</span></em>, <em class="sig-param"><span class="n">shot</span></em>, <em class="sig-param"><span class="n">time</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.add_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.add_record" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.can_fit">
+<code class="sig-name descname">can_fit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.can_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.can_fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.close_export">
+<code class="sig-name descname">close_export</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.close_export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.close_export" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.compute_orbit_response_matrix">
+<code class="sig-name descname">compute_orbit_response_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">knowsReadouts</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.compute_orbit_response_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.compute_orbit_response_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.compute_sectormap">
+<code class="sig-name descname">compute_sectormap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.compute_sectormap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.compute_sectormap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.compute_steerer_corrections">
+<code class="sig-name descname">compute_steerer_corrections</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.compute_steerer_corrections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.compute_steerer_corrections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.current_orbit_records">
+<code class="sig-name descname">current_orbit_records</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.current_orbit_records"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.current_orbit_records" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.fit_particle_orbit">
+<code class="sig-name descname">fit_particle_orbit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">records</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.fit_particle_orbit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.fit_particle_orbit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.knows_targets_readouts">
+<code class="sig-name descname">knows_targets_readouts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.knows_targets_readouts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.knows_targets_readouts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.procedure.Corrector.mode">
+<code class="sig-name descname">mode</code><em class="property"> = 'xy'</em><a class="headerlink" href="#madgui.online.procedure.Corrector.mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.open_export">
+<code class="sig-name descname">open_export</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.open_export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.open_export" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.set_optic">
+<code class="sig-name descname">set_optic</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.set_optic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.set_optic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.set_optics_delta">
+<code class="sig-name descname">set_optics_delta</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">deltas</span></em>, <em class="sig-param"><span class="n">default</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.set_optics_delta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.set_optics_delta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.setup">
+<code class="sig-name descname">setup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">dirs</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="madgui.online.procedure.Corrector.setup_changed">
+<code class="sig-name descname">setup_changed</code><a class="headerlink" href="#madgui.online.procedure.Corrector.setup_changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal&lt;&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.update_fit">
+<code class="sig-name descname">update_fit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.update_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.update_fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.update_records">
+<code class="sig-name descname">update_records</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.update_records"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.update_records" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.update_vars">
+<code class="sig-name descname">update_vars</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.update_vars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.update_vars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.write_data">
+<code class="sig-name descname">write_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">indent</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwd</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.write_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.write_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.Corrector.write_shot">
+<code class="sig-name descname">write_shot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">step</span></em>, <em class="sig-param"><span class="n">shot</span></em>, <em class="sig-param"><span class="n">records</span></em>, <em class="sig-param"><span class="n">time</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Corrector.write_shot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Corrector.write_shot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.procedure.OrbitRecord">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.procedure.</code><code class="sig-name descname">OrbitRecord</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor</span></em>, <em class="sig-param"><span class="n">readout</span></em>, <em class="sig-param"><span class="n">optics</span></em>, <em class="sig-param"><span class="n">tm</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#OrbitRecord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.OrbitRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.procedure.ProcBot">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.procedure.</code><code class="sig-name descname">ProcBot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">widget</span></em>, <em class="sig-param"><span class="n">corrector</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#ProcBot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.ProcBot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p><strong>Methods</strong></p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.ProcBot.cancel" title="madgui.online.procedure.ProcBot.cancel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cancel</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.ProcBot.finish" title="madgui.online.procedure.ProcBot.finish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">finish</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#madgui.online.procedure.ProcBot.start" title="madgui.online.procedure.ProcBot.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start</span></code></a>(num_ignore, num_average[, gui])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#madgui.online.procedure.ProcBot.stop" title="madgui.online.procedure.ProcBot.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="madgui.online.procedure.ProcBot.cancel">
+<code class="sig-name descname">cancel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#ProcBot.cancel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.ProcBot.cancel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.ProcBot.finish">
+<code class="sig-name descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#ProcBot.finish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.ProcBot.finish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.ProcBot.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_ignore</span></em>, <em class="sig-param"><span class="n">num_average</span></em>, <em class="sig-param"><span class="n">gui</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#ProcBot.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.ProcBot.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="madgui.online.procedure.ProcBot.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#ProcBot.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.ProcBot.stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="madgui.online.procedure.Target">
+<em class="property">class </em><code class="sig-prename descclassname">madgui.online.procedure.</code><code class="sig-name descname">Target</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elem</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">px</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">py</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/madgui/online/procedure.html#Target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#madgui.online.procedure.Target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="madgui.plot.html" class="btn btn-neutral float-right" title="madgui.plot package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="madgui.online.orm_measure.html" class="btn btn-neutral float-left" title="madgui.online.orm_measure module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

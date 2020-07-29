@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Development setup for madgui &mdash; madgui 20.7.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Proxy Settings" href="proxy.html" />
+    <link rel="prev" title="Developer’s guide" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> madgui
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.7.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usrguide/index.html">User’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer’s guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Development setup for madgui</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#environment">Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="proxy.html">Proxy Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conventions.html">Coding conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html">Creating a new version</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/madgui.html">madgui package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">madgui</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Developer’s guide</a> &raquo;</li>
+        
+      <li>Development setup for madgui</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/devguide/setup.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="development-setup-for-madgui">
+<h1>Development setup for madgui<a class="headerlink" href="#development-setup-for-madgui" title="Permalink to this headline">¶</a></h1>
+<p>This section describes how to setup a development environment for madgui. This
+section is relevant only for those who are planning to modify the madgui
+source code or check out an unreleased version from github.</p>
+<p>If you are behind a firewall or proxy like at HIT, please take a look at the
+<a class="reference external" href="./proxy">proxy-settings</a> documentation first and then come back here.</p>
+<div class="section" id="environment">
+<h2>Environment<a class="headerlink" href="#environment" title="Permalink to this headline">¶</a></h2>
+<p>When developing a python application or package, it is best to have a separate
+environment in which the application is installed. This prevents version
+conflicts with other applications and makes it clearer what dependencies the
+program has.</p>
+<p>If you already have experience with venvs or virtualenvs and
+virtualenvwrapper, you can use these. <strong>Otherwise,</strong> I highly recommend using
+either <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">Miniconda</a> or <a class="reference external" href="https://www.anaconda.com/distribution/#download-section">Anaconda</a>. Personally, I use miniconda on windows.</p>
+<p><strong>conda:</strong> In the following we give a quick introduction on how to work with
+conda environments.</p>
+<p>First, create a virtual environment named <em>madgui</em> with python 3.7 in it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n madgui <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7
+</pre></div>
+</div>
+<p>And activate the virtual environment with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda activate madgui
+</pre></div>
+</div>
+<p>With older versions of conda, this command may be different and you may have
+to write either <code class="docutils literal notranslate"><span class="pre">activate</span> <span class="pre">madgui</span></code> or <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">activate</span> <span class="pre">madgui</span></code>.</p>
+<p>We will use <em>pip</em> as the main python package installation tool in the
+following. On recent conda versions, pip should be preinstalled in the
+environment. If this is not the case, install as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install pip
+</pre></div>
+</div>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>madgui depends on <a class="reference external" href="https://hibtc.github.io/cpymad/installation/windows.html">cpymad</a> which in turn requires <a class="reference external" href="http://mad.web.cern.ch/mad/">MAD-X</a> and <a class="reference external" href="https://cython.org/">cython</a> to build.
+As long as you are not planning to modify cpymad code, it is much easier and
+in fact recommended to just install cpymad using pip at this point:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install cpymad
+</pre></div>
+</div>
+<p>Once you decide that you do need to modify cpymad code, please refer to
+cpymad’s <a class="reference external" href="https://hibtc.github.io/cpymad/installation">installation instructions</a> which explains how to setup cpymad in a
+development environment.</p>
+<p>At this point, I assume you have installed cpymad. To check that the cpymad
+installation is working, run the following line in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -c <span class="s2">&quot;import cpymad.libmadx as l; l.start()&quot;</span>
+</pre></div>
+</div>
+<p>A banner like this should appear:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>++++++++++++++++++++++++++++++++++++++++++++
++     MAD-X <span class="m">5</span>.04.02  <span class="o">(</span><span class="m">64</span> bit, Linux<span class="o">)</span>       +
++ Support: mad@cern.ch, http://cern.ch/mad +
++ Release   date: <span class="m">2018</span>.10.03               +
++ Execution date: <span class="m">2019</span>.03.13 <span class="m">15</span>:35:42      +
+++++++++++++++++++++++++++++++++++++++++++++
+</pre></div>
+</div>
+<p>Once this works, proceed to clone madgui and setup madgui:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone git@github.com:hibtc/madgui
+<span class="nb">cd</span> madgui
+pip install -e .
+</pre></div>
+</div>
+<p>This will also suck in dependencies such as PyQt5 or numpy.</p>
+<p>It is important to <strong>always</strong> use pip for installation because pip handles
+certain things better than e.g.  <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code>. See this <a class="reference external" href="https://coldfix.de/2019/03/14/no-pip-no-sip/">blog
+post</a> for one example what can go wrong with the setuptools based method if
+you are interested.</p>
+<p>If you have messed up the madgui installation for some reason, the easiest
+thing is to destroy your environment and then start a fresh one:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda deactivate
+conda env remove -n madgui
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="proxy.html" class="btn btn-neutral float-right" title="Proxy Settings" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Developer’s guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2019, Heidelberg Ion beam Therapy center (HIT)
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
