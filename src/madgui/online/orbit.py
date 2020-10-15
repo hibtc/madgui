@@ -12,7 +12,7 @@ __all__ = [
 ]
 
 import numpy as np
-import logging
+
 
 class Readout:
     def __init__(self, name, posx, posy):
@@ -94,6 +94,7 @@ def fit_initial_orbit(records, rcond=1e-6):
     x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=rcond)
     return x, sum(residuals), (rank < len(x))
 
+
 def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
                                 model, monitor, targets):
     """
@@ -101,13 +102,13 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
     readouts. The tracking goes just to the begining of the first optic 
     element, expected to be a quadrupole.
 
-    @param readouts Measured positions at one monitor
-    @param optics structure containing the optics 
+      @param readouts Measured positions at one monitor
+      @param optics structure containing the optics 
                   (See procedure.py Corrector opticVariation)
-    @param array containing the optic elements that were varied
-    @param model is the MADX model
-    @param monitor is the monitor at which it was measured
-    @param targets are the elements in the beamline where we want to optimize
+      @param array containing the optic elements that were varied
+      @param model is the MADX model
+      @param monitor is the monitor at which it was measured
+      @param targets are the elements in the beamline where we want to optimize
 
     Returns:    { (element, axis) : fit orbit } 
     Element is the target element, axis x or y 
@@ -126,8 +127,7 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
         tMap_i = model.sectormap(initElem, monitor[0])
         for i in range(int(nReads/optN)):
             count = int(opti*nReads/optN)
-            records.append((tMap_i[:,:6],
-                            tMap_i[:,6],
+            records.append((tMap_i[:,:6], tMap_i[:,6],
                             (x[i+count], y[i+count])))
         opti += 1
         
@@ -143,11 +143,10 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
              [model.track_one(x=xFit[0], px=xFit[1],
                               y=xFit[2], py=xFit[3],
                               range='{}/{}'.format(initElem,
-                                                   t.elem))]
-            })
+                                                   t.elem))]})
 
     measured = [
-        { (t.elem.lower(), ax): val
+        {(t.elem.lower(), ax): val
           for t in targets
           for ax, val in zip('xy', (o[t.elem][0],
                                     o[t.elem][1]))

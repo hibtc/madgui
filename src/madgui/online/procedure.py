@@ -302,10 +302,10 @@ class Corrector(Matcher):
         """
         Returns an array with tuples of the form
             ( element, axis, deltas )
-        @param element is the beamline element where we want to correct
+          @param element is the beamline element where we want to correct
                        (mostly and preferably monitors)
-        @param axis is either x- or y-axis
-        @param deltas is the difference between 
+          @param axis is either x- or y-axis
+          @param deltas is the difference between 
                       objective_value - measured_value
                       where the objective value is the wished value
         """
@@ -325,8 +325,8 @@ class Corrector(Matcher):
                     "Make sure to use as many shots as possible")
             # TODO: Implement here correctly the offsets
             # and investigate how the offsets were meant to work
-            offsets = self._offsets
-            elem_twiss = self.model.get_elem_twiss
+            # offsets = self._offsets
+            # elem_twiss = self.model.get_elem_twiss
             measured = fit_particle_orbit_opticVar(self.records,
                                                    self.optics,
                                                    self.optic_elems,
@@ -339,7 +339,7 @@ class Corrector(Matcher):
                 for el, ax, objective_value in self._get_objectives()
                 for measured_value in [m.get(((el, ax)))]
             ]
-            
+        
         return [
             (el, ax, objective_value - measured_value)
             for el, ax, objective_value in self._get_objectives()
@@ -373,7 +373,7 @@ class Corrector(Matcher):
                 var.lower(): globals_[var] + delta
                 for var, delta in zip(self.variables, dvar)
             }
-             
+        
         except np.linalg.LinAlgError:
             logging.error('Unable to correct the orbit with this method')
             logging.warning('Please try another configuration or another method')
