@@ -305,7 +305,7 @@ class Corrector(Matcher):
           @param element is the beamline element where we want to correct
                        (mostly and preferably monitors)
           @param axis is either x- or y-axis
-          @param deltas is the difference between 
+          @param deltas is the difference between
                       objective_value - measured_value
                       where the objective value is the wished value
         """
@@ -364,7 +364,6 @@ class Corrector(Matcher):
             else:
                 mons, axs, deltas = zip(*self._get_objective_deltas())
                 targets = set(zip(mons, axs))
-                newMons = [t.elem for t in self.targets]
                 ormOptVar = np.vstack((orm[0], orm[1]))
                 dvar = np.linalg.lstsq(ormOptVar, deltas, rcond=1e-10)[0]
 
@@ -373,12 +372,12 @@ class Corrector(Matcher):
                 var.lower(): globals_[var] + delta
                 for var, delta in zip(self.variables, dvar)
             }
-        
+
         except np.linalg.LinAlgError:
             logging.error('Unable to correct the orbit with this method')
             logging.warning('Please try another configuration or another method')
             return {}
-        
+
     def _get_constraints(self):
         model = self.model
         elements = model.elements
@@ -430,7 +429,7 @@ class Corrector(Matcher):
             # for each optic
             targets = [t.elem for t in self.targets]
             return self._compute_orm_varOpt(targets)
-        
+
         return self.model.get_orbit_response_matrix(
             self.monitors, self.variables).reshape((-1, len(self.variables)))
 
@@ -447,7 +446,7 @@ class Corrector(Matcher):
             )
         self.model.write_params(self.optics[0].items())
         return orm
-    
+
     def add_record(self, step, shot, time=None):
         # update_vars breaks ORM procedures because it re-reads base_optics!
         # self.update_vars()

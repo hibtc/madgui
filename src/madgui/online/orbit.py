@@ -99,11 +99,11 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
                                 model, monitor, targets):
     """
     Compute initial beam position/momentum from multiple recorded monitor
-    readouts. The tracking goes just to the begining of the first optic 
+    readouts. The tracking goes just to the begining of the first optic
     element, expected to be a quadrupole.
 
       @param readouts Measured positions at one monitor
-      @param optics structure containing the optics 
+      @param optics structure containing the optics
                   (See procedure.py Corrector opticVariation)
       @param array containing the optic elements that were varied
       @param model is the MADX model
@@ -111,14 +111,14 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
       @param targets are the elements in the beamline where we want to optimize
 
     Returns:    { (element, axis) : fit orbit } 
-    Element is the target element, axis x or y 
+    Element is the target element, axis x or y
     """
     initElem = optic_elements[0]
     x = [mi.readout.posx for mi in readouts]
     y = [mi.readout.posy for mi in readouts]
 
     records = []
-    optN   = len(optics)
+    optN = len(optics)
     nReads = len(x)
     opti = 0
     
@@ -127,12 +127,12 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
         tMap_i = model.sectormap(initElem, monitor[0])
         for i in range(int(nReads/optN)):
             count = int(opti*nReads/optN)
-            records.append((tMap_i[:,:6], tMap_i[:,6],
+            records.append((tMap_i[:, :6], tMap_i[:, 6],
                             (x[i+count], y[i+count])))
         opti += 1
-        
+
     xFit, chi_squared, singular = fit_initial_orbit(records)
-    
+
     measuredT = []
     for o in optics:
         model.write_params(o.items())
@@ -146,10 +146,10 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
                                                    t.elem))]})
 
     measured = [
-        {(t.elem.lower(), ax): val
-          for t in targets
-          for ax, val in zip('xy', (o[t.elem][0],
-                                    o[t.elem][1]))
-        } for o in measuredT ]
-    
-    return measured 
+        {(t.elem.lower(), ax): val 
+         for t in targets
+         for ax, val in zip('xy', (o[t.elem][0],
+                                   o[t.elem][1]))
+        } for o in measuredT
+    ]
+    return measured
