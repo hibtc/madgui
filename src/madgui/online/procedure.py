@@ -25,7 +25,7 @@ from madgui.util.misc import invalidate
 from madgui.util.signal import Signal
 
 from madgui.model.match import Matcher
-from .orbit import fit_particle_orbit, add_offsets
+from .orbit import fit_particle_orbit, add_offsets, fit_particle_orbit_opticVar
 
 
 class OrbitRecord:
@@ -77,6 +77,9 @@ class Corrector(Matcher):
         self.strategy = Boxed('orm')
         self.saved_optics = History()
         self.online_optic = {}
+        # Flag to distinguish if we are correcting with multigrid
+        # or opticVariation method
+        self.isOpticVar = False
         # for ORM
         kick_elements = ('hkicker', 'vkicker', 'kicker', 'sbend')
         self.all_kickers = [
@@ -114,6 +117,8 @@ class Corrector(Matcher):
         ])
         optic_knobs = [k.lower() for k in optic_knobs]
 
+        # Optic variation method uses a single monitor
+        self.isOpticVar = (len(config['monitors']) == 1)
         self.optic_elems = [
             elem.name.lower()
             for knob in optic_knobs
@@ -143,10 +148,10 @@ class Corrector(Matcher):
                        for k, v in s.items()}
 
         targets = sorted(targets, key=elements.index)
-        self.objective_values.update({
-            t.elem: (t.x, t.y)
-            for t in self.targets
-        })
+        self.objective_values.update(
+            {t.elem: (t.x, t.y)
+             for t in self.targets}
+        )
         self.targets[:] = [
             Target(elem, x, y)
             for elem in targets
@@ -294,26 +299,46 @@ class Corrector(Matcher):
             self.compute_orbit_response_matrix(knowsReadouts))
 
     def _get_objective_deltas(self):
+        """
+        Returns an array with tuples of the form
+            ( element, axis, deltas )
+          @param element is the beamline element where we want to correct
+                       (mostly and preferably monitors)
+          @param axis is either x- or y-axis
+          @param deltas is the difference between
+                      objective_value - measured_value
+                      where the objective value is the wished value
+        """
         if self.knows_targets_readouts():
+            # This is for the multigrid method
             measured = {
                 (r.name.lower(), ax): val
                 for r in self.readouts
                 for ax, val in zip("xy", (r.posx, r.posy))
             }
         else:
-            logging.warning(
-                "Matching absolute orbit (more sensitive to inaccurate "
-                "backtracking)!")
-            logging.warning(
-                "Make sure to use as many shots as possible")
-            offsets = self._offsets
-            elem_twiss = self.model.get_elem_twiss
-            measured = {
-                (el, ax): elem_twiss(t.elem)[ax] - offset
-                for t in self.targets
-                for el in [t.elem.lower()]
-                for ax, offset in zip("xy", offsets.get(el, (0, 0)))
-            }
+            if self.isOpticVar:
+                logging.warning(
+                    "Matching absolute orbit (more sensitive to inaccurate "
+                    "backtracking)!")
+                logging.warning(
+                    "Make sure to use as many shots as possible")
+            # TODO: Implement here correctly the offsets
+            # and investigate how the offsets were meant to work
+            # offsets = self._offsets
+            # elem_twiss = self.model.get_elem_twiss
+            measured = fit_particle_orbit_opticVar(self.records,
+                                                   self.optics,
+                                                   self.optic_elems,
+                                                   self.model,
+                                                   self.monitors,
+                                                   self.targets)
+            return [
+                (el, ax, objective_value - measured_value)
+                for m in measured
+                for el, ax, objective_value in self._get_objectives()
+                for measured_value in [m.get(((el, ax)))]
+            ]
 
         return [
             (el, ax, objective_value - measured_value)
@@ -322,25 +347,32 @@ class Corrector(Matcher):
         ]
 
     def _compute_steerer_corrections_orm(self, orm):
-        mons, axs, deltas = zip(*self._get_objective_deltas())
-        targets = set(zip(mons, axs))
-        S = [
-            i for i, (elem, axis) in enumerate(product(self.monitors, 'xy'))
-            if (elem.lower(), axis) in targets
-        ]
-        globals_ = self.model.globals
         try:
-            if not self.knows_targets_readouts():
-                # Sidenote: I am not sure if the ordering is kept
-                # in a few tests it appears to be the case
-                dvar = np.linalg.lstsq(orm, deltas, rcond=1e-10)[0]
+            # Multigrid method
+            if not self.isOpticVar:
+                mons, axs, deltas = zip(*self._get_objective_deltas())
+                targets = set(zip(mons, axs))
+                S = [
+                    i for i, (elem, axis) in enumerate(product(self.monitors,
+                                                               'xy'))
+                    if (elem.lower(), axis) in targets
+                ]
+                dvar = np.linalg.lstsq(orm[S, :], deltas, rcond=1e-10)[0]
+            # Optic variation method
+            # TODO: Just works if two Optics were given
+            # Extend to user defined number of optics
             else:
-                dvar = np.linalg.lstsq(
-                    orm[S, :], deltas, rcond=1e-10)[0]
+                mons, axs, deltas = zip(*self._get_objective_deltas())
+                targets = set(zip(mons, axs))
+                ormOptVar = np.vstack((orm[0], orm[1]))
+                dvar = np.linalg.lstsq(ormOptVar, deltas, rcond=1e-10)[0]
+
+            globals_ = self.model.globals
             return {
                 var.lower(): globals_[var] + delta
                 for var, delta in zip(self.variables, dvar)
             }
+
         except np.linalg.LinAlgError:
             logging.error('Unable to correct the orbit with this method')
             logging.warning('Please try another configuration or another method')
@@ -391,14 +423,29 @@ class Corrector(Matcher):
 
     # TODO: share implementation with `madgui.model.orm.NumericalORM`!!
     def compute_orbit_response_matrix(self, knowsReadouts=True):
-        if not knowsReadouts:
-            # In case we have targets that are not monitors or input data
-            # cannot be reached
+        if (not knowsReadouts and self.isOpticVar):
+            # In case we have targets that are not monitors
+            # and different optics the ORM has to be computed
+            # for each optic
             targets = [t.elem for t in self.targets]
-            return self.model.get_orbit_response_matrix(
-                targets, self.variables).reshape((-1, len(self.variables)))
+            return self._compute_orm_varOpt(targets)
+
         return self.model.get_orbit_response_matrix(
             self.monitors, self.variables).reshape((-1, len(self.variables)))
+
+    def _compute_orm_varOpt(self, targets):
+        # Computes ORM for different optics for the given targets
+        # Returns array with ORMs with len NOptics
+        orm = []
+        for o in self.optics:
+            self.model.write_params(o.items())
+            orm.append(
+                self.model.get_orbit_response_matrix(
+                    targets, self.variables).
+                reshape((-1, len(self.variables)))
+            )
+        self.model.write_params(self.optics[0].items())
+        return orm
 
     def add_record(self, step, shot, time=None):
         # update_vars breaks ORM procedures because it re-reads base_optics!
