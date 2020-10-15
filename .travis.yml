@@ -36,7 +36,7 @@ jobs:
     - stage: deploy
       name: Upload Documentation
       install:
-        - pip install . sphinx==2.4.2 sphinx_rtd_theme autodocsumm
+        - pip install . sphinx==3.1.2 sphinx_rtd_theme autodocsumm
       script: make -C docs html
       deploy:
         - provider: pages
