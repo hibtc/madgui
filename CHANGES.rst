@@ -5,6 +5,7 @@ CHANGELOG
 Date: 15.10.2020
 
 - Add Optic Variation Method for orbit flattening
+- Add Sphinx V4.2.4 as default for documentation
 
 20.7.0
 ~~~~~~
