@@ -148,7 +148,7 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
     measured = [
         {(t.elem.lower(), ax): val
          for t in targets
-         for ax, val in zip('xy', (o[t.elem][0], o[t.elem][1]))
-        } for o in measuredT
+         for ax, val in zip('xy', (o[t.elem][0], o[t.elem][1]))}
+        for o in measuredT
     ]
     return measured
