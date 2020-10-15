@@ -1,5 +1,11 @@
 CHANGELOG
 ~~~~~~~~~
+20.10.0
+~~~~~~
+Date: 15.10.2020
+
+- Add Optic Variation Method for orbit flattening
+
 20.7.0
 ~~~~~~
 Date: 28.07.2020
