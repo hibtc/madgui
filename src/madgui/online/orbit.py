@@ -110,7 +110,7 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
       @param monitor is the monitor at which it was measured
       @param targets are the elements in the beamline where we want to optimize
 
-    Returns:    { (element, axis) : fit orbit } 
+    Returns:    { (element, axis) : fit orbit }
     Element is the target element, axis x or y
     """
     initElem = optic_elements[0]
@@ -121,7 +121,7 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
     optN = len(optics)
     nReads = len(x)
     opti = 0
-    
+
     for o in optics:
         model.write_params(o.items())
         tMap_i = model.sectormap(initElem, monitor[0])
@@ -146,10 +146,9 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
                                                    t.elem))]})
 
     measured = [
-        {(t.elem.lower(), ax): val 
+        {(t.elem.lower(), ax): val
          for t in targets
-         for ax, val in zip('xy', (o[t.elem][0],
-                                   o[t.elem][1]))
+         for ax, val in zip('xy', (o[t.elem][0], o[t.elem][1]))
         } for o in measuredT
     ]
     return measured

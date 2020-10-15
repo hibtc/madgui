@@ -148,10 +148,10 @@ class Corrector(Matcher):
                        for k, v in s.items()}
 
         targets = sorted(targets, key=elements.index)
-        self.objective_values.update({
-            t.elem: (t.x, t.y)
-            for t in self.targets
-        })
+        self.objective_values.update(
+            {t.elem: (t.x, t.y)
+             for t in self.targets}
+        )
         self.targets[:] = [
             Target(elem, x, y)
             for elem in targets
@@ -339,7 +339,7 @@ class Corrector(Matcher):
                 for el, ax, objective_value in self._get_objectives()
                 for measured_value in [m.get(((el, ax)))]
             ]
-        
+
         return [
             (el, ax, objective_value - measured_value)
             for el, ax, objective_value in self._get_objectives()
@@ -368,7 +368,7 @@ class Corrector(Matcher):
                 dvar = np.linalg.lstsq(ormOptVar, deltas, rcond=1e-10)[0]
 
             globals_ = self.model.globals
-            return  {
+            return {
                 var.lower(): globals_[var] + delta
                 for var, delta in zip(self.variables, dvar)
             }
