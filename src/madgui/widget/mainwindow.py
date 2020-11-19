@@ -86,6 +86,7 @@ class MainWindow(QMainWindow):
         self.move(*self.config.mainwindow.init_pos)
         if self.config.mainwindow.get('font_size'):
             self.setFontSize(self.config.mainwindow.font_size)
+        self.increaseFontSize()
 
     def createMenu(self):
         control = self.control
