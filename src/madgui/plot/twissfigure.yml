@@ -103,8 +103,8 @@ graphs:
   dispersion:
     title: "Twiss: Dispersion"
     curves:
-      - [twiss, s, dx, '$D_x$', *X]
-      - [twiss, s, dy, '$D_y$', *Y]
+      - [twiss, s, dx, '$D_x$ [m]', *X]
+      - [twiss, s, dy, '$D_y$ [m]', *Y]
   momentum_dispersion:
     title: "Twiss: Momentum dispersion"
     curves:
