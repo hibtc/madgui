@@ -151,11 +151,14 @@ class Control:
             self.onSyncModel()
 
         def onSyncModel(self):
-            model = self.parent.backend.vAcc_to_model()
-            self.parent.session.load_model(model)
-            self.parent._on_model_changed()
-            self.parent.on_read_all()
-            self.widget.close()
+            model, stdVacc = self.parent.backend.vAcc_to_model()
+            if stdVacc:
+                for i in range(2):
+                    self.parent.session.load_model(model)
+                    self.parent.read_all()
+                    self.parent._on_model_changed()
+                    self.widget.close()
+                self.widget.show()
 
     def read_all(self, knobs=None):
         live = self.backend
