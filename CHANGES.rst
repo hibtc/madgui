@@ -1,5 +1,12 @@
 CHANGELOG
 ~~~~~~~~~
+
+20.11.0
+~~~~~~~
+Date: 19.11.2020
+
+- Fix some bugs in the code
+
 20.10.0
 ~~~~~~~
 Date: 15.10.2020
