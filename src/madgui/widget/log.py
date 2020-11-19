@@ -24,6 +24,8 @@ from madgui.util.qt import monospace
 from madgui.util.layout import HBoxLayout
 from madgui.widget.edit import LineNumberBar
 
+mpl_logger = logging.getLogger('matplotlib')
+mpl_logger.setLevel(logging.WARNING)
 
 LOGLEVELS = [None, 'CRITICAL', 'ERROR', 'WARNING',  'INFO', 'DEBUG']
 
