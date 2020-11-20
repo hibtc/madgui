@@ -12,7 +12,8 @@ __all__ = [
 ]
 
 import numpy as np
-
+import logging
+from cpymad.madx import AttrDict
 
 class Readout:
     def __init__(self, name, posx, posy):
@@ -94,6 +95,47 @@ def fit_initial_orbit(records, rcond=1e-6):
     x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=rcond)
     return x, sum(residuals), (rank < len(x))
 
+def fit_initial_orbit_6D(records, rcond=1e-6):
+    """
+    Compute initial beam position/momentum from multiple recorded monitor
+    readouts + associated transfer maps.
+
+    Call as follows:
+
+        >>> fit_initial_orbit([(T1, K1, Y1), (T2, K2, Y2), …])
+
+    where
+
+        T are the 4D/6D SECTORMAPs from start to the monitor.
+        K are the 4D/6D KICKs of the map from the start to the monitor.
+        Y are the 2D measurement vectors (x, y)
+
+    This function solves the linear system:
+
+            T1 X + K1 = Y1
+            T2 X + K2 = Y2
+            …
+
+    for the 4D phase space vector X = (x, px, y, py).
+
+    Returns:    [x,px,y,py],    chi_squared,    underdetermined
+    """
+    T_, K_, Y_ = zip(*records)
+    T = np.vstack([T[[0, 2]] for T in T_])[:, :6]
+    K = np.hstack([K[[0, 2]] for K in K_])
+    Y = np.hstack(Y_)
+    x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=rcond)
+    return x, sum(residuals), (rank < len(x))
+
+
+def trackOne6D(model, initElem, endElem, x0):
+    transferMap = model.sectormap(initElem, endElem)[:, :6]
+    x1 = np.dot(transferMap, x0)
+    return AttrDict({
+                'x': [x1[0]], 'px': [x1[1]],
+                'y': [x1[2]], 'py': [x1[3]],
+            })
+
 
 def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
                                 model, monitor, targets):
@@ -127,23 +169,21 @@ def fit_particle_orbit_opticVar(readouts, optics, optic_elements,
         tMap_i = model.sectormap(initElem, monitor[0])
         for i in range(int(nReads/optN)):
             count = int(opti*nReads/optN)
-            records.append((tMap_i[:, :6], tMap_i[:, 6],
+            records.append((tMap_i[:, :6], np.dot(tMap_i, tMap_i[:, 6]),
                             (x[i+count], y[i+count])))
         opti += 1
 
-    xFit, chi_squared, singular = fit_initial_orbit(records)
+    xFit, chi_squared, singular = fit_initial_orbit_6D(records)
 
     measuredT = []
     for o in optics:
         model.write_params(o.items())
+        tMap_i = model.sectormap(initElem, monitor[0])
         measuredT.append(
             {t.elem: [track.x[-1], track.y[-1]]
              for t in targets
              for track in
-             [model.track_one(x=xFit[0], px=xFit[1],
-                              y=xFit[2], py=xFit[3],
-                              range='{}/{}'.format(initElem,
-                                                   t.elem))]})
+             [trackOne6D(model, initElem, t.elem, xFit)]})
 
     measured = [
         {(t.elem.lower(), ax): val
