@@ -319,10 +319,11 @@ class Corrector(Matcher):
         else:
             if self.isOpticVar:
                 logging.warning(
-                    "Matching absolute orbit (more sensitive to inaccurate "
-                    "backtracking)!")
-                logging.warning(
-                    "Make sure to use as many shots as possible")
+                    """
+                    Matching absolute orbit still not implemented!
+                    Please use the multi grid method.
+                    """
+                )
             # TODO: Implement here correctly the offsets
             # and investigate how the offsets were meant to work
             # offsets = self._offsets
@@ -359,12 +360,14 @@ class Corrector(Matcher):
                 ]
                 dvar = np.linalg.lstsq(orm[S, :], deltas, rcond=1e-10)[0]
             # Optic variation method
-            # TODO: Just works if two Optics were given
-            # Extend to user defined number of optics
             else:
                 mons, axs, deltas = zip(*self._get_objective_deltas())
                 targets = set(zip(mons, axs))
-                ormOptVar = np.vstack((orm[0], orm[1]))
+                ormOptVar = orm[-1]
+                for i in deltas:
+                    logging.debug('Deltas: {}'.format(i))
+                for ormi in orm[1:]:
+                     ormOptVar = np.vstack((ormOptVar, ormi))
                 dvar = np.linalg.lstsq(ormOptVar, deltas, rcond=1e-10)[0]
 
             globals_ = self.model.globals
@@ -423,6 +426,7 @@ class Corrector(Matcher):
 
     # TODO: share implementation with `madgui.model.orm.NumericalORM`!!
     def compute_orbit_response_matrix(self, knowsReadouts=True):
+        logging.debug('Knows readouts: {}'.format(knowsReadouts))
         if (not knowsReadouts and self.isOpticVar):
             # In case we have targets that are not monitors
             # and different optics the ORM has to be computed
@@ -437,13 +441,19 @@ class Corrector(Matcher):
         # Computes ORM for different optics for the given targets
         # Returns array with ORMs with len NOptics
         orm = []
+        logging.debug('Computing ORM for {} optics.'.format(len(self.optics)))
         for o in self.optics:
+            logging.debug('Optic : {}'.format(o))
             self.model.write_params(o.items())
-            orm.append(
-                self.model.get_orbit_response_matrix(
-                    targets, self.variables).
-                reshape((-1, len(self.variables)))
-            )
+            ormi = self.model.get_orbit_response_matrix(
+                targets, self.variables).reshape((-1, len(self.variables))
+                )
+            orm.append(ormi)
+            logging.debug('ORM_i')
+            for row in ormi:
+                logging.debug(row)
+            logging.debug('')
+
         self.model.write_params(self.optics[0].items())
         return orm
 
