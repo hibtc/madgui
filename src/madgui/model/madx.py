@@ -604,6 +604,11 @@ class Model:
         Currently uses TWISS for tracking internally (to allow tracking
         through thick sequences). This might change.
         """
+        ####################################################################
+        # FIXME: The tracking is done 4D and cannot describe properly the  #
+        #        beam transport through the HEBT.                          #
+        #        Dispersion and dp/p are very important!                   #
+        ####################################################################
         elems = self.elements
         start, end = range.split('/') if isinstance(range, str) else range
         start, end = normalize_range_name(start), normalize_range_name(end)
