@@ -204,7 +204,7 @@ class Control:
         """
         beamEnergy = mefiValue[0]
         logging.debug('Energie Stuffe:{}'.format(beamEnergy))
-        
+
     def read_monitor(self, name):
         return self.backend.read_monitor(name)
 
