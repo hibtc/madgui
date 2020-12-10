@@ -158,6 +158,8 @@ class Control:
                     self.parent.read_all()
                     self.parent._on_model_changed()
                     self.widget.close()
+                # Implementation of load function of beam parameters
+                self.parent.read_beam()
                 self.widget.show()
 
     def read_all(self, knobs=None):
@@ -179,7 +181,29 @@ class Control:
         self.read_beam()
 
     def read_beam(self):
-        self.model().update_beam(self.backend.get_beam())
+        ################################################
+        # TODO: Implement here the measured emittances #
+        ################################################
+        from madgui.widget.params import import_params
+        beamPath = '/home/cristopher/HIT/hit_models/beams/'
+        beamFile = 'beam-hebt-c12-E108.yml'
+        sampBeam = import_params(beamPath+beamFile)
+        logging.debug('Loading beam:')
+        for b in sampBeam:
+            logging.debug('{}:{}'.format(b, sampBeam[b]))
+        self.model().update_beam(sampBeam)
+        # Refreshes the Twiss parameters
+        self.model().invalidate()
+        mefiValue = self.backend.get_MEFI()
+        """
+        EFI Value
+        E -> Energy
+        F -> Focus
+        I -> Intensity
+        A -> Gantry angle
+        """
+        beamEnergy = mefiValue[0]
+        logging.debug('Energie Stuffe:{}'.format(beamEnergy))
 
     def read_monitor(self, name):
         return self.backend.read_monitor(name)
