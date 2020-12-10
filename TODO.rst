@@ -5,7 +5,7 @@ priority
 - write report on problems with gantry model
 - generate import dependency graph
 - update and check dependencies
-
+- implement 6D tracking
 
 madgui
 ======
