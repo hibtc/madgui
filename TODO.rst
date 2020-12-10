@@ -6,7 +6,8 @@ priority
 - generate import dependency graph
 - update and check dependencies
 - implement 6D tracking
-
+- implement emittance measurement feature
+  
 madgui
 ======
 
